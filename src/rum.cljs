@@ -2,9 +2,9 @@
 
 (enable-console-print!)
 
-(let [id (volatile! 0)]
+(let [last-id (volatile! 0)]
   (defn next-id []
-    (vswap! id inc)))
+    (vswap! last-id inc)))
 
 (def schedule
   (or js/window.requestAnimationFrame
@@ -22,7 +22,7 @@
 (defn state [comp] (prop comp "__rum_state"))
 (defn args  [comp] (prop comp "__rum_args"))
 
-(defn component [render-fn & {:keys [should-update? will-unmount]}]
+(defn component [render-fn & {:keys [state should-update? will-unmount]}]
   (let [class
         (js/React.createClass
            #js {:render
@@ -47,7 +47,7 @@
     (fn [& args]
       (js/React.createElement class
         #js {:__rum_id    (next-id)
-             :__rum_state (volatile! {})
+             :__rum_state state
              :__rum_args  args}))))
 
 (defn static-component [render-fn]
@@ -80,20 +80,37 @@
 
 ;; Reactive components
 
+(def ^:dynamic *reactions*)
+
 (defn reactive-component [render-fn]
-  (component render-fn
+  (component
+    (fn [comp & args]
+      (binding [*reactions* (volatile! #{})]
+        (let [dom           (apply render-fn comp args)
+              old-reactions @(state comp)
+              new-reactions @*reactions*
+              key           (id comp)]
+          (doseq [atom old-reactions]
+            (when-not (contains? new-reactions atom)
+              (remove-watch atom key)))
+          (doseq [atom new-reactions]
+            (when-not (contains? old-reactions atom)
+              (add-watch atom key
+                (fn [_ _ _ _]
+                  (request-render comp)))))
+          (vreset! (state comp) new-reactions)
+          dom)))
+    :state (volatile! #{})
+    :should-update?
+    (fn [comp next-props next-state]
+      (not= (args comp)
+            (aget next-props "__rum_args")))
     :will-unmount
     (fn [comp]
-      (let [id (id comp)]
-        (doseq [atom (:reactive-atoms @(state comp))]
-          (remove-watch atom id))))))
+      (let [key (id comp)]
+        (doseq [atom @(state comp)]
+          (remove-watch atom key))))))
 
 (defn react [a]
-  (let [comp  *component*
-        state (state comp)]
-    (when-not (contains? (:reactive-atoms @state) a)
-      (vswap! state update :reactive-atoms (fnil conj #{}) a)
-      (add-watch a (id comp)
-        (fn [_ _ _ _]
-          (request-render comp))))
-    @a))
+  (vswap! *reactions* conj a)
+  @a)

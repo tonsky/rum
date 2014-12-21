@@ -1,7 +1,11 @@
 * { box-sizing: border-box; vertical-align: top; text-rendering: optimizelegibility; }
 tr, td, table, tbody { padding: 0; margin: 0; border-collapse: collapse; }
 
-body { font: 16px/20px 'Input Sans Narrow';}
+body, input, button { font: 16px/20px 'Input Sans Narrow';}
 
 .example { border: 2px solid #ccc; border-radius: 2px; padding: 20px; width: 300px; display: inline-block; }
 .example-title { border-bottom: 1px solid #ccc; margin: 0 0 20px; }
+dt { width: 60px; float: left; }
+dt, dd { vertical-align: bottom; line-height: 36px }
+input { padding: 6px 6px 2px; }
+input:focus { outline: 2px solid #a3ccf7; }
