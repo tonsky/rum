@@ -9,14 +9,14 @@
     (vswap! last-id inc)))
 
 (defn state [comp]
-  (aget (.-props comp) "__rum_state"))
+  (aget (.-props comp) ":rum/state"))
 
 (defn update-state! [comp f & args]
   (let [state (state comp)]
     (vreset! state (apply f @state args))))
 
 (defn id [comp]
-  (:id @(state comp)))
+  (::id @(state comp)))
 
 (defn- fns [fn-key classes]
   (->> classes
@@ -41,7 +41,7 @@
             :getInitialState
             (fn []
               (this-as this
-                (update-state! this assoc :component this)))
+                (update-state! this assoc ::component this)))
             :componentWillMount
             (when-not (empty? will-mount)
               (fn []
@@ -55,14 +55,14 @@
             :componentWillReceiveProps
             (fn [next-props]
               (this-as this
-                (vswap! (aget next-props "__rum_state") assoc :component this)))
+                (vswap! (aget next-props ":rum/state") assoc ::component this)))
             :shouldComponentUpdate
             (if (empty? should-update)
               (constantly true)
               (fn [next-props next-state]
                 (this-as this
                   (let [old-state @(state this)
-                        new-state @(aget next-props "__rum_state")]
+                        new-state @(aget next-props ":rum/state")]
                     (or (some #(% old-state new-state) should-update) false)))))
 ;;             :componentWillUpdate (fn [next-props next-state])
             :render
@@ -77,8 +77,8 @@
                   (update-state! this call-all will-unmount))))})]
     (fn [& args]
       (js/React.createElement ctor
-          #js {:__rum_state (volatile! {:args args
-                                        :id (next-id)})}))))
+          #js {":rum/state" (volatile! {::args args
+                                        ::id (next-id)})}))))
 
 ;; render queue
 
@@ -93,7 +93,7 @@
   (fn [x y]
     (compare (keyfn x) (keyfn y))))
 
-(def empty-queue (sorted-set-by (compare-by id)))
+(def empty-queue (sorted-set-by (compare-by id))) ;; sorted by mount order, top to bottom
 (def render-queue (volatile! empty-queue))
 
 (defn render []
@@ -113,7 +113,7 @@
 ;; render mixin
 
 (defn render-mixin [render-fn]
-  {:render (fn [_ state] (apply render-fn (:args state)))})
+  {:render (fn [_ state] (apply render-fn (::args state)))})
 
 ;; raw component
 
@@ -125,7 +125,7 @@
 (def static-mixin {
   :should-update
   (fn [old-state new-state]
-    (not= (:args old-state) (:args new-state)))
+    (not= (::args old-state) (::args new-state)))
 })
 
 (defn static-component [render-fn]
@@ -138,14 +138,16 @@
 (def ^:dynamic *reactions*)
 
 (def reactive-mixin {
+  :should-update
+  (constantly false) ;; updates through .forceUpdate only
   :render
   (fn [renders state]
     (binding [*reactions* (volatile! #{})]
-      (let [comp          (:component state)
-            old-reactions (:reactions state #{})
+      (let [comp          (::component state)
+            old-reactions (::refs state #{})
             dom           ((first renders) (next renders) state)
             new-reactions @*reactions*
-            key           (:id state)]
+            key           (::id state)]
         (doseq [ref old-reactions]
           (when-not (contains? new-reactions ref)
             (remove-watch ref key)))
@@ -154,14 +156,14 @@
             (add-watch ref key
               (fn [_ _ _ _]
                 (request-render comp)))))
-        (update-state! comp assoc :reactions new-reactions)
+        (update-state! comp assoc ::refs new-reactions)
         dom)))
   :will-unmount
   (fn [state]
-    (let [key (:id state)]
-      (doseq [ref (:reactions state)]
+    (let [key (::id state)]
+      (doseq [ref (::refs state)]
         (remove-watch ref key)))
-    (dissoc state :reactions))
+    (dissoc state ::refs))
 })
 
 (defn reactive-component [render-fn]
