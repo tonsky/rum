@@ -16,3 +16,6 @@ input:focus { outline: 2px solid #a3ccf7; }
 .bclock td { width: 32px; border: 10px solid white;  }
 .bclock-cell { background-color: #EEE; }
 .bclock tr:last-child > th { text-align: left; padding-left: 8px; }
+
+.artboard { -webkit-user-select: none; line-height: 10px; }
+.art-cell { width: 12px; height: 12px; margin: 0 1px 1px 0; display: inline-block; background-color: #EEE; }

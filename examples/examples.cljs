@@ -13,7 +13,7 @@
     (subs str 11 (dec (count str)))))
 
 (def time (atom (now)))
-(def color (atom "#FA3D97"))
+(def color (atom "#FA8D97"))
 (def speed (atom 126))
 
 (defn tick []
@@ -116,3 +116,59 @@
 
 (defn ^:export start-binary-clock [mount-el]
   (rum/mount (bclock) mount-el))
+
+;; Cursor drawing board
+
+(def board-size-x 19)
+(def board-size-y 11)
+(defn random-board []
+  (let [cell-fn #(rand-nth [true false])
+        row-fn  #(vec (repeatedly board-size-x cell-fn))]
+    (vec (repeatedly board-size-y row-fn))))
+
+(def board (atom (random-board)))
+(def board-renders (atom 0))
+
+(rum/defreactive render-count [ref]
+  [:div {:style {:line-height "40px"}} "Cells rendered: " (rum/react ref)])
+
+(rum/defom art-cell [x y cursor]
+  (swap! board-renders inc)
+  [:div.art-cell {:style {:background-color (when @cursor @color)}
+                  :on-mouse-over (fn [_] (swap! cursor not))}])
+
+(rum/defreactive artboard []
+  (rum/react board)
+  [:div.artboard
+    (for [y (range 0 board-size-y)
+          :let [y-cursor (rum/cursor board [y])]]
+      [:div.art-row
+        (for [x (range 0 board-size-x)
+              :let [x-cursor (rum/cursor y-cursor [x])]]
+          (art-cell x y x-cursor))])
+    (render-count board-renders)])
+
+(defn ^:export start-artboard [mount-el]
+  (rum/mount (artboard) mount-el))
+
+;; Reactive drawing board
+
+(def rboard (atom (random-board)))
+(def rboard-renders (atom 0))
+
+(rum/defreactive rcell [x y]
+  (let [cursor (rum/cursor rboard [y x])]
+    (swap! rboard-renders inc)
+    [:div.art-cell {:style {:background-color (when (rum/react cursor) (rum/react color))}
+                    :on-mouse-over (fn [_] (swap! cursor not))}]))
+
+(rum/defraw art-rboard []
+  [:div.artboard
+    (for [y (range 0 board-size-y)]
+      [:div.art-row
+        (for [x (range 0 board-size-x)]
+          (rcell x y))])
+   (render-count rboard-renders)])
+
+(defn ^:export start-rboard [mount-el]
+  (rum/mount (art-rboard) mount-el))

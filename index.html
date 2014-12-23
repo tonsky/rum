@@ -28,12 +28,24 @@
       <div id=binary-timer></div>
     </div>
     
+    <div class=example>
+      <div class=example-title>Reactive artboard</div>
+      <div id=rboard></div>
+    </div>
+    
+    <div class=example>
+      <div class=example-title>Cursor artboard</div>
+      <div id=artboard></div>
+    </div>
+    
     <script src="web/rum.min.js" type="text/javascript"></script>
     <script type="text/javascript">
       examples.start_static_timer(document.getElementById("static-timer"));
       examples.start_forced_timer(document.getElementById("forced-timer"));
       examples.start_reactive_timer(document.getElementById("reactive-timer"));
       examples.start_binary_clock(document.getElementById("binary-timer"));
+      examples.start_rboard(document.getElementById("rboard"));
+      examples.start_artboard(document.getElementById("artboard"));
     </script>
   </body>
 </html>

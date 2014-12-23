@@ -11,4 +11,5 @@
 (defmacro defreactive [name argvec & render]
   `(def ~name (rum/reactive-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
 
-
+(defmacro defom [name argvec & render]
+  `(def ~name (rum/om-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
