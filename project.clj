@@ -7,7 +7,7 @@
   :source-paths ["src"]
   :dependencies [
     [org.clojure/clojure "1.6.0" :scope "provided"]
-    [org.clojure/clojurescript "0.0-2505" :scope "provided"]
+    [org.clojure/clojurescript "0.0-2511" :scope "provided"]
     [com.facebook/react "0.12.2"]
     [sablono "0.2.22"]
   ]

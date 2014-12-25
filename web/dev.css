@@ -3,19 +3,20 @@ tr, td, table, tbody { padding: 0; margin: 0; border-collapse: collapse; }
 
 body, input, button { font: 16px/20px 'Input Sans Narrow';}
 
-.example { border: 2px solid #ccc; border-radius: 2px; padding: 20px; width: 300px; display: inline-block; height: 260px; margin: 10px 5px; }
+.example { border: 2px solid #ccc; border-radius: 2px; padding: 20px; width: 300px; display: inline-block; height: 260px; margin: 10px 5px; line-height: 28px; }
 .example-title { border-bottom: 1px solid #ccc; margin: -4px 0 20px; line-height: 30px; }
-dt { width: 60px; float: left; }
+dt { width: 82px; float: left; }
 dt, dd { vertical-align: bottom; line-height: 36px }
 input { padding: 6px 6px 2px; }
 input:focus { outline: 2px solid #a3ccf7; }
 
-.bclock { margin: -6px 0 0 -10px; }
-.bclock td, .bclock th { height: 32px; font-size: 12px; font-weight: normal; }
+.bclock { margin: -6px 0 0 -4px; }
+.bclock td, .bclock th { height: 25px; font-size: 12px; font-weight: normal; }
 .bclock th { width: 10px; }
-.bclock td { width: 32px; border: 10px solid white;  }
-.bclock-cell { background-color: #EEE; }
-.bclock tr:last-child > th { text-align: left; padding-left: 8px; }
+.bclock td { width: 25px; border: 4px solid white;  }
+.bclock-bit { background-color: #EEE; }
+.bclock .stats { text-align: left; padding-left: 8px; }
 
 .artboard { -webkit-user-select: none; line-height: 10px; }
 .art-cell { width: 12px; height: 12px; margin: 0 1px 1px 0; display: inline-block; background-color: #EEE; }
+.artboard .stats { font-size: 12px; line-height: 14px; margin-top: 8px; }

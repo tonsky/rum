@@ -2,14 +2,11 @@
   (:require
     [sablono.compiler :as s]))
 
-(defmacro defraw [name argvec & render]
-  `(def ~name (rum/raw-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
+(defn -defc [mixins name argvec render]
+  `(def ~name (rum/component (fn ~argvec ~(s/compile-html `(do ~@render)))
+                            ~@(if (coll? mixins) mixins [mixins]))))
 
-(defmacro defstatic [name argvec & render]
-  `(def ~name (rum/static-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
-
-(defmacro defreactive [name argvec & render]
-  `(def ~name (rum/reactive-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
-
-(defmacro defom [name argvec & render]
-  `(def ~name (rum/om-component (fn ~argvec ~(s/compile-html `(do ~@render))))))
+(defmacro defc [mixins name & rest]
+  (if (vector? name)
+    (-defc [] mixins name rest)
+    (-defc mixins name (first rest) (next rest))))

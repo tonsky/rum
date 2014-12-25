@@ -11,10 +11,6 @@
 (defn state [comp]
   (aget (.-props comp) ":rum/state"))
 
-(defn update-state! [comp f & args]
-  (let [state (state comp)]
-    (vreset! state (apply f @state args))))
-
 (defn id [comp]
   (::id @(state comp)))
 
@@ -31,59 +27,74 @@
     fns))
 
 (defn build-class [& classes]
-  (let [will-mount     (fns :will-mount classes)
-        did-mount      (fns :did-mount classes)
-        should-update  (fns :should-update classes)
-        render         (reverse (fns :render classes))
-        will-unmount   (fns :will-unmount classes)
-        transfer-state (fns :transfer-state classes)
-        ctor
-          (js/React.createClass #js {
-            :getInitialState
-            (fn []
-              (this-as this
-                (update-state! this assoc ::component this)))
-            :componentWillMount
-            (when-not (empty? will-mount)
-              (fn []
-                (this-as this
-                  (update-state! this call-all will-mount))))
-            :componentDidMount
-            (when-not (empty? did-mount)
-              (fn []
-                (this-as this
-                  (update-state! this call-all did-mount))))
-            :componentWillReceiveProps
-            (fn [next-props]
-              (this-as this
-                (let [new-state (aget next-props ":rum/state")
-                      init      (assoc @new-state ::component this)
-                      old-state @(state this)]
-                  (vreset! new-state
-                    (reduce #(%2 old-state %1) init transfer-state)))))
-            :shouldComponentUpdate
-            (if (empty? should-update)
-              (constantly true)
-              (fn [next-props next-state]
-                (this-as this
-                  (let [old-state @(state this)
-                        new-state @(aget next-props ":rum/state")]
-                    (or (some #(% old-state new-state) should-update) false)))))
-;;             :componentWillUpdate (fn [next-props next-state])
-            :render
-            (fn []
-              (this-as this
-                ((first render) (next render) @(state this))))
-;;             :componentDidUpdate (fn [prev-props prev-state])
-            :componentWillUnmount
-            (when-not (empty? will-unmount)
-              (fn []
-                (this-as this
-                  (update-state! this call-all will-unmount))))})]
-    (fn [& args]
-      (js/React.createElement ctor
-          #js {":rum/state" (volatile! {::args args
-                                        ::id (next-id)})}))))
+  (let [init           (fns :init classes)           ;; state props -> state
+        will-mount     (fns :will-mount classes)     ;; state -> state
+        did-mount      (fns :did-mount classes)      ;; state -> state
+        transfer-state (fns :transfer-state classes) ;; old-state state -> state
+        should-update  (fns :should-update classes)  ;; old-state state -> boolean
+;;         render         (reverse (fns :render classes))
+        render         (first (fns :render classes)) ;; state -> [dom state]
+        wrapped-render (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
+        will-unmount   (fns :will-unmount classes)   ;; state -> state
+        
+        props->state   (fn [props]
+                         (call-all (aget props ":rum/state") init props))
+    ]
+
+    (js/React.createClass #js {
+      :getInitialState
+      (fn []
+        (this-as this
+          (let [props (.-props this)
+                state (-> { ::react-component this
+                            ::id (next-id) }            ;; assign id on mount?
+                        (merge (props->state props)))]
+            (aset props ":rum/state" (volatile! state)))))
+      :componentWillMount
+      (when-not (empty? will-mount)
+        (fn []
+          (this-as this
+            (vswap! (state this) call-all will-mount))))
+      :componentDidMount
+      (when-not (empty? did-mount)
+        (fn []
+          (this-as this
+            (vswap! (state this) call-all did-mount))))
+      :componentWillReceiveProps
+      (fn [next-props]
+        (this-as this
+          (let [old-state @(state this)
+                next-state (-> { ::react-component this
+                                 ::id (::id old-state) }
+                             (merge (props->state next-props)))
+                next-state (reduce #(%2 old-state %1) next-state transfer-state)]
+            (aset next-props ":rum/state" (volatile! next-state)))))
+      :shouldComponentUpdate
+      (if (empty? should-update)
+        (constantly true)
+        (fn [next-props _]
+          (this-as this
+            (let [old-state @(state this)
+                  new-state @(aget next-props ":rum/state")]
+              (or (some #(% old-state new-state) should-update) false)))))
+;;       :componentWillUpdate
+;;       (fn [next-props next-state]
+;;         (this-as this
+;;           (println (::id @(state this)) "will-update")))
+      :render
+      (fn []
+        (this-as this
+          (let [state (state this)
+                [dom next-state] (wrapped-render @state)]
+            (vreset! state next-state)
+            dom)))
+;;                 :componentDidUpdate (fn [prev-props prev-state])
+      :componentWillUnmount
+      (when-not (empty? will-unmount)
+        (fn []
+          (this-as this
+            (vswap! (state this) call-all will-unmount))))})))
+
 
 ;; render queue
 
@@ -115,67 +126,65 @@
 (defn mount [component node]
   (js/React.render component node))
 
+(defn element [class state]
+  (js/React.createElement class #js { ":rum/state" state}))
+
+
 ;; render mixin
 
 (defn render-mixin [render-fn]
-  {:render (fn [_ state] (apply render-fn (::args state)))})
+  { :render (fn [state] [(apply render-fn (::args state)) state]) })
 
-;; raw component
+(defn args-ctor [class]
+  (fn [& args]
+    (element class {::args args})))
 
-(defn raw-component [render-fn]
-  (build-class (render-mixin render-fn)))
+(defn component [render-fn & mixins]
+  (args-ctor (apply build-class (render-mixin render-fn) mixins)))
 
 ;; static mixin
 
-(def static-mixin {
+(def static {
   :should-update
   (fn [old-state new-state]
     (not= (::args old-state) (::args new-state)))
 })
 
-(defn static-component [render-fn]
-  (build-class
-    (render-mixin render-fn)
-    static-mixin))
-
 ;; reactive mixin
 
 (def ^:dynamic *reactions*)
 
-(def reactive-mixin {
+(defn- reactive-key [state]
+  (str ":rum/reactive-" (::id state)))
+
+(def reactive {
   :should-update
   (constantly false) ;; updates through .forceUpdate only
-  :render
-  (fn [renders state]
-    (binding [*reactions* (volatile! #{})]
-      (let [comp          (::component state)
-            old-reactions (::refs state #{})
-            dom           ((first renders) (next renders) state)
-            new-reactions @*reactions*
-            key           (::id state)]
-        (doseq [ref old-reactions]
-          (when-not (contains? new-reactions ref)
-            (remove-watch ref key)))
-        (doseq [ref new-reactions]
-          (when-not (contains? old-reactions ref)
-            (add-watch ref key
-              (fn [_ _ _ _]
-                (request-render comp)))))
-        (update-state! comp assoc ::refs new-reactions)
-        dom)))
+  :wrap-render
+  (fn [render-fn]
+    (fn [state]
+      (binding [*reactions* (volatile! #{})]
+        (let [comp             (::react-component state)
+              old-reactions    (::refs state #{})
+              [dom next-state] (render-fn state)
+              new-reactions    @*reactions*
+              key              (reactive-key state)]
+          (doseq [ref old-reactions]
+            (when-not (contains? new-reactions ref)
+              (remove-watch ref key)))
+          (doseq [ref new-reactions]
+            (when-not (contains? old-reactions ref)
+              (add-watch ref key
+                (fn [_ _ _ _]
+                  (request-render comp)))))
+          [dom (assoc next-state ::refs new-reactions)]))))
   :will-unmount
   (fn [state]
-    (let [key (::id state)]
+    (let [key (reactive-key state)]
       (doseq [ref (::refs state)]
         (remove-watch ref key)))
     (dissoc state ::refs))
 })
-
-(defn reactive-component [render-fn]
-  (build-class
-    (render-mixin render-fn)
-    static-mixin
-    reactive-mixin))
 
 (defn react [ref]
   (vswap! *reactions* conj ref)
@@ -248,27 +257,20 @@
                        ((.-setter ref) where focus))))
       (LensCursor. ref getter setter))))
 
-;; om-style cursors
-
-(def ^:dynamic *om-refs*)
-
 (defn- deref-args [xs]
+  ;; deref is not deep
   (mapv #(if (satisfies? IDeref %) @% %) xs))
 
-(def om-mixin {
+(def cursored {
   :transfer-state
   (fn [old new]
     (assoc new ::om-args (::om-args old)))
   :should-update
   (fn [old-state new-state]
     (not= (::om-args old-state) (deref-args (::args new-state))))
-  :render
-  (fn [renders state]
-    (update-state! (::component state) assoc ::om-args (deref-args (::args state)))
-    ((first renders) (next renders) state))
+  :wrap-render
+  (fn [render-fn]
+    (fn [state]
+      (let [[dom next-state] (render-fn state)]
+        [dom (assoc next-state ::om-args (deref-args (::args state)))])))
 })
-
-(defn om-component [render-fn]
-  (build-class
-    (render-mixin render-fn)
-    om-mixin))

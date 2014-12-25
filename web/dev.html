@@ -11,21 +11,18 @@
 
   <body>
     <div class=example>
-      <div class=example-title>Static component</div>
+      <div class=example-title>Timers</div>
       <div id=static-timer></div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Forced update</div>
       <div id=forced-timer></div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Reactive update</div>
       <div id=reactive-timer></div>
     </div>
+
+    <div class=example>
+      <div class=example-title>Controls</div>
+      <div id=controls></div>
+    </div>
     
-    <div class=example style="width: 360px">
+    <div class=example>
       <div class=example-title>Reactive binary clock</div>
       <div id=binary-timer></div>
     </div>
@@ -50,6 +47,7 @@
       examples.start_static_timer(document.getElementById("static-timer"));
       examples.start_forced_timer(document.getElementById("forced-timer"));
       examples.start_reactive_timer(document.getElementById("reactive-timer"));
+      examples.start_controls(document.getElementById("controls"));
       examples.start_binary_clock(document.getElementById("binary-timer"));
       examples.start_rboard(document.getElementById("rboard"));
       examples.start_artboard(document.getElementById("artboard"));

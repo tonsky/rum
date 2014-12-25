@@ -25,24 +25,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Static component (quiescent-style)
 
-(rum/defstatic static-timer [label ts]
+(rum/defc rum/static static-timer [label ts]
   [:div label ": "
     [:span {:style {:color @color}} (ts->str ts)]])
   
 (defn ^:export start-static-timer [mount-el]
-  (rum/mount (static-timer "Time" @time) mount-el)
+  (rum/mount (static-timer "Static" @time) mount-el)
   ;; Setting up watch manually, 
   ;; force top-down re-render via mount
   (add-watch time :static-timer
     (fn [_ _ _ new-val]
-      (rum/mount (static-timer "Time" new-val) mount-el))))
+      (rum/mount (static-timer "Static" new-val) mount-el))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Raw component (pure react-style)
 
-(rum/defraw forced-timer []
-  [:div "Time: "
+(rum/defc forced-timer []
+  [:div "Forced: "
     [:span {:style {:color @color}} (ts->str @time)]])
 
 (defn ^:export start-forced-timer [mount-el]
@@ -53,49 +53,74 @@
       (fn [_ _ _ _]
         (rum/request-render comp)))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reactive components (reagent-style)
 
 ;; regular static top-down component with immutable args
-(rum/defstatic colored-clock [time color]
-  [:dd {:style {:color color}} (ts->str time)])
+(rum/defc rum/static colored-clock [time color]
+  [:span {:style {:color color}} (ts->str time)])
 
-;; generic “atom editor” component
-(rum/defreactive input [ref]
-  [:input {:type "text"
-           :value (rum/react ref)
-           :style {:width 100}
-           :on-change #(reset! ref (-> % .-target .-value))}])
-
-(rum/defreactive reactive-timer []
-  [:dl
-    [:dt "Time: "]
-    ;; rum/react is used instead of deref as it setup watches automatically
-    ;; Value of derefed atoms will then be passed to static “colored-clock” component
-    (colored-clock (rum/react time) (rum/react color))
-    [:dt "Color: "]
-    [:dd (input color)]
-    ;; Binding another component to the same atom will keep 2 input boxes in sync
-    [:dt "Clone: "]
-    [:dd (input color)]
-    ;; Binding another component to the same atom will keep 2 input boxes in sync
-    [:dt "Tick: "]
-    [:dd (input speed) " ms"]])
+(rum/defc rum/reactive reactive-timer []
+  [:div "Reactive: " 
+    (colored-clock (rum/react time) (rum/react color))])
 
 (defn ^:export start-reactive-timer [mount-el]
   ;; After initial mount, all changes will be re-rendered automatically
   (rum/mount (reactive-timer) mount-el))
 
+;; generic “atom editor” component
+(rum/defc rum/reactive input [ref]
+  [:input {:type "text"
+           :value (rum/react ref)
+           :style {:width 100}
+           :on-change #(reset! ref (-> % .-target .-value))}])
+
+;; Control panel
+
+(def autorefresh {
+  :did-mount (fn [state]
+               (let [interval (js/setInterval #(rum/request-render (:rum/react-component state)) 1000)]
+                 (assoc state ::interval interval)))
+  :will-unmount (fn [state]
+                  (js/clearInterval (::interval state)))
+  })
+
+(rum/defc autorefresh watches-count [ref]
+  [:dd (count (.-watches ref)) " watches"])
+
+(rum/defc controls []
+  [:dl
+    [:dt "Color: "]
+    [:dd (input color)]
+    ;; Binding another component to the same atom will keep 2 input boxes in sync
+    [:dt "Clone: "]
+    [:dd (input color)]
+    [:dt "Color: "]
+    (watches-count color)
+
+    [:dt "Tick: "]
+    [:dd (input speed) " ms"]
+    [:dt "Time:"]
+    (watches-count time)
+])
+
+(defn ^:export start-controls [mount-el]
+  (rum/mount (controls) mount-el))
+
+;; Generic render-count label
+
+(rum/defc rum/reactive render-count [ref]
+  [:div.stats "Renders: " (rum/react ref)])
+
 ;; Binary clock
 
 (def bclock-renders (atom 0))
 
-(rum/defstatic cell [n bit]
+(rum/defc rum/static bit [n bit]
   (swap! bclock-renders inc)
-  [:td.bclock-cell {:style (when (bit-test n bit) {:background-color @color})}])
+  [:td.bclock-bit {:style (when (bit-test n bit) {:background-color @color})}])
 
-(rum/defreactive bclock []
+(rum/defc rum/reactive bclock []
   (let [date (js/Date. (rum/react time))
         hh   (quot (.getHours date) 10)
         hl   (mod  (.getHours date) 10)
@@ -107,68 +132,84 @@
         msm  (-> (.getMilliseconds date) (quot 10) (mod 10))
         msl  (mod (.getSeconds date) 10)]
     [:table.bclock
-      [:tr [:td]       (cell hl 3) [:th] [:td]       (cell ml 3) [:th] [:td]       (cell sl 3) [:th] (cell msh 3) (cell msm 3) (cell msl 3)]
-      [:tr [:td]       (cell hl 2) [:th] (cell mh 2) (cell ml 2) [:th] (cell sh 2) (cell sl 2) [:th] (cell msh 2) (cell msm 2) (cell msl 2)]
-      [:tr (cell hh 1) (cell hl 1) [:th] (cell mh 1) (cell ml 1) [:th] (cell sh 1) (cell sl 1) [:th] (cell msh 1) (cell msm 1) (cell msl 1)]
-      [:tr (cell hh 0) (cell hl 0) [:th] (cell mh 0) (cell ml 0) [:th] (cell sh 0) (cell sl 0) [:th] (cell msh 0) (cell msm 0) (cell msl 0)]
-      [:tr [:th hh]    [:th hl]    [:th] [:th mh]    [:th ml]    [:th] [:th sh]    [:th sl]    [:th] [:th msh]    [:th msm]    [:th msl]]
-      [:tr [:th {:colSpan 8} "Cells rendered: " (rum/react bclock-renders)]]]))
+      [:tr [:td]      (bit hl 3) [:th] [:td]      (bit ml 3) [:th] [:td]      (bit sl 3) [:th] (bit msh 3) (bit msm 3) (bit msl 3)]
+      [:tr [:td]      (bit hl 2) [:th] (bit mh 2) (bit ml 2) [:th] (bit sh 2) (bit sl 2) [:th] (bit msh 2) (bit msm 2) (bit msl 2)]
+      [:tr (bit hh 1) (bit hl 1) [:th] (bit mh 1) (bit ml 1) [:th] (bit sh 1) (bit sl 1) [:th] (bit msh 1) (bit msm 1) (bit msl 1)]
+      [:tr (bit hh 0) (bit hl 0) [:th] (bit mh 0) (bit ml 0) [:th] (bit sh 0) (bit sl 0) [:th] (bit msh 0) (bit msm 0) (bit msl 0)]
+      [:tr [:th hh]   [:th hl]   [:th] [:th mh]   [:th ml]   [:th] [:th sh]   [:th sl]   [:th] [:th msh]   [:th msm]   [:th msl]]
+      [:tr [:th {:colSpan 8}
+             (render-count bclock-renders)]]]))
 
 (defn ^:export start-binary-clock [mount-el]
   (rum/mount (bclock) mount-el))
 
-;; Cursor drawing board
+;; Generic board utils
 
-(def board-size-x 19)
-(def board-size-y 11)
+(def ^:const board-width 19)
+(def ^:const board-height 10)
+
 (defn random-board []
-  (let [cell-fn #(rand-nth [true false])
-        row-fn  #(vec (repeatedly board-size-x cell-fn))]
-    (vec (repeatedly board-size-y row-fn))))
+  (let [cell-fn #(> (rand) 0.9)
+        row-fn  #(vec (repeatedly board-width cell-fn))]
+    (vec (repeatedly board-height row-fn))))
 
-(def board (atom (random-board)))
-(def board-renders (atom 0))
-
-(rum/defreactive render-count [ref]
-  [:div {:style {:line-height "40px"}} "Cells rendered: " (rum/react ref)])
-
-(rum/defom art-cell [x y cursor]
-  (swap! board-renders inc)
-  [:div.art-cell {:style {:background-color (when @cursor @color)}
-                  :on-mouse-over (fn [_] (swap! cursor not))}])
-
-(rum/defreactive artboard []
-  (rum/react board)
-  [:div.artboard
-    (for [y (range 0 board-size-y)
-          :let [y-cursor (rum/cursor board [y])]]
-      [:div.art-row
-        (for [x (range 0 board-size-x)
-              :let [x-cursor (rum/cursor y-cursor [x])]]
-          (art-cell x y x-cursor))])
-    (render-count board-renders)])
-
-(defn ^:export start-artboard [mount-el]
-  (rum/mount (artboard) mount-el))
+(rum/defc [autorefresh rum/reactive] board-stats [board renders]
+  [:div.stats
+    "Renders: "       (rum/react renders) [:br]
+    "Board watches: " (count (.-watches board)) [:br]
+    "Color watches: " (count (.-watches color))])
 
 ;; Reactive drawing board
 
 (def rboard (atom (random-board)))
 (def rboard-renders (atom 0))
 
-(rum/defreactive rcell [x y]
+(rum/defc rum/reactive rcell [x y]
+  (swap! rboard-renders inc)
   (let [cursor (rum/cursor rboard [y x])]
-    (swap! rboard-renders inc)
     [:div.art-cell {:style {:background-color (when (rum/react cursor) (rum/react color))}
                     :on-mouse-over (fn [_] (swap! cursor not))}]))
 
-(rum/defraw art-rboard []
+(rum/defc art-rboard []
   [:div.artboard
-    (for [y (range 0 board-size-y)]
+    (for [y (range 0 board-height)]
       [:div.art-row
-        (for [x (range 0 board-size-x)]
+        (for [x (range 0 board-width)]
           (rcell x y))])
-   (render-count rboard-renders)])
+   (board-stats rboard rboard-renders)])
 
 (defn ^:export start-rboard [mount-el]
   (rum/mount (art-rboard) mount-el))
+
+
+;; Cursor drawing board
+
+(def board (atom (random-board)))
+(def board-renders (atom 0))
+
+(rum/defc rum/cursored art-cell [x y cursor]
+  (swap! board-renders inc)
+  [:div.art-cell {:style {:background-color (when @cursor @color)}
+                  :on-mouse-over (fn [_] (swap! cursor not))}])
+
+(rum/defc rum/cursored artboard [board]
+  [:div.artboard
+    (for [y (range 0 board-height)
+          :let [y-cursor (rum/cursor board [y])]]
+      [:div.art-row
+        (for [x (range 0 board-width)
+              :let [x-cursor (rum/cursor y-cursor [x])]]
+          (art-cell x y x-cursor))])
+    (board-stats board board-renders)])
+
+(defn ^:export start-artboard [mount-el]
+  (let [root (rum/mount (artboard board) mount-el)]
+    (add-watch board :render
+      (fn [_ _ _ _]
+        (rum/request-render root)))
+    (add-watch color :render
+      (fn [_ _ _ _]
+        (rum/request-render root)))
+    ))
+  
+
