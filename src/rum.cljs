@@ -274,3 +274,22 @@
       (let [[dom next-state] (render-fn state)]
         [dom (assoc next-state ::om-args (deref-args (::args state)))])))
 })
+
+(defn- cursored-key [state]
+  (str ":rum/cursored-" (::id state)))
+
+(def cursored-watch {
+  :did-mount
+    (fn [state]
+      (doseq [arg (::args state)
+              :when (satisfies? IWatchable arg)]
+        (add-watch arg (cursored-key state)
+          (fn [_ _ _ _] (request-render (::react-component state)))))
+      state)
+  :will-unmount
+    (fn [state]
+      (doseq [arg (::args state)
+              :when (satisfies? IWatchable arg)]
+        (remove-watch arg (cursored-key state)))
+      state)
+})

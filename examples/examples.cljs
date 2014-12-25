@@ -61,12 +61,17 @@
   [:span {:style {:color color}} (ts->str time)])
 
 (rum/defc rum/reactive reactive-timer []
-  [:div "Reactive: " 
+  [:div "Reactive: "
+    ;; Subscribing to atom changes with rum/react
+    ;; Then pass _values_ to static component
     (colored-clock (rum/react time) (rum/react color))])
 
 (defn ^:export start-reactive-timer [mount-el]
   ;; After initial mount, all changes will be re-rendered automatically
   (rum/mount (reactive-timer) mount-el))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Control panel
 
 ;; generic “atom editor” component
 (rum/defc rum/reactive input [ref]
@@ -75,8 +80,8 @@
            :style {:width 100}
            :on-change #(reset! ref (-> % .-target .-value))}])
 
-;; Control panel
-
+;; Custom mixin for updating components on timer
+;; for cases where you have nothing to subscribe to
 (def autorefresh {
   :did-mount (fn [state]
                (let [interval (js/setInterval #(rum/request-render (:rum/react-component state)) 1000)]
@@ -85,9 +90,11 @@
                   (js/clearInterval (::interval state)))
   })
 
+;; Using custom mixin
 (rum/defc autorefresh watches-count [ref]
   [:dd (count (.-watches ref)) " watches"])
 
+;; Raw top-level component, everything interesting is happening inside
 (rum/defc controls []
   [:dl
     [:dt "Color: "]
@@ -167,6 +174,10 @@
 (rum/defc rum/reactive rcell [x y]
   (swap! rboard-renders inc)
   (let [cursor (rum/cursor rboard [y x])]
+    ;; each cell subscribes to its own cursor inside a board
+    ;; not that subscription to color is conditional:
+    ;; only if cell is on (@cursor == true),
+    ;; this component will be notified on color changes
     [:div.art-cell {:style {:background-color (when (rum/react cursor) (rum/react color))}
                     :on-mouse-over (fn [_] (swap! cursor not))}]))
 
@@ -187,12 +198,18 @@
 (def board (atom (random-board)))
 (def board-renders (atom 0))
 
+;; Cursored mixin will avoid re-rendering if cursors have not
+;; changed its value since last rendering
+
 (rum/defc rum/cursored art-cell [x y cursor]
   (swap! board-renders inc)
+  ;; note that color here is not passed via arguments
+  ;; it means it will not be taken into account when deciding on re-rendering
   [:div.art-cell {:style {:background-color (when @cursor @color)}
                   :on-mouse-over (fn [_] (swap! cursor not))}])
 
-(rum/defc rum/cursored artboard [board]
+;; cursored-watch mixin will setup watches for all IWatchable arguments
+(rum/defc [rum/cursored rum/cursored-watch] artboard [board]
   [:div.artboard
     (for [y (range 0 board-height)
           :let [y-cursor (rum/cursor board [y])]]
@@ -203,13 +220,6 @@
     (board-stats board board-renders)])
 
 (defn ^:export start-artboard [mount-el]
-  (let [root (rum/mount (artboard board) mount-el)]
-    (add-watch board :render
-      (fn [_ _ _ _]
-        (rum/request-render root)))
-    (add-watch color :render
-      (fn [_ _ _ _]
-        (rum/request-render root)))
-    ))
+  (rum/mount (artboard board) mount-el))
   
 
