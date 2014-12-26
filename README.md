@@ -44,7 +44,7 @@ For more examples, see [examples/examples.cljs](examples/examples.cljs). Live ve
 
 ## Rum API
 
-Rum provides `defc` marco (short from “define component”):
+Rum provides `defc` macro (short from “define component”):
 
     (rum/defc [mixins]* name argvec & render-body)
  
@@ -55,7 +55,7 @@ Behind the scenes, `defc` does couple of things:
 - Creates render function by wrapping `render-body` with implicit `do` and then with `sablono.core/html` macro
 - Builds React class from provided mixins and render function
 - Defines a top-level function `name` with arguments list `argvec`
-- When called, `name` function will create new React element from built React class and pass though `argvec` so it’ll be avaliable inside `render-body`
+- When called, `name` function will create new React element from built React class and pass though `argvec` so it’ll be available inside `render-body`
 
 To mount component, use `rum/mount`:
 
@@ -104,14 +104,14 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
     (reset! text "Good bye") ;; will cause re-rendering
     (reset! color "#000")    ;; and another one
     
-`rum/react` function used in this example works as `deref`, and additionaly adds watch on that reference.
+`rum/react` function used in this example works as `deref`, and additionally adds watch on that reference.
 
 Finally, `rum/cursored` is a mixin that will track changes in references passed as arguments:
 
     (rum/defc rum/cursored label [color text]
       [:.label {:style {:color @color}} @text])
 
-Note that `cursored` mixin creates passive component: it will not track any values, and will only compare arguments when re-created by its parent. Addtional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
+Note that `cursored` mixin creates passive component: it will not track any values, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
 
     (rum/defc [rum/cursored rum/cursored-watch] body [color text]
       (label color text))
@@ -146,7 +146,7 @@ Rum also provides cursors, an abstraction that provides atom-like interface to s
     ;; both will be re-rendered
     (swap! state assoc :color "#000")
     
-    ;; cursors can be swapped and resetted just like atoms
+    ;; cursors can be swapped and reseted just like atoms
     (reset! (rum/cursor state [:label1]) "Hi")
 
 Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They can be used with `reactive` components as well.
@@ -183,7 +183,7 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
 
 Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum.
 
-Rendering is modelled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
+Rendering is modeled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
 
 ## Writing your own mixin
 
