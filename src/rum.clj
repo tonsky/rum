@@ -2,7 +2,7 @@
   (:require
     [sablono.compiler :as s]))
 
-(defn -defc [mixins name argvec render]
+(defn- -defc [mixins name argvec render]
   `(def ~name (rum/component (fn ~argvec ~(s/compile-html `(do ~@render)))
                             ~@(if (coll? mixins) mixins [mixins]))))
 
