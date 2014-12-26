@@ -32,7 +32,6 @@
         did-mount      (fns :did-mount classes)      ;; state -> state
         transfer-state (fns :transfer-state classes) ;; old-state state -> state
         should-update  (fns :should-update classes)  ;; old-state state -> boolean
-;;         render         (reverse (fns :render classes))
         render         (first (fns :render classes)) ;; state -> [dom state]
         wrapped-render (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
         will-unmount   (fns :will-unmount classes)   ;; state -> state
