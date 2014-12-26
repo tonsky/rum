@@ -137,7 +137,7 @@
         sl   (mod  (.getSeconds date) 10)
         msh  (quot (.getMilliseconds date) 100)
         msm  (-> (.getMilliseconds date) (quot 10) (mod 10))
-        msl  (mod (.getSeconds date) 10)]
+        msl  (mod (.getMilliseconds date) 10)]
     [:table.bclock
       [:tr [:td]      (bit hl 3) [:th] [:td]      (bit ml 3) [:th] [:td]      (bit sl 3) [:th] (bit msh 3) (bit msm 3) (bit msl 3)]
       [:tr [:td]      (bit hl 2) [:th] (bit mh 2) (bit ml 2) [:th] (bit sh 2) (bit sl 2) [:th] (bit msh 2) (bit msm 2) (bit msl 2)]
