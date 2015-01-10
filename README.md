@@ -27,8 +27,8 @@ Add this to your `project.clj`:
 
 ```clojure
 :dependencies [
-  [org.clojure/clojurescript "0.0-2511"]
-  [rum "0.1.0"]
+  [org.clojure/clojurescript "0.0-2665"]
+  [rum "0.1.1"]
 ]
 ```
 
@@ -279,6 +279,15 @@ Or, with a macro:
   
 (rum/mount (label "Hello") (.-body js/document))
 ```
+
+## Changes
+
+### 0.1.1
+
+- Fixed a bug when render-loop tried to `.forceUpdate` unmounted elements
+- Fixed a cursor leak bug in `reactive` mixin
+- Removed `:should-update` from `reactive`, it now will be re-rendered if re-created by top-level element
+- Combine `reactive` with `static` to avoid re-rendering if component is being recreated with the same args
 
 ## Acknowledgements
 

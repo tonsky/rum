@@ -114,7 +114,8 @@
 (defn render []
   (let [queue @render-queue]
     (vreset! render-queue empty-queue)
-    (doseq [comp queue]
+    (doseq [comp queue
+            :when (.isMounted comp)]
       (.forceUpdate comp))))
 
 (defn request-render [component]
@@ -157,8 +158,9 @@
   (str ":rum/reactive-" (::id state)))
 
 (def reactive {
-  :should-update
-  (constantly false) ;; updates through .forceUpdate only
+  :transfer-state
+  (fn [old new]
+    (assoc new ::refs (::refs old)))
   :wrap-render
   (fn [render-fn]
     (fn [state]
