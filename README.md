@@ -225,7 +225,7 @@ Sample mixin that forces re-render every second:
   :will-unmount (fn [state]
                   (js/clearInterval (::interval state)))})
 
-(rum/defc autorefresh-mixin timer []
+(rum/defc timer < autorefresh-mixin []
   [:div.timer (.toISOString (js/Date.))])
 ```
 
