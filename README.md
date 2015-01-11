@@ -63,7 +63,7 @@ Behind the scenes, `defc` does couple of things:
 - Using that class, generates constructor fn [params]->ReactElement
 - Defines a top-level var `name` and puts constructor fn there
 
-When called, `name` function will create new React element from built React class and pass though `argvec` so it’ll be available inside `render-body`
+When called, `name` function will create new React element from built React class and pass through `argvec` so it’ll be available inside `render-body`
 
 To mount component, use `rum/mount`:
 
