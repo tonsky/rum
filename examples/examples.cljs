@@ -14,7 +14,7 @@
 
 (def time (atom (now)))
 (def color (atom "#FA8D97"))
-(def speed (atom 126))
+(def speed (atom 167))
 
 (defn tick []
   (reset! time (now))
@@ -25,7 +25,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Static component (quiescent-style)
 
-(rum/defc rum/static static-timer [label ts]
+(rum/defc static-timer < rum/static [label ts]
   [:div label ": "
     [:span {:style {:color @color}} (ts->str ts)]])
   
@@ -57,10 +57,10 @@
 ;; Reactive components (reagent-style)
 
 ;; regular static top-down component with immutable args
-(rum/defc rum/static colored-clock [time color]
+(rum/defc colored-clock < rum/static [time color]
   [:span {:style {:color color}} (ts->str time)])
 
-(rum/defc rum/reactive reactive-timer []
+(rum/defc reactive-timer < rum/reactive []
   [:div "Reactive: "
     ;; Subscribing to atom changes with rum/react
     ;; Then pass _values_ to static component
@@ -74,11 +74,11 @@
 ;; Control panel
 
 ;; generic “atom editor” component
-(rum/defc rum/reactive input [ref]
+(rum/defc input < rum/reactive [ref]
   [:input {:type "text"
            :value (rum/react ref)
            :style {:width 100}
-           :on-change #(reset! ref (-> % .-target .-value))}])
+           :on-change #(reset! ref (.. % -target -value))}])
 
 ;; Custom mixin for updating components on timer
 ;; for cases where you have nothing to subscribe to
@@ -91,7 +91,7 @@
   })
 
 ;; Using custom mixin
-(rum/defc autorefresh watches-count [ref]
+(rum/defc watches-count < autorefresh [ref]
   [:dd (count (.-watches ref)) " watches"])
 
 ;; Raw top-level component, everything interesting is happening inside
@@ -116,18 +116,18 @@
 
 ;; Generic render-count label
 
-(rum/defc rum/reactive render-count [ref]
+(rum/defc render-count < rum/reactive [ref]
   [:div.stats "Renders: " (rum/react ref)])
 
 ;; Binary clock
 
 (def bclock-renders (atom 0))
 
-(rum/defc rum/static bit [n bit]
+(rum/defc bit < rum/static [n bit]
   (swap! bclock-renders inc)
   [:td.bclock-bit {:style (when (bit-test n bit) {:background-color @color})}])
 
-(rum/defc rum/reactive bclock []
+(rum/defc bclock < rum/reactive []
   (let [date (js/Date. (rum/react time))
         hh   (quot (.getHours date) 10)
         hl   (mod  (.getHours date) 10)
@@ -136,8 +136,8 @@
         sh   (quot (.getSeconds date) 10)
         sl   (mod  (.getSeconds date) 10)
         msh  (quot (.getMilliseconds date) 100)
-        msm  (-> (.getMilliseconds date) (quot 10) (mod 10))
-        msl  (mod (.getMilliseconds date) 10)]
+        msm  (->   (.getMilliseconds date) (quot 10) (mod 10))
+        msl  (mod  (.getMilliseconds date) 10)]
     [:table.bclock
       [:tr [:td]      (bit hl 3) [:th] [:td]      (bit ml 3) [:th] [:td]      (bit sl 3) [:th] (bit msh 3) (bit msm 3) (bit msl 3)]
       [:tr [:td]      (bit hl 2) [:th] (bit mh 2) (bit ml 2) [:th] (bit sh 2) (bit sl 2) [:th] (bit msh 2) (bit msm 2) (bit msl 2)]
@@ -160,7 +160,7 @@
         row-fn  #(vec (repeatedly board-width cell-fn))]
     (vec (repeatedly board-height row-fn))))
 
-(rum/defc [autorefresh rum/reactive] board-stats [board renders]
+(rum/defc board-stats < autorefresh rum/reactive [board renders]
   [:div.stats
     "Renders: "       (rum/react renders) [:br]
     "Board watches: " (count (.-watches board)) [:br]
@@ -171,11 +171,11 @@
 (def rboard (atom (random-board)))
 (def rboard-renders (atom 0))
 
-(rum/defc rum/reactive rcell [x y]
+(rum/defc rcell < rum/reactive [x y]
   (swap! rboard-renders inc)
   (let [cursor (rum/cursor rboard [y x])]
     ;; each cell subscribes to its own cursor inside a board
-    ;; not that subscription to color is conditional:
+    ;; note that subscription to color is conditional:
     ;; only if cell is on (@cursor == true),
     ;; this component will be notified on color changes
     [:div.art-cell {:style {:background-color (when (rum/react cursor) (rum/react color))}
@@ -186,7 +186,8 @@
     (for [y (range 0 board-height)]
       [:div.art-row
         (for [x (range 0 board-width)]
-          (rcell x y))])
+          ;; this is how one can specify React key for component
+          (rum/with-props rcell x y :rum/key [x y]))])
    (board-stats rboard rboard-renders)])
 
 (defn ^:export start-rboard [mount-el]
@@ -199,9 +200,9 @@
 (def board-renders (atom 0))
 
 ;; Cursored mixin will avoid re-rendering if cursors have not
-;; changed its value since last rendering
+;; changed their value since last rendering
 
-(rum/defc rum/cursored art-cell [x y cursor]
+(rum/defc art-cell < rum/cursored [x y cursor]
   (swap! board-renders inc)
   ;; note that color here is not passed via arguments
   ;; it means it will not be taken into account when deciding on re-rendering
@@ -209,7 +210,7 @@
                   :on-mouse-over (fn [_] (swap! cursor not))}])
 
 ;; cursored-watch mixin will setup watches for all IWatchable arguments
-(rum/defc [rum/cursored rum/cursored-watch] artboard [board]
+(rum/defc artboard < rum/cursored rum/cursored-watch [board]
   [:div.artboard
     (for [y (range 0 board-height)
           :let [y-cursor (rum/cursor board [y])]]

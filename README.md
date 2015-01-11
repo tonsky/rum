@@ -28,7 +28,7 @@ Add this to your `project.clj`:
 ```clojure
 :dependencies [
   [org.clojure/clojurescript "0.0-2665"]
-  [rum "0.1.1"]
+  [rum "0.2.0"]
 ]
 ```
 
@@ -51,17 +51,19 @@ For more examples, see [examples/examples.cljs](examples/examples.cljs). Live ve
 Rum provides `defc` macro (short from “define component”):
 
 ```clojure
-(rum/defc [mixins]* name argvec & render-body)
- ```
+(rum/defc name doc-string? [< mixins+]? [params*] render-body+)
+```
 
 `defc` defines top-level function that accepts `argvec` and returns React element that renders as specified in `render-body`.
 
 Behind the scenes, `defc` does couple of things:
 
 - Creates render function by wrapping `render-body` with implicit `do` and then with `sablono.core/html` macro
-- Builds React class from provided mixins and render function
-- Defines a top-level function `name` with arguments list `argvec`
-- When called, `name` function will create new React element from built React class and pass though `argvec` so it’ll be available inside `render-body`
+- Builds React class from that render function and provided mixins
+- Using that class, generates constructor fn [params]->ReactElement
+- Defines a top-level var `name` and puts constructor fn there
+
+When called, `name` function will create new React element from built React class and pass though `argvec` so it’ll be available inside `render-body`
 
 To mount component, use `rum/mount`:
 
@@ -97,7 +99,7 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 `rum/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
 
 ```clojure
-(rum/defc rum/static label [n text]
+(rum/defc label < rum/static [n text]
   [:.label (repeat n text)])
 
 (rum/mount (label 1 "abc") body)
@@ -111,7 +113,7 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (def color (atom "#cc3333"))
 (def text (atom "Hello"))
 
-(rum/defc rum/reactive label []
+(rum/defc label < rum/reactive []
   [:.label {:style {:color (rum/react color)}}
     (rum/react text)])
     
@@ -125,14 +127,14 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 Finally, `rum/cursored` is a mixin that will track changes in references passed as arguments:
 
 ```clojure
-(rum/defc rum/cursored label [color text]
+(rum/defc label < rum/cursored [color text]
   [:.label {:style {:color @color}} @text])
 ```
 
 Note that `cursored` mixin creates passive component: it will not track any values, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
 
 ```clojure
-(rum/defc [rum/cursored rum/cursored-watch] body [color text]
+(rum/defc body < rum/cursored rum/cursored-watch [color text]
   (label color text))
 
 (rum/mount (body color text) (.-body js/document))
@@ -151,10 +153,10 @@ Rum also provides cursors, an abstraction that provides atom-like interface to s
                   :label1 "Hello"
                   :label2 "Goodbye"}))
 
-(rum/defc rum/cursored label [color text]
+(rum/defc label < rum/cursored [color text]
   [:.label {:style {:color @color}} @text])
 
-(rum/defc [rum/cursored rum/cursored-watch] body [state]
+(rum/defc body < rum/cursored rum/cursored-watch [state]
   [:div
     (label (rum/cursor state [:color]) (rum/cursor state [:label1]))
     (label (rum/cursor state [:color]) (rum/cursor state [:label2]))])
@@ -255,7 +257,7 @@ And define simple wrapper that creates React element from that class:
 
 ```clojure
 (defn label-ctor [text]
-  (rum/element label-class {:text text}))
+  (rum/element label-class {:text text} nil))
 ```
 
 Finally, you call ctor to get instance of element and mount it somewhere on a page:
@@ -264,14 +266,7 @@ Finally, you call ctor to get instance of element and mount it somewhere on a pa
 (rum/mount (label-ctor "Hello") (.-body js/document))
 ```
 
-This is a detailed breakdown of what happens inside of Rum. By using `rum/component`, everything can be simplified to a much more compact code:
-
-```clojure
-(let [ctor (rum/component render-label)]
-  (rum/mount (ctor "Hello") (.-body js/document)))
-```
-
-Or, with a macro:
+This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`, everything can be simplified to a much more compact code:
 
 ```clojure
 (rum/defc label [text]
@@ -281,6 +276,12 @@ Or, with a macro:
 ```
 
 ## Changes
+
+### 0.2.0
+
+- [ BREAKING ] New syntax for mixins: `(defc name < mixin1 mixin2 [args] body...)`
+- New `defcs` macro that adds additional first argument to render function: `state`
+- Ability to specify `key` and `ref` to rum components via `with-props`
 
 ### 0.1.1
 
@@ -297,6 +298,6 @@ All heavy lifting done by [React](http://facebook.github.io/react/) and [Clojure
 
 ## License
 
-Copyright © 2014 Nikita Prokopov
+Copyright © 2014–2015 Nikita Prokopov
 
 Licensed under Eclipse Public License (see [LICENSE](LICENSE)).

@@ -26,7 +26,7 @@
     state
     fns))
 
-(defn build-class [& classes]
+(defn build-class [classes]
   (let [init           (fns :init classes)           ;; state props -> state
         will-mount     (fns :will-mount classes)     ;; state -> state
         did-mount      (fns :did-mount classes)      ;; state -> state
@@ -126,21 +126,24 @@
 (defn mount [component node]
   (js/React.render component node))
 
-(defn element [class state]
-  (js/React.createElement class #js { ":rum/state" state}))
+;; initialization
 
-
-;; render mixin
-
-(defn render-mixin [render-fn]
+(defn render->mixin [render-fn]
   { :render (fn [state] [(apply render-fn (::args state)) state]) })
 
-(defn args-ctor [class]
-  (fn [& args]
-    (element class {::args args})))
+(defn render-state->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn state (::args state)) state]) })
 
-(defn component [render-fn & mixins]
-  (args-ctor (apply build-class (render-mixin render-fn) mixins)))
+(defn args->state [args]
+  {::args args})
+
+(defn element [class state & [props]]
+  (let [props (or props #js {})]
+    (aset props ":rum/state" state)
+    (js/React.createElement class props)))
+
+(defn ctor->class [ctor]
+  (::class (meta ctor)))
 
 ;; static mixin
 
