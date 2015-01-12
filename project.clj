@@ -15,8 +15,8 @@
   :plugins [[lein-cljsbuild "1.0.4" :exclusions [org.clojure/clojure]]]
   :clean-targets ^{:protect false} ["target" "web/target-cljs" "web/rum.js" "web/rum.min.js"]
 
-  :cljsbuild { :builds {
-    :dev {
+  :cljsbuild { :builds [
+    { :id :dev
       :source-paths ["src" "examples"]
       :compiler {
         :output-to     "web/rum.js"
@@ -24,12 +24,12 @@
         :optimizations :none
         :source-map    true
     }}
-    :release {
+    { :id :release
       :source-paths ["src" "examples"]
       :compiler {
         :output-to     "web/rum.min.js"
         :optimizations :advanced
         :pretty-print  false
     }}
-  }}
+  ]}
 )
