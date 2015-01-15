@@ -15,6 +15,7 @@
 (def time (atom (now)))
 (def color (atom "#FA8D97"))
 (def speed (atom 167))
+(def bmi-data (atom {:height 180 :weight 80}))
 
 (defn tick []
   (reset! time (now))
@@ -28,10 +29,10 @@
 (rum/defc static-timer < rum/static [label ts]
   [:div label ": "
     [:span {:style {:color @color}} (ts->str ts)]])
-  
+
 (defn ^:export start-static-timer [mount-el]
   (rum/mount (static-timer "Static" @time) mount-el)
-  ;; Setting up watch manually, 
+  ;; Setting up watch manually,
   ;; force top-down re-render via mount
   (add-watch time :static-timer
     (fn [_ _ _ new-val]
@@ -69,6 +70,50 @@
 (defn ^:export start-reactive-timer [mount-el]
   ;; After initial mount, all changes will be re-rendered automatically
   (rum/mount (reactive-timer) mount-el))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reagent stype BMI calculator
+
+(defn calc-bmi [{:keys [height weight bmi] :as data}]
+  (let [h (/ height 100)]
+    (if (nil? bmi)
+      (assoc data :bmi (/ weight (* h h)))
+      (assoc data :weight (* bmi h h)))))
+
+(defn slider [param value min max]
+  (let [reset (case param :bmi :weight :bmi)]
+    [:input {:type "range" :value value :min min :max max
+             :style {:width "100%"}
+              :on-change #(swap! bmi-data assoc
+                                param (-> % .-target .-value)
+                                reset nil)}]))
+
+(rum/defc bmi-component < rum/reactive []
+  (let [{:keys [weight height bmi] :as data} (calc-bmi (rum/react bmi-data))
+        [color diagnose] (cond
+                          (< bmi 18.5) ["orange" "underweight"]
+                          (< bmi 25) ["inherit" "normal"]
+                          (< bmi 30) ["orange" "overweight"]
+                          :else ["red" "obese"])]
+    (reset! bmi-data data)
+    [:div.bmi
+     [:div
+      "Height: " (int height) "cm"
+      (slider :height height 100 220)
+      ]
+     [:div
+      "Weight: " (int weight) "kg"
+      (slider :weight weight 30 150)]
+     [:div
+      "BMI: " (int bmi) " "
+      [:span {:style {:color color}} diagnose]
+      (slider :bmi bmi 10 50)]
+     ]))
+
+(defn ^:export start-reactive-bmi-calculator [mount-el]
+  ;; After initial mount, all changes will be re-rendered automatically
+  (rum/mount (bmi-component) mount-el))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Control panel
@@ -222,5 +267,3 @@
 
 (defn ^:export start-artboard [mount-el]
   (rum/mount (artboard board) mount-el))
-  
-
