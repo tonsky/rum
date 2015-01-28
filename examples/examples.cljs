@@ -224,7 +224,7 @@
     ;; only if cell is on (@cursor == true),
     ;; this component will be notified on color changes
     [:div.art-cell {:style {:background-color (when (rum/react cursor) (rum/react color))}
-                    :on-mouse-over (fn [_] (swap! cursor not))}]))
+                    :on-mouse-over (fn [_] (swap! cursor not) nil)}]))
 
 (rum/defc art-rboard []
   [:div.artboard
@@ -252,7 +252,7 @@
   ;; note that color here is not passed via arguments
   ;; it means it will not be taken into account when deciding on re-rendering
   [:div.art-cell {:style {:background-color (when @cursor @color)}
-                  :on-mouse-over (fn [_] (swap! cursor not))}])
+                  :on-mouse-over (fn [_] (swap! cursor not) nil)}])
 
 ;; cursored-watch mixin will setup watches for all IWatchable arguments
 (rum/defc artboard < rum/cursored rum/cursored-watch [board]

@@ -1,4 +1,4 @@
-(defproject rum "0.2.0"
+(defproject rum "0.2.1"
   :description "ClojureScript wrapper for React"
   :url "https://github.com/tonsky/rum"
   :license {:name "Eclipse Public License"
@@ -13,10 +13,10 @@
   ]
   
   :plugins [[lein-cljsbuild "1.0.4" :exclusions [org.clojure/clojure]]]
-  :clean-targets ^{:protect false} ["target" "web/target-cljs" "web/rum.js" "web/rum.min.js"]
+  :clean-targets ^{:protect false} ["target" "web/target-cljs" "web/rum.js"]
 
   :cljsbuild { :builds [
-    { :id "dev"
+    { :id "none"
       :source-paths ["src" "examples"]
       :compiler {
         :main          examples
@@ -25,7 +25,7 @@
         :optimizations :none
         :source-map    true
     }}
-    { :id "release"
+    { :id "advanced"
       :source-paths ["src" "examples"]
       :compiler {
         :output-to     "web/rum.js"

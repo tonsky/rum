@@ -27,8 +27,8 @@ Add this to your `project.clj`:
 
 ```clojure
 :dependencies [
-  [org.clojure/clojurescript "0.0-2665"]
-  [rum "0.2.0"]
+  [org.clojure/clojurescript "0.0-2727"]
+  [rum "0.2.1"]
 ]
 ```
 
@@ -276,6 +276,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.2.1
+
+- Updated deps to clojurescript 0.0-2727, react 0.12.2-5 and sablono 0.3.1
 
 ### 0.2.0
 
