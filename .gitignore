@@ -8,5 +8,4 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /web/target-cljs/*
-/web/rum.js
 .DS_Store

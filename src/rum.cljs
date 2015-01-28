@@ -1,5 +1,6 @@
 (ns rum
   (:require
+    cljsjs.react
     sablono.core))
 
 (enable-console-print!)
