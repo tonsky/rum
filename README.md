@@ -21,7 +21,7 @@ Rum provides basic tools that every React app eventually need:
 * `sablono`-based syntax for generating markup
 * couple of wrapper functions like `mount`, `build-class`, `element` etc.
 
-## Using Rum
+## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
 Add this to your `project.clj`:
 
