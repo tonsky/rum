@@ -1,7 +1,8 @@
 (ns rum
   (:require-macros rum)
-  (:require [cljsjs.react]
-            [sablono.core]))
+  (:require
+    [cljsjs.react]
+    [sablono.core]))
 
 (enable-console-print!)
 

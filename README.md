@@ -27,8 +27,8 @@ Add this to your `project.clj`:
 
 ```clojure
 :dependencies [
-  [org.clojure/clojurescript "0.0-2727"]
-  [rum "0.2.1"]
+  [org.clojure/clojurescript "0.0-2758"]
+  [rum "0.2.2"]
 ]
 ```
 
@@ -36,13 +36,15 @@ Simplest example defines component, instantiates it and mounts it on a page:
 
 ```clojure
 (ns example
-  (:require [rum :include-macros true]))
+  (:require [rum]))
 
 (rum/defc label [n text]
   [:.label (repeat n text)])
 
 (rum/mount (label 5 "abc") (.-body js/document))
 ```
+
+Note: _For cljs 2755 and earlier use `(:require [rum :include-macros true])`_
 
 For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
 
@@ -276,6 +278,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.2.2
+
+- Compatibility with clojurescript 0.0-2758, macros included by default when `(:require rum)`
 
 ### 0.2.1
 
