@@ -99,11 +99,12 @@
 ;; render queue
 
 (def schedule
-  (or js/window.requestAnimationFrame
-      js/window.webkitRequestAnimationFrame
-      js/window.mozRequestAnimationFrame
-      js/window.msRequestAnimationFrame
-      #(js/setTimeout % 16)))
+  (and (exists? js/window)
+       (or js/window.requestAnimationFrame
+           js/window.webkitRequestAnimationFrame
+           js/window.mozRequestAnimationFrame
+           js/window.msRequestAnimationFrame
+           #(js/setTimeout % 16))))
 
 (defn compare-by [keyfn]
   (fn [x y]
