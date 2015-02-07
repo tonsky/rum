@@ -28,7 +28,7 @@
     state
     fns))
 
-(defn build-class [classes]
+(defn build-class [classes display-name]
   (let [init           (fns :init classes)           ;; state props -> state
         will-mount     (fns :will-mount classes)     ;; state -> state
         did-mount      (fns :did-mount classes)      ;; state -> state
@@ -43,6 +43,7 @@
     ]
 
     (js/React.createClass #js {
+      :displayName display-name
       :getInitialState
       (fn []
         (this-as this
