@@ -27,8 +27,8 @@ Add this to your `project.clj`:
 
 ```clojure
 :dependencies [
-  [org.clojure/clojurescript "0.0-2758"]
-  [rum "0.2.2"]
+  [org.clojure/clojurescript "0.0-2760"]
+  [rum "0.2.3"]
 ]
 ```
 
@@ -279,9 +279,14 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ## Changes
 
+### 0.2.3
+
+- Components defined via `defc/defcs` will have `displayName` defined (thx @[Ivan Dubrov](https://github.com/idubrov), pull request #16)
+- Not referencing `requestAnimationFrame` when used in headless environment (thx @[whodidthis](https://github.com/whodidthis), pull request #14)
+
 ### 0.2.2
 
-- Compatibility with clojurescript 0.0-2758, macros included by default when `(:require rum)`
+- Compatibility with clojurescript 0.0-2758, macros included automatically when `(:require rum)`
 
 ### 0.2.1
 
