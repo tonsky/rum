@@ -7,7 +7,7 @@
   :source-paths ["src"]
   :dependencies [
     [org.clojure/clojure "1.6.0" :scope "provided"]
-    [org.clojure/clojurescript "0.0-2760" :scope "provided"]
+    [org.clojure/clojurescript "0.0-2816" :scope "provided"]
     [cljsjs/react "0.12.2-5"]
     [sablono "0.3.1"]
   ]
@@ -24,6 +24,7 @@
         :output-dir    "web/target-cljs"
         :optimizations :none
         :source-map    true
+        :warnings     {:single-segment-namespace false}
     }}
     { :id "advanced"
       :source-paths ["src" "examples"]
@@ -32,6 +33,7 @@
         :optimizations :advanced
         :elide-asserts true
         :pretty-print  false
+        :warnings     {:single-segment-namespace false}
     }}
   ]}
 )
