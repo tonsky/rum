@@ -224,6 +224,8 @@ Sample mixin that forces re-render every second:
                      callback #(rum/request-render comp)
                      interval  (js/setInterval callback 1000)]
                  (assoc state ::interval interval)))
+  :transfer-state (fn [old-state state]
+                    (merge state (select-keys old-state [::interval])))
   :will-unmount (fn [state]
                   (js/clearInterval (::interval state)))})
 

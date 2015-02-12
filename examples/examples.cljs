@@ -131,6 +131,8 @@
   :did-mount (fn [state]
                (let [interval (js/setInterval #(rum/request-render (:rum/react-component state)) 1000)]
                  (assoc state ::interval interval)))
+  :transfer-state (fn [old-state state]
+                    (merge state (select-keys old-state [::interval])))
   :will-unmount (fn [state]
                   (js/clearInterval (::interval state)))
   })
