@@ -34,10 +34,11 @@
         did-mount      (fns :did-mount classes)      ;; state -> state
         transfer-state (fns :transfer-state classes) ;; old-state state -> state
         should-update  (fns :should-update classes)  ;; old-state state -> boolean
+        will-update    (fns :will-update classes)    ;; state -> state
         render         (first (fns :render classes)) ;; state -> [dom state]
         wrapped-render (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
+        did-update     (fns :did-update classes)     ;; state -> state
         will-unmount   (fns :will-unmount classes)   ;; state -> state
-        
         props->state   (fn [props]
                          (call-all (aget props ":rum/state") init props))
     ]
@@ -79,10 +80,12 @@
             (let [old-state @(state this)
                   new-state @(aget next-props ":rum/state")]
               (or (some #(% old-state new-state) should-update) false)))))
-;;       :componentWillUpdate
-;;       (fn [next-props next-state]
-;;         (this-as this
-;;           (println (::id @(state this)) "will-update")))
+      :componentWillUpdate
+      (when-not (empty? will-update)
+        (fn [next-props _]
+          (this-as this
+            (let [new-state (aget next-props ":rum/state")]
+              (vswap! new-state call-all will-update)))))
       :render
       (fn []
         (this-as this
@@ -90,7 +93,11 @@
                 [dom next-state] (wrapped-render @state)]
             (vreset! state next-state)
             dom)))
-;;                 :componentDidUpdate (fn [prev-props prev-state])
+      :componentDidUpdate
+      (when-not (empty? did-update)
+        (fn [_ _]
+          (this-as this
+            (vswap! (state this) call-all did-update))))
       :componentWillUnmount
       (when-not (empty? will-unmount)
         (fn []

@@ -204,8 +204,10 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
   :did-mount       ;; state            ⇒ state
   :transfer-state  ;; old-state, state ⇒ state
   :should-update   ;; old-state, state ⇒ boolean
+  :will-update     ;; state            ⇒ state
   :render          ;; state            ⇒ [pseudo-dom state]
   :wrap-render     ;; render-fn        ⇒ render-fn
+  :did-update      ;; state            ⇒ state
   :will-unmount    ;; state            ⇒ state }
 ```
 
