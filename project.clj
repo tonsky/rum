@@ -1,4 +1,4 @@
-(defproject rum "0.2.3"
+(defproject rum "0.2.4"
   :description "ClojureScript wrapper for React"
   :url "https://github.com/tonsky/rum"
   :license {:name "Eclipse Public License"
@@ -7,7 +7,7 @@
   :source-paths ["src"]
   :dependencies [
     [org.clojure/clojure "1.6.0" :scope "provided"]
-    [org.clojure/clojurescript "0.0-2816" :scope "provided"]
+    [org.clojure/clojurescript "0.0-2850" :scope "provided"]
     [cljsjs/react "0.12.2-5"]
     [sablono "0.3.1"]
   ]

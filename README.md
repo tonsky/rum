@@ -27,8 +27,8 @@ Add this to your `project.clj`:
 
 ```clojure
 :dependencies [
-  [org.clojure/clojurescript "0.0-2760"]
-  [rum "0.2.3"]
+  [org.clojure/clojurescript "0.0-2850"]
+  [rum "0.2.4"]
 ]
 ```
 
@@ -133,7 +133,7 @@ Finally, `rum/cursored` is a mixin that will track changes in references passed 
   [:.label {:style {:color @color}} @text])
 ```
 
-Note that `cursored` mixin creates passive component: it will not track any values, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
+Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
 
 ```clojure
 (rum/defc body < rum/cursored rum/cursored-watch [color text]
@@ -282,6 +282,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.2.4
+
+- `will-update` and `did-update` lifecycle methods added (thx @[Andrey Vasenin](https://github.com/avasenin), pull request #18)
 
 ### 0.2.3
 
