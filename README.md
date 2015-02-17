@@ -12,6 +12,16 @@ Rum is not a framework that tells you how your components should work.
 Instead, it’s a library that gives you the tools, so you can build components
 that fits your needs best.
 
+## Comparison to other frameworks
+
+All ClojureScript frameworks: Om, Reagent and even Quiescent came with built-in component behaviour model. They does not allow to change that without rewriting internals. Rum was designed to specifically address that problem. Rum doesn’t sell you one true component model. Instead, contract on custom component building (mixins) is also considered to be part of API in Rum.
+
+Rum has two levels of API. On lower level we have tools to build your own component behaviours: low-level details are well-defined and open for extensions. Thanks to that Rum is more customizable, integration with third-party models is simpler (you use storage/data model you want and write component to support that, unlike other solutions which dictate how to store app state), and you can mix different kinds of components in one app.
+
+On higher level, Rum comes with already-built types of components which emulate behavior found in Quiescent, Reagent and Quiescent. They were built using the same public API any Rum user can use. No internals hacking. I think it means abstraction is good enough and decomplection was made in the right place. I’m also very proud they take about 10-30 lines of code each.
+
+Rum idea is not to lock you down to a single storage model. Sometimes your dataflow is trickier that just atoms, e.g. you need components to react to DataScript events, core.async channels, ajax/websocket/webworker callbacks. In that case Rum provides well-defined API and set of basic building blocks to write components you need to.
+
 ## What’s in the box?
 
 Rum provides basic tools that every React app eventually need:
