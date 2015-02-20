@@ -25,8 +25,9 @@
    `(let [render-fn#    (fn ~argvec ~(s/compile-html `(do ~@render)))
           render-mixin# (~render-ctor render-fn#)
           class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
-          ctor#         (fn ~argvec
-                          (let [state# (args->state ~argvec)]
+          ctor#         (fn [& args#]
+                          (let [~argvec args#
+                                state# (args->state args#)]
                             (rum/element class# state# nil)))]
       (def ~name ~doc (with-meta ctor# {::class class#})))))
 

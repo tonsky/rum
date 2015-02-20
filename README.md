@@ -293,6 +293,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ## Changes
 
+### 0.2.5
+
+- Fixed argument destructuring in defc macro (issue #22)
+
 ### 0.2.4
 
 - `will-update` and `did-update` lifecycle methods added (thx @[Andrey Vasenin](https://github.com/avasenin), pull request #18)
