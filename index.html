@@ -4,6 +4,7 @@
     <meta http-equiv="content-type" content="text/html;charset=UTF-8"/>
     <title>Rum test page</title>
     <link href="web/dev.css" rel="stylesheet" type="text/css"></link>
+<!--     <script type='text/javascript' id='lt_ws' src='http://localhost:65000/socket.io/lighttable/ws.js'></script> -->
   </head>
 
   <body>
@@ -39,6 +40,11 @@
       <div class=example-title>BMI Calculator</div>
       <div id=reactive-bmi-calculator></div>
     </div>
+    
+    <div class=example>
+      <div class=example-title>Form validation</div>
+      <div id=val-form></div>
+    </div>
 
     <script src="web/rum.js" type="text/javascript"></script>
     <script type="text/javascript">
@@ -50,6 +56,7 @@
       examples.start_binary_clock(document.getElementById("binary-timer"));
       examples.start_rboard(document.getElementById("rboard"));
       examples.start_artboard(document.getElementById("artboard"));
+      examples.start_val_form(document.getElementById("val-form"));
     </script>
   </body>
 </html>

@@ -7,7 +7,7 @@ body, input, button { font: 16px/20px 'Input Sans Narrow';}
 .example-title { border-bottom: 1px solid #ccc; margin: -4px 0 20px; line-height: 30px; }
 dt { width: 82px; float: left; }
 dt, dd { vertical-align: bottom; line-height: 36px }
-input { padding: 6px 6px 2px; }
+input { padding: 6px 6px 2px; border: 1px solid #CCC; }
 input:focus { outline: 2px solid #a3ccf7; }
 
 .bclock { margin: -6px 0 0 -4px; }
