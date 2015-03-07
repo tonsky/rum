@@ -164,6 +164,27 @@
     (not= (::args old-state) (::args new-state)))
 })
 
+;; local mixin
+
+(defn local
+  "Adds an atom to component’s state that can be used as local state.
+   Atom is stored under key `:rum/local`.
+   Component will be automatically re-rendered if atom’s value changes"
+  [initial & [key]]
+  (let [key (or key :rum/local)]
+    { :transfer-state
+      (fn [old new]
+        (assoc new key (old key)))
+      :will-mount
+      (fn [state]
+        (let [local-state (atom initial)
+              component   (:rum/react-component state)]
+          (add-watch local-state key
+            (fn [_ _ _ _]
+              (request-render component)))
+          (assoc state key local-state))) }))
+
+
 ;; reactive mixin
 
 (def ^:dynamic *reactions*)

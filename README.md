@@ -124,6 +124,20 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (rum/mount (label 1 "xyz") body) ;; this will cause a re-render
 ```
 
+`rum/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
+
+```clojure
+(rum/defcs stateful < (rum/local 0) [state title]
+  (let [local (:rum/local state)]
+    [:div
+     {:on-click (fn [_] (swap! local inc))}
+     title ": " @local]))
+
+(rum/mount (stateful "Clicks count") js/document.body)
+```
+
+Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
+
 `rum/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
 
 ```clojure
@@ -297,6 +311,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### WIP
+
+- Added `local` mixin
 
 ### 0.2.5
 

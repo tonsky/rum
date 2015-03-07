@@ -320,26 +320,7 @@
 
 ;; Local component state
 
-(defn- prepend [xs x]
-  (vec (concat [x] xs)))
-
-(def local-state {
-  :init
-  (fn [state props]
-    (update state :rum/args prepend (atom 0)))
-  :transfer-state
-  (fn [old new]
-    (assoc-in new [:rum/args 0] (get-in old [:rum/args 0])))
-  :will-mount
-  (fn [state]
-    (let [local (first (:rum/args state))]
-      (add-watch local ::local
-        (fn [_ _ _ _]
-          (rum/request-render (:rum/react-component state)))))
-    state)
-})
-
-(rum/defc stateful < local-state [local title]
+(rum/defcs stateful < (rum/local 0) [{local :rum/local} title]
   [:div
    {:style {"-webkit-user-select" "none"
             "cursor" "pointer"}
