@@ -8,6 +8,8 @@
 (defn now []
   (.getTime (js/Date.)))
 
+(defn el [id] (js/document.getElementById id))
+
 (defn ts->str [ts]
   (let [str (.toISOString (js/Date. ts))]
     (subs str 11 (dec (count str)))))
@@ -30,7 +32,7 @@
   [:div label ": "
     [:span {:style {:color @color}} (ts->str ts)]])
 
-(defn ^:export start-static-timer [mount-el]
+(let [mount-el (el "static-timer")]
   (rum/mount (static-timer "Static" @time) mount-el)
   ;; Setting up watch manually,
   ;; force top-down re-render via mount
@@ -46,13 +48,14 @@
   [:div "Forced: "
     [:span {:style {:color @color}} (ts->str @time)]])
 
-(defn ^:export start-forced-timer [mount-el]
-  (let [comp (rum/mount (forced-timer) mount-el)]
-    ;; Setting up watch manually,
-    ;; force specific component re-render via request-render
-    (add-watch time :forced-timer
-      (fn [_ _ _ _]
-        (rum/request-render comp)))))
+(let [mount-el (el "forced-timer")
+      comp     (rum/mount (forced-timer) mount-el)]
+  ;; Setting up watch manually,
+  ;; force specific component re-render via request-render
+  (add-watch time :forced-timer
+    (fn [_ _ _ _]
+      (rum/request-render comp))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reactive components (reagent-style)
@@ -67,9 +70,8 @@
     ;; Then pass _values_ to static component
     (colored-clock (rum/react time) (rum/react color))])
 
-(defn ^:export start-reactive-timer [mount-el]
-  ;; After initial mount, all changes will be re-rendered automatically
-  (rum/mount (reactive-timer) mount-el))
+;; After initial mount, all changes will be re-rendered automatically
+(rum/mount (reactive-timer) (el "reactive-timer"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -111,9 +113,9 @@
       (slider :bmi bmi 10 50)]
      ]))
 
-(defn ^:export start-reactive-bmi-calculator [mount-el]
-  ;; After initial mount, all changes will be re-rendered automatically
-  (rum/mount (bmi-component) mount-el))
+;; After initial mount, all changes will be re-rendered automatically
+(rum/mount (bmi-component) (el "reactive-bmi-calculator"))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Control panel
@@ -158,8 +160,7 @@
     (watches-count time)
 ])
 
-(defn ^:export start-controls [mount-el]
-  (rum/mount (controls) mount-el))
+(rum/mount (controls) (el "controls"))
 
 ;; Generic render-count label
 
@@ -194,8 +195,7 @@
       [:tr [:th {:colSpan 8}
              (render-count bclock-renders)]]]))
 
-(defn ^:export start-binary-clock [mount-el]
-  (rum/mount (bclock) mount-el))
+(rum/mount (bclock) (el "binary-timer"))
 
 ;; Generic board utils
 
@@ -237,8 +237,7 @@
           (rum/with-props rcell x y :rum/key [x y]))])
    (board-stats rboard rboard-renders)])
 
-(defn ^:export start-rboard [mount-el]
-  (rum/mount (art-rboard) mount-el))
+(rum/mount (art-rboard) (el "rboard"))
 
 
 ;; Cursor drawing board
@@ -267,8 +266,7 @@
           (rum/with-props art-cell x y x-cursor :rum/key [x y]))])
     (board-stats board board-renders)])
 
-(defn ^:export start-artboard [mount-el]
-  (rum/mount (artboard board) mount-el))
+(rum/mount (artboard board) (el "artboard"))
 
 
 ;; Form validation
@@ -318,5 +316,6 @@
       [:dt "Age:"]
       [:dd (restricting-input-native (rum/cursor state [:age]) #(re-matches #"([1-9][0-9]*)?" %))]]))
 
-(defn ^:export start-val-form [mount-el]
-  (rum/mount (val-form) mount-el))
+(rum/mount (val-form) (el "val-form"))
+
+

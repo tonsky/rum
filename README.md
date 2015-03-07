@@ -35,20 +35,14 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-Add this to your `project.clj`:
-
-```clojure
-:dependencies [
-  [org.clojure/clojurescript "0.0-2850"]
-  [rum "0.2.4"]
-]
-```
+1. Add `[rum "0.2.5"]` to dependencies
+2. `(require 'rum)`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
 
 ```clojure
 (ns example
-  (:require [rum]))
+  (:require rum))
 
 (rum/defc label [n text]
   [:.label (repeat n text)])
@@ -56,9 +50,18 @@ Simplest example defines component, instantiates it and mounts it on a page:
 (rum/mount (label 5 "abc") (.-body js/document))
 ```
 
-Note: _For cljs 2755 and earlier use `(:require [rum :include-macros true])`_
-
 For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
+
+Note: _To suppress warning about single-segmented namespace, add this:_
+
+```clojure
+:compiler {
+  {:warnings {:single-segment-namespace false}}
+}
+```
+
+Another note: _For cljs 2755 and earlier use `(:require [rum :include-macros true])`_
+
 
 ## Rum API
 

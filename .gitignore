@@ -9,3 +9,4 @@ pom.xml.asc
 /.nrepl-port
 /web/target-cljs/*
 .DS_Store
+.nrepl-history
