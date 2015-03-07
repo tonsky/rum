@@ -1,15 +1,14 @@
-(def +version+ "0.2.6")
-
 (task-options!
- pom   {:project 'rum
-        :version +version+
+  pom { :project     'rum
+        :version     "0.2.6"
         :description "ClojureScript wrapper for React"
-        :url     "https://github.com/tonsky/rum"
-        :scm     {:url "https://github.com/tonsky/rum"}
-        :license {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
+        :url         "https://github.com/tonsky/rum"
+        :scm         {:url "https://github.com/tonsky/rum"}
+        :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"} })
 
 (set-env!
-  :source-paths #{"src"}
+  :source-paths   #{"src"}
+  :resource-paths #{"src"}
   :dependencies '[
     [org.clojure/clojure       "1.7.0-alpha5" :scope "provided"]
     [org.clojure/clojurescript "0.0-2985"     :scope "provided"]
@@ -20,16 +19,14 @@
     [adzerk/boot-reload "0.2.4"          :scope "test"]
     [tonsky/boot-anybar "0.1.0"          :scope "test"]
     [pandeiro/boot-http "0.6.3-SNAPSHOT" :scope "test"]
-    [adzerk/bootlaces   "0.1.11"         :scope "test"]])
+])
 
 (require
   '[adzerk.boot-cljs   :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
   '[tonsky.boot-anybar :refer [anybar]]
   '[pandeiro.boot-http :refer [serve]]
-  '[adzerk.bootlaces :refer :all])
-
-(bootlaces! +version+)
+)
 
 (def compiler-opts
   {:warnings {:single-segment-namespace false}})
