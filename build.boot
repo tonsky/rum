@@ -13,7 +13,7 @@
   :dependencies '[
     [org.clojure/clojure       "1.7.0-alpha5" :scope "provided"]
     [org.clojure/clojurescript "0.0-2985"     :scope "provided"]
-    [cljsjs/react              "0.12.2-6"]
+    [cljsjs/react              "0.12.2-7"]
     [sablono                   "0.3.4"]
 
     [adzerk/boot-cljs   "0.0-2814-3"     :scope "test"]

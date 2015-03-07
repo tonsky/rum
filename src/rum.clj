@@ -26,8 +26,7 @@
           render-mixin# (~render-ctor render-fn#)
           class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
           ctor#         (fn [& args#]
-                          (let [~argvec args#
-                                state# (args->state args#)]
+                          (let [state# (args->state args#)]
                             (rum/element class# state# nil)))]
       (def ~name ~doc (with-meta ctor# {::class class#})))))
 

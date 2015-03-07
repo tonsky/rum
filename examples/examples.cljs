@@ -173,7 +173,7 @@
 
 (rum/defc bit < rum/static [n bit]
   (swap! bclock-renders inc)
-  [:td.bclock-bit {:style (when (bit-test n bit) {:background-color @color})}])
+  [:td.bclock-bit {:style (when (bit-test n bit) {:backgroundColor @color})}])
 
 (rum/defc bclock < rum/reactive []
   (let [date (js/Date. (rum/react time))
@@ -318,4 +318,32 @@
 
 (rum/mount (val-form) (el "val-form"))
 
+;; Local component state
 
+(defn- prepend [xs x]
+  (vec (concat [x] xs)))
+
+(def local-state {
+  :init
+  (fn [state props]
+    (update state :rum/args prepend (atom 0)))
+  :transfer-state
+  (fn [old new]
+    (assoc-in new [:rum/args 0] (get-in old [:rum/args 0])))
+  :will-mount
+  (fn [state]
+    (let [local (first (:rum/args state))]
+      (add-watch local ::local
+        (fn [_ _ _ _]
+          (rum/request-render (:rum/react-component state)))))
+    state)
+})
+
+(rum/defc stateful < local-state [local title]
+  [:div
+   {:style {"-webkit-user-select" "none"
+            "cursor" "pointer"}
+    :on-click (fn [_] (swap! local inc))}
+   title ": " @local])
+
+(rum/mount (stateful "Clicks count") (el "local-state"))
