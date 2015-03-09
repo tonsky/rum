@@ -1,4 +1,5 @@
-/target
+/target/**
+!/target/examples.js
 /classes
 /checkouts
 pom.xml
@@ -7,6 +8,5 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
-/web/target-cljs/*
 .DS_Store
 .nrepl-history

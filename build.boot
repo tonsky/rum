@@ -36,7 +36,8 @@
   (comp (serve :dir ".")
         (watch)
         (anybar)
-        (cljs)))
+        (cljs)
+        (sift :move {#"main.js" "examples.js"})))
 
 (deftask none-opts []
   (task-options!
