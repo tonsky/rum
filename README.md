@@ -60,8 +60,9 @@ Note: _To suppress warning about single-segmented namespace, add this:_
 }
 ```
 
-Another note: _For cljs 2755 and earlier use `(:require [rum :include-macros true])`_
+## Rum resources
 
+- [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
 
 ## Rum API
 
