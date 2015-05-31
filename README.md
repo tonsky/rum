@@ -63,6 +63,8 @@ Note: _To suppress warning about single-segmented namespace, add this:_
 ## Rum resources
 
 - [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
+- DataScript ToDo sample app: [github.com/tonsky/datascript-todo](https://github.com/tonsky/datascript-todo)
+- DataScript Menu example: [github.com/tonsky/datascript-menu](https://github.com/tonsky/datascript-menu)
 
 ## Rum API
 
