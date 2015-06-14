@@ -22,7 +22,8 @@
 
 (defn- -defc [render-ctor body]
   (let [{:keys [name doc mixins argvec render]} (parse-defc body)]
-   `(let [render-fn#    (fn ~argvec ~(s/compile-html `(do ~@render)))
+   `(let [_             (declare ~name)
+          render-fn#    (fn ~argvec ~(s/compile-html `(do ~@render)))
           render-mixin# (~render-ctor render-fn#)
           class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
           ctor#         (fn [& args#]
