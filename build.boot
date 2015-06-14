@@ -19,6 +19,7 @@
     [adzerk/boot-reload "0.2.4"          :scope "test"]
     [tonsky/boot-anybar "0.1.0"          :scope "test"]
     [pandeiro/boot-http "0.6.3-SNAPSHOT" :scope "test"]
+    [adzerk/bootlaces   "0.1.11"         :scope "test"]
 ])
 
 (require
@@ -26,6 +27,7 @@
   '[adzerk.boot-reload :refer [reload]]
   '[tonsky.boot-anybar :refer [anybar]]
   '[pandeiro.boot-http :refer [serve]]
+  '[adzerk.bootlaces   :refer [push-release]]
 )
 
 (def compiler-opts
@@ -61,3 +63,6 @@
 (deftask advanced []
   (comp (advanced-opts)
         (serving)))
+
+(deftask clojars []
+  (comp (pom) (jar) (push-release)))
