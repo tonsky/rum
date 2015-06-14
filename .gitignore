@@ -1,5 +1,5 @@
 /target/**
-!/target/examples.js
+!/target/main.js
 /classes
 /checkouts
 pom.xml

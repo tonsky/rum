@@ -1,6 +1,6 @@
 (task-options!
   pom { :project     'rum
-        :version     "0.2.6"
+        :version     "0.2.7"
         :description "ClojureScript wrapper for React"
         :url         "https://github.com/tonsky/rum"
         :scm         {:url "https://github.com/tonsky/rum"}
@@ -10,12 +10,12 @@
   :source-paths   #{"src"}
   :resource-paths #{"src"}
   :dependencies '[
-    [org.clojure/clojure       "1.7.0-alpha5" :scope "provided"]
-    [org.clojure/clojurescript "0.0-2985"     :scope "provided"]
-    [cljsjs/react              "0.12.2-7"]
+    [org.clojure/clojure       "1.7.0-RC1" :scope "provided"]
+    [org.clojure/clojurescript "0.0-3308"  :scope "provided"]
+    [cljsjs/react              "0.12.2-8"]
     [sablono                   "0.3.4"]
 
-    [adzerk/boot-cljs   "0.0-2814-3"     :scope "test"]
+    [adzerk/boot-cljs   "0.0-3308-0"     :scope "test"]
     [adzerk/boot-reload "0.2.4"          :scope "test"]
     [tonsky/boot-anybar "0.1.0"          :scope "test"]
     [pandeiro/boot-http "0.6.3-SNAPSHOT" :scope "test"]
@@ -36,13 +36,12 @@
   (comp (serve :dir ".")
         (watch)
         (anybar)
-        (cljs)
-        (sift :move {#"main.js" "examples.js"})))
+        (cljs)))
 
 (deftask none-opts []
   (task-options!
    cljs {:optimizations    :none
-         :source-map       true
+         :source-map       false
          :compiler-options compiler-opts})
   identity)
 

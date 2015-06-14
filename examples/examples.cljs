@@ -14,13 +14,13 @@
   (let [str (.toISOString (js/Date. ts))]
     (subs str 11 (dec (count str)))))
 
-(def time (atom (now)))
+(def clock (atom (now)))
 (def color (atom "#FA8D97"))
 (def speed (atom 167))
 (def bmi-data (atom {:height 180 :weight 80}))
 
 (defn tick []
-  (reset! time (now))
+  (reset! clock (now))
   (js/setTimeout tick @speed))
 (tick)
 
@@ -33,10 +33,10 @@
     [:span {:style {:color @color}} (ts->str ts)]])
 
 (let [mount-el (el "static-timer")]
-  (rum/mount (static-timer "Static" @time) mount-el)
+  (rum/mount (static-timer "Static" @clock) mount-el)
   ;; Setting up watch manually,
   ;; force top-down re-render via mount
-  (add-watch time :static-timer
+  (add-watch clock :static-timer
     (fn [_ _ _ new-val]
       (rum/mount (static-timer "Static" new-val) mount-el))))
 
@@ -46,13 +46,13 @@
 
 (rum/defc forced-timer []
   [:div "Forced: "
-    [:span {:style {:color @color}} (ts->str @time)]])
+    [:span {:style {:color @color}} (ts->str @clock)]])
 
 (let [mount-el (el "forced-timer")
       comp     (rum/mount (forced-timer) mount-el)]
   ;; Setting up watch manually,
   ;; force specific component re-render via request-render
-  (add-watch time :forced-timer
+  (add-watch clock :forced-timer
     (fn [_ _ _ _]
       (rum/request-render comp))))
 
@@ -68,7 +68,7 @@
   [:div "Reactive: "
     ;; Subscribing to atom changes with rum/react
     ;; Then pass _values_ to static component
-    (colored-clock (rum/react time) (rum/react color))])
+    (colored-clock (rum/react clock) (rum/react color))])
 
 ;; After initial mount, all changes will be re-rendered automatically
 (rum/mount (reactive-timer) (el "reactive-timer"))
@@ -157,7 +157,7 @@
     [:dt "Tick: "]
     [:dd (input speed) " ms"]
     [:dt "Time:"]
-    (watches-count time)
+    (watches-count clock)
 ])
 
 (rum/mount (controls) (el "controls"))
@@ -176,7 +176,7 @@
   [:td.bclock-bit {:style (when (bit-test n bit) {:backgroundColor @color})}])
 
 (rum/defc bclock < rum/reactive []
-  (let [date (js/Date. (rum/react time))
+  (let [date (js/Date. (rum/react clock))
         hh   (quot (.getHours date) 10)
         hl   (mod  (.getHours date) 10)
         mh   (quot (.getMinutes date) 10)
@@ -328,3 +328,12 @@
    title ": " @local])
 
 (rum/mount (stateful "Clicks count") (el "local-state"))
+
+;; Self-referencing component
+
+(rum/defc tree [form]
+  (if (sequential? form)
+    [:.branch (map tree form)]
+    [:.leaf (str form)]))
+
+(rum/mount (tree [:a [:b [:c :d [:e] :g]]]) (el "selfie"))

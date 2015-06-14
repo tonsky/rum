@@ -316,6 +316,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ## Changes
 
+### 0.2.7
+
+- Allow components to refer to themselves (thx [Kevin Lynagh](https://github.com/lynaghk), pull request #30)
+
 ### 0.2.6
 
 - Added `local` mixin

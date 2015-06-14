@@ -22,14 +22,14 @@
 
 (defn- -defc [render-ctor body]
   (let [{:keys [name doc mixins argvec render]} (parse-defc body)]
-   `(let [_             (declare ~name)
-          render-fn#    (fn ~argvec ~(s/compile-html `(do ~@render)))
-          render-mixin# (~render-ctor render-fn#)
-          class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
-          ctor#         (fn [& args#]
-                          (let [state# (args->state args#)]
-                            (rum/element class# state# nil)))]
-      (def ~name ~doc (with-meta ctor# {::class class#})))))
+   `(def ~name ~doc
+      (let [render-fn#    (fn ~argvec ~(s/compile-html `(do ~@render)))
+            render-mixin# (~render-ctor render-fn#)
+            class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
+            ctor#         (fn [& args#]
+                            (let [state# (args->state args#)]
+                              (rum/element class# state# nil)))]
+        (with-meta ctor# {::class class#})))))
 
 (defmacro defc
   "Defc does couple of things:
