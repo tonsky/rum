@@ -20,5 +20,3 @@ input:focus { outline: 2px solid #a3ccf7; }
 .artboard { -webkit-user-select: none; line-height: 10px; }
 .art-cell { width: 12px; height: 12px; margin: 0 1px 1px 0; display: inline-block; background-color: #EEE; }
 .artboard .stats { font-size: 12px; line-height: 14px; margin-top: 8px; }
-
-.branch > .branch { margin-left: 20px; }

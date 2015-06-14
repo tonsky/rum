@@ -331,9 +331,13 @@
 
 ;; Self-referencing component
 
-(rum/defc tree [form]
-  (if (sequential? form)
-    [:.branch (map tree form)]
-    [:.leaf (str form)]))
+(rum/defc tree < rum/static
+  ([form] (tree form 0))
+  ([form depth]
+    (let [offset {:style {:margin-left (* 10 depth)}}]
+      (if (sequential? form)
+        [:.branch offset (map #(tree % (inc depth)) form)]
+        [:.leaf   offset (str form)]))))
 
 (rum/mount (tree [:a [:b [:c :d [:e] :g]]]) (el "selfie"))
+

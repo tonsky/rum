@@ -319,6 +319,7 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ### 0.2.7
 
 - Allow components to refer to themselves (thx [Kevin Lynagh](https://github.com/lynaghk), pull request #30)
+- Support for multi-arity render fns (issue #23)
 
 ### 0.2.6
 
