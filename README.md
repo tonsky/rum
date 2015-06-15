@@ -16,7 +16,7 @@ that fits your needs best.
 
 ## Comparison to other frameworks
 
-All ClojureScript frameworks: Om, Reagent and even Quiescent came with built-in component behaviour model. They does not allow to change that without rewriting internals. Rum was designed to specifically address that problem. Rum doesn’t sell you one true component model. Instead, contract on custom component building (mixins) is also considered to be part of API in Rum.
+All ClojureScript frameworks: Om, Reagent and even Quiescent came with built-in component behaviour model. They do not allow to change that without rewriting internals. Rum was designed to specifically address that problem. Rum doesn’t sell you one true component model. Instead, contract on custom component building (mixins) is also considered to be part of API in Rum.
 
 Rum has two levels of API. On lower level we have tools to build your own component behaviours: low-level details are well-defined and open for extensions. Thanks to that Rum is more customizable, integration with third-party models is simpler (you use storage/data model you want and write component to support that, unlike other solutions which dictate how to store app state), and you can mix different kinds of components in one app.
 
