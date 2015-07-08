@@ -67,6 +67,10 @@ Note: _To suppress warning about single-segmented namespace, add this:_
 - DataScript ToDo sample app: [github.com/tonsky/datascript-todo](https://github.com/tonsky/datascript-todo)
 - DataScript Menu example: [github.com/tonsky/datascript-menu](https://github.com/tonsky/datascript-menu)
 
+## Who’s using Rum?
+
+- [PartsBox.io](https://partsbox.io/), inventory management
+
 ## Rum API
 
 Rum provides `defc` macro (short from “define component”):
