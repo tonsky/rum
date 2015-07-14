@@ -224,8 +224,8 @@ Each component in Rum has state associated with it. State is just a CLJS map wit
 
 * `:rum/react-component` — link to React component/element object
 * `:rum/id` — unique component id
-* everything mixins are using for they internal bookkeeping 
-* anything your own code put here
+* everything mixins are using for their internal bookkeeping 
+* anything your own code uses are put here
 
 Reference to current state is stored as `volatile!` boxed value at `props[":rum/state"]`.
 Effectively state is mutable, but components do not change volatile reference directly,
