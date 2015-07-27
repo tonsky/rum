@@ -50,8 +50,6 @@ Simplest example defines component, instantiates it and mounts it on a page:
 (rum/mount (label 5 "abc") (.-body js/document))
 ```
 
-For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
-
 Note: _To suppress warning about single-segmented namespace, add this:_
 
 ```clojure
@@ -60,7 +58,17 @@ Note: _To suppress warning about single-segmented namespace, add this:_
 }
 ```
 
-## Rum resources
+## Examples
+
+Sample code of writing components and mixins can be found under `examples` folder.
+
+Run examples on your local server using [boot](https://github.com/boot-clj/boot):
+
+   boot serving
+
+Live version of examples is [here](http://tonsky.me/rum/).
+
+## Resources
 
 - [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
 - DataScript Chat sample app: [github.com/tonsky/datascript-chat](https://github.com/tonsky/datascript-chat)
@@ -71,7 +79,7 @@ Note: _To suppress warning about single-segmented namespace, add this:_
 
 - [PartsBox.io](https://partsbox.io/), inventory management
 
-## Rum API
+## API
 
 Rum provides `defc` macro (short from “define component”):
 
