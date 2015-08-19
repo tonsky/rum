@@ -233,22 +233,25 @@ instead all lifecycle functions accept and return state value.
 
 Classes define component behavior, including render function. Class is built from multiple mixins. 
 
-Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions:
+Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions and maps:
 
 ```clojure
-{ :init            ;; state, props     ⇒ state
-  :will-mount      ;; state            ⇒ state
-  :did-mount       ;; state            ⇒ state
-  :transfer-state  ;; old-state, state ⇒ state
-  :should-update   ;; old-state, state ⇒ boolean
-  :will-update     ;; state            ⇒ state
-  :render          ;; state            ⇒ [pseudo-dom state]
-  :wrap-render     ;; render-fn        ⇒ render-fn
-  :did-update      ;; state            ⇒ state
-  :will-unmount    ;; state            ⇒ state }
+{ :init                 ;; state, props     ⇒ state
+  :will-mount           ;; state            ⇒ state
+  :did-mount            ;; state            ⇒ state
+  :transfer-state       ;; old-state, state ⇒ state
+  :should-update        ;; old-state, state ⇒ boolean
+  :will-update          ;; state            ⇒ state
+  :render               ;; state            ⇒ [pseudo-dom state]
+  :wrap-render          ;; render-fn        ⇒ render-fn
+  :did-update           ;; state            ⇒ state
+  :will-unmount         ;; state            ⇒ state 
+  :get-child-context    ;;                  ⇒ child-contex
+  :child-context-types  ;; {context-types-for-children}
+  :context-types        ;; {context-types-for-component} }
 ```
 
-Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum.
+Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
 
 Rendering is modeled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
 

@@ -28,19 +28,27 @@
     state
     fns))
 
+(defn- one-js-obj [context-entity]
+  (->> context-entity
+    (into {})
+    clj->js))
+
 (defn build-class [classes display-name]
-  (let [init           (fns :init classes)           ;; state props -> state
-        will-mount     (fns :will-mount classes)     ;; state -> state
-        did-mount      (fns :did-mount classes)      ;; state -> state
-        transfer-state (fns :transfer-state classes) ;; old-state state -> state
-        should-update  (fns :should-update classes)  ;; old-state state -> boolean
-        will-update    (fns :will-update classes)    ;; state -> state
-        render         (first (fns :render classes)) ;; state -> [dom state]
-        wrapped-render (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
-        did-update     (fns :did-update classes)     ;; state -> state
-        will-unmount   (fns :will-unmount classes)   ;; state -> state
-        props->state   (fn [props]
-                         (call-all (aget props ":rum/state") init props))
+  (let [init                (fns :init classes)                ;; state props -> state
+        will-mount          (fns :will-mount classes)          ;; state -> state
+        did-mount           (fns :did-mount classes)           ;; state -> state
+        transfer-state      (fns :transfer-state classes)      ;; old-state state -> state
+        should-update       (fns :should-update classes)       ;; old-state state -> boolean
+        will-update         (fns :will-update classes)         ;; state -> state
+        render              (first (fns :render classes))      ;; state -> [dom state]
+        wrapped-render      (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
+        did-update          (fns :did-update classes)          ;; state -> state
+        will-unmount        (fns :will-unmount classes)        ;; state -> state
+        props->state        (fn [props]
+                              (call-all (aget props ":rum/state") init props))
+        child-context-types (fns :child-context-types classes) ;; -> child-context
+        get-child-context   (fns :get-child-context classes)
+        context-types       (fns :context-types classes)
     ]
 
     (js/React.createClass #js {
@@ -102,7 +110,19 @@
       (when-not (empty? will-unmount)
         (fn []
           (this-as this
-            (vswap! (state this) call-all will-unmount))))})))
+            (vswap! (state this) call-all will-unmount))))
+      :childContextTypes
+      (when-not (empty? child-context-types)
+        (one-js-obj child-context-types))
+      :contextTypes
+      (when-not (empty? context-types)
+        (one-js-obj context-types))
+      :getChildContext
+      (when-not (empty? get-child-context)
+        (fn []
+          (->> get-child-context
+            (map #(%))
+            one-js-obj)))})))
 
 
 ;; render queue
