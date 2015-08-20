@@ -246,7 +246,7 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
   :wrap-render          ;; render-fn        ⇒ render-fn
   :did-update           ;; state            ⇒ state
   :will-unmount         ;; state            ⇒ state 
-  :get-child-context    ;;                  ⇒ child-contex
+  :get-child-context    ;;                  ⇒ child-context
   :child-context-types  ;; {context-types-for-children}
   :context-types        ;; {context-types-for-component} }
 ```
