@@ -11,12 +11,12 @@
     (vswap! last-id inc)))
 
 (defn state [comp]
-  (aget (.-props comp) ":rum/state"))
+  (aget (.-state comp) ":rum/state"))
 
 (defn id [comp]
   (::id @(state comp)))
 
-(defn- fns [fn-key classes]
+(defn- collect [fn-key classes]
   (->> classes
        (map fn-key)
        (remove nil?)))
@@ -28,27 +28,22 @@
     state
     fns))
 
-(defn- one-js-obj [context-entity]
-  (->> context-entity
-    (into {})
-    clj->js))
-
 (defn build-class [classes display-name]
-  (let [init                (fns :init classes)                ;; state props -> state
-        will-mount          (fns :will-mount classes)          ;; state -> state
-        did-mount           (fns :did-mount classes)           ;; state -> state
-        transfer-state      (fns :transfer-state classes)      ;; old-state state -> state
-        should-update       (fns :should-update classes)       ;; old-state state -> boolean
-        will-update         (fns :will-update classes)         ;; state -> state
-        render              (first (fns :render classes))      ;; state -> [dom state]
-        wrapped-render      (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
-        did-update          (fns :did-update classes)          ;; state -> state
-        will-unmount        (fns :will-unmount classes)        ;; state -> state
+  (let [init                (collect :init classes)                ;; state props -> state
+        will-mount          (collect :will-mount classes)          ;; state -> state
+        did-mount           (collect :did-mount classes)           ;; state -> state
+        transfer-state      (collect :transfer-state classes)      ;; old-state state -> state
+        should-update       (collect :should-update classes)       ;; old-state state -> boolean
+        will-update         (collect :will-update classes)         ;; state -> state
+        render              (first (collect :render classes))      ;; state -> [dom state]
+        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
+        did-update          (collect :did-update classes)          ;; state -> state
+        will-unmount        (collect :will-unmount classes)        ;; state -> state
         props->state        (fn [props]
-                              (call-all (aget props ":rum/state") init props))
-        child-context-types (fns :child-context-types classes) ;; -> child-context
-        get-child-context   (fns :get-child-context classes)
-        context-types       (fns :context-types classes)
+                              (call-all (aget props ":rum/initial-state") init props))
+        child-context-types (collect :child-context-types classes) ;; chilid-context-types
+        child-context       (collect :child-context classes)       ;; state -> child-context
+        context-types       (collect :context-types classes)       ;; context-types
     ]
 
     (js/React.createClass #js {
@@ -60,7 +55,7 @@
                 state (-> { ::react-component this
                             ::id (next-id) }            ;; assign id on mount?
                         (merge (props->state props)))]
-            (aset props ":rum/state" (volatile! state)))))
+            #js { ":rum/state" (volatile! state) })))
       :componentWillMount
       (when-not (empty? will-mount)
         (fn []
@@ -79,20 +74,20 @@
                                  ::id (::id old-state) }
                              (merge (props->state next-props)))
                 next-state (reduce #(%2 old-state %1) next-state transfer-state)]
-            (aset next-props ":rum/state" (volatile! next-state)))))
+            (.setState this #js {":rum/state" (volatile! next-state)}))))
       :shouldComponentUpdate
       (if (empty? should-update)
         (constantly true)
-        (fn [next-props _]
+        (fn [next-props next-state]
           (this-as this
             (let [old-state @(state this)
-                  new-state @(aget next-props ":rum/state")]
+                  new-state @(aget next-state ":rum/state")]
               (or (some #(% old-state new-state) should-update) false)))))
       :componentWillUpdate
       (when-not (empty? will-update)
-        (fn [next-props _]
+        (fn [_ next-state]
           (this-as this
-            (let [new-state (aget next-props ":rum/state")]
+            (let [new-state (aget next-state ":rum/state")]
               (vswap! new-state call-all will-update)))))
       :render
       (fn []
@@ -113,16 +108,16 @@
             (vswap! (state this) call-all will-unmount))))
       :childContextTypes
       (when-not (empty? child-context-types)
-        (one-js-obj child-context-types))
+        (clj->js (apply merge child-context-types)))
       :contextTypes
       (when-not (empty? context-types)
-        (one-js-obj context-types))
+        (clj->js (apply merge context-types)))
       :getChildContext
-      (when-not (empty? get-child-context)
+      (when-not (empty? child-context)
         (fn []
-          (->> get-child-context
-            (map #(%))
-            one-js-obj)))})))
+          (this-as this
+            (let [state @(state this)]
+              (clj->js (transduce (map #(% state)) merge {} child-context))))))})))
 
 
 ;; render queue
@@ -170,11 +165,17 @@
 
 (defn element [class state & [props]]
   (let [props (or props #js {})]
-    (aset props ":rum/state" state)
+    (aset props ":rum/initial-state" state)
     (js/React.createElement class props)))
 
 (defn ctor->class [ctor]
   (::class (meta ctor)))
+
+(defn with-key [element key]
+  (js/React.cloneElement element #js { "key" key } nil))
+
+(defn with-ref [element ref]
+  (js/React.cloneElement element #js { "ref" ref } nil))
 
 ;; static mixin
 

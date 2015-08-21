@@ -10,7 +10,7 @@
   :source-paths   #{"src"}
   :resource-paths #{"src"}
   :dependencies '[
-    [org.clojure/clojure       "1.7.0-RC1" :scope "provided"]
+    [org.clojure/clojure       "1.7.0" :scope "provided"]
     [org.clojure/clojurescript "0.0-3308"  :scope "provided"]
     [cljsjs/react              "0.13.3-1"]
     [sablono                   "0.3.4"]
@@ -43,7 +43,7 @@
 (deftask none-opts []
   (task-options!
    cljs {:optimizations    :none
-         :source-map       false
+         :source-map       true
          :compiler-options compiler-opts})
   identity)
 

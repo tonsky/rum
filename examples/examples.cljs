@@ -100,18 +100,16 @@
                           :else ["red" "obese"])]
     (reset! bmi-data data)
     [:div.bmi
-     [:div
-      "Height: " (int height) "cm"
-      (slider :height height 100 220)
-      ]
-     [:div
-      "Weight: " (int weight) "kg"
-      (slider :weight weight 30 150)]
-     [:div
-      "BMI: " (int bmi) " "
-      [:span {:style {:color color}} diagnose]
-      (slider :bmi bmi 10 50)]
-     ]))
+      [:div
+        "Height: " (int height) "cm"
+        (slider :height height 100 220)]
+      [:div
+        "Weight: " (int weight) "kg"
+        (slider :weight weight 30 150)]
+      [:div
+        "BMI: " (int bmi) " "
+        [:span {:style {:color color}} diagnose]
+        (slider :bmi bmi 10 50)]]))
 
 ;; After initial mount, all changes will be re-rendered automatically
 (rum/mount (bmi-component) (el "reactive-bmi-calculator"))
@@ -234,7 +232,8 @@
       [:div.art-row {:key y}
         (for [x (range 0 board-width)]
           ;; this is how one can specify React key for component
-          (rum/with-props rcell x y :rum/key [x y]))])
+          (-> (rcell x y)
+              (rum/with-key [x y])))])
    (board-stats rboard rboard-renders)])
 
 (rum/mount (art-rboard) (el "rboard"))
@@ -263,7 +262,8 @@
       [:div.art-row {:key y}
         (for [x (range 0 board-width)
               :let [x-cursor (rum/cursor y-cursor [x])]]
-          (rum/with-props art-cell x y x-cursor :rum/key [x y]))])
+          (-> (art-cell x y x-cursor)
+              (rum/with-key [x y])))])
     (board-stats board board-renders)])
 
 (rum/mount (artboard board) (el "artboard"))
@@ -362,7 +362,7 @@
       (this-as this
         (js/React.createElement
           "div"
-          #js {:style #js {:color (-> this .-context .-color)}}
+          #js {:style #js {:color (.. this -context -color)}}
           "Child component uses context to color font.")))}))
 
 (defn child-from-lib-ctor []
@@ -371,7 +371,7 @@
 ;; Assume the following component is from our source code.
 (def color-theme
   {:child-context-types {:color js/React.PropTypes.string}
-   :get-child-context   (fn [] {:color "#FA8D97"})})
+   :child-context   (fn [state] {:color @color})})
 
 (rum/defc our-src < color-theme []
   [:div
