@@ -35,7 +35,7 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-1. Add `[rum "0.2.7"]` to dependencies
+1. Add `[rum "0.3.0"]` to dependencies
 2. `(require 'rum)`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
@@ -330,9 +330,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ### 0.3.0
 
-- [ BREAKING ] Component inner state (`:rum/state`) was moved from props to state. It doesn’t change a thing if you were using only Rum API, but might break something if you were relaying on internal details
 - Upgraded to React 0.13.3, Sablono 0.3.6, ClojueScript 1.7.48
-- Added `defcc` macro for when you only need React component, but not the whole Rum state
+- New API to access context: `child-context`, `child-context-types`, `context-types` (thx @[Karanbir Toor](https://github.com/currentoor), PR #37)
+- New `defcc` macro for when you only need React component, not the whole Rum state
+- [ BREAKING ] Component inner state (`:rum/state`) was moved from `props` to `state`. It doesn’t change a thing if you were using Rum API only, but might break something if you were relaying on internal details
 - Deprecated `rum/with-props` macro, use `rum/with-key` or `rum/with-ref` fns instead
 
 ### 0.2.7
