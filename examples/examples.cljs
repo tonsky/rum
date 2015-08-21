@@ -279,17 +279,16 @@
            :value (rum/react ref)
            :on-change #(reset! ref (.. % -target -value))}])
 
-(rum/defcs restricting-input < rum/reactive [state ref fn]
-  (let [comp (:rum/react-component state)]
-    [:input {:type "text"
-             :style {:width 170}
-             :value (rum/react ref)
-             :on-change #(let [new-val (.. % -target -value)]
-                           (if (fn new-val)
-                             (reset! ref new-val)
-                             ;; request-render is mandatory because sablono :input
-                             ;; keeps current value in input’s state and always applies changes to it
-                             (rum/request-render comp)))}]))
+(rum/defcc restricting-input < rum/reactive [comp ref fn]
+  [:input {:type "text"
+           :style {:width 170}
+           :value (rum/react ref)
+           :on-change #(let [new-val (.. % -target -value)]
+                         (if (fn new-val)
+                           (reset! ref new-val)
+                           ;; request-render is mandatory because sablono :input
+                           ;; keeps current value in input’s state and always applies changes to it
+                           (rum/request-render comp)))}])
 
 (rum/defcs restricting-input-native < rum/reactive [state ref fn]
   (let [comp (:rum/react-component state)]

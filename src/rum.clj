@@ -62,8 +62,19 @@
   [& body]
   (-defc 'rum/render-state->mixin body))
 
+(defmacro defcc
+  "Same as defc, but render will take additional first argument: react component
+  
+   Usage:
+
+        (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
+  [& body]
+  (-defc 'rum/render-comp->mixin body))
+
 (defmacro with-props
-  "Calling function returned by defc will get you component. To specify
+  "DEPRECATED. Use rum/with-key and rum/with-ref functions
+  
+   Calling function returned by defc will get you component. To specify
    special React properties, create component using with-props:
    
        (rum/with-props <ctor> <arg1> <arg2> :rum/key <key>)

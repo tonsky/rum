@@ -4,7 +4,7 @@
     [cljsjs.react]
     [sablono.core]))
 
-(enable-console-print!)
+#_(enable-console-print!)
 
 (let [last-id (volatile! 0)]
   (defn next-id []
@@ -159,6 +159,9 @@
 
 (defn render-state->mixin [render-fn]
   { :render (fn [state] [(apply render-fn state (::args state)) state]) })
+
+(defn render-comp->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn (:rum/react-component state) (::args state)) state]) })
 
 (defn args->state [args]
   {::args args})

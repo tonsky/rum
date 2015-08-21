@@ -224,16 +224,16 @@ Each component in Rum has state associated with it. State is just a CLJS map wit
 
 * `:rum/react-component` — link to React component/element object
 * `:rum/id` — unique component id
-* everything mixins are using for they internal bookkeeping 
-* anything your own code put here
+* everything mixins are using for their internal bookkeeping
+* anything you’ve put there (feel free to populate state with your own stuff!)
 
-Reference to current state is stored as `volatile!` boxed value at `props[":rum/state"]`.
+Reference to current state is stored as `volatile!` boxed value at `state[":rum/state"]`.
 Effectively state is mutable, but components do not change volatile reference directly,
 instead all lifecycle functions accept and return state value.
 
 Classes define component behavior, including render function. Class is built from multiple mixins. 
 
-Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions and maps:
+Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions:
 
 ```clojure
 { :init                 ;; state, props     ⇒ state
@@ -246,9 +246,14 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
   :wrap-render          ;; render-fn        ⇒ render-fn
   :did-update           ;; state            ⇒ state
   :will-unmount         ;; state            ⇒ state 
-  :get-child-context    ;;                  ⇒ child-context
-  :child-context-types  ;; {context-types-for-children}
-  :context-types        ;; {context-types-for-component} }
+  :child-context        ;; state            ⇒ child-context }
+```
+
+Additionaly, mixin can specify following maps:
+
+```clojure
+{ :child-context-types  { ... }
+  :context-types        { ... } }
 ```
 
 Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
@@ -322,6 +327,13 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.3.0
+
+- [ BREAKING ] Component inner state (`:rum/state`) was moved from props to state. It doesn’t change a thing if you were using only Rum API, but might break something if you were relaying on internal details
+- Upgraded to React 0.13.3, Sablono 0.3.6, ClojueScript 1.7.48
+- Added `defcc` macro for when you only need React component, but not the whole Rum state
+- Deprecated `rum/with-props` macro, use `rum/with-key` or `rum/with-ref` fns instead
 
 ### 0.2.7
 
