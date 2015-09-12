@@ -1,4 +1,4 @@
-# Rum: Yet another React wrapper for ClojureScript
+# Rum: simple, flexible React wrapper for CLJS
 
 <p align="center"><img src="https://dl.dropboxusercontent.com/u/561580/imgs/rum_logo.svg" style="height: 400px;"></p>
 
