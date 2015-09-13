@@ -29,6 +29,7 @@
     fns))
 
 (defn build-class [classes display-name]
+  (assert (sequential? classes))
   (let [init                (collect :init classes)                ;; state props -> state
         will-mount          (collect :will-mount classes)          ;; state -> state
         did-mount           (collect :did-mount classes)           ;; state -> state

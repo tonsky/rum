@@ -47,7 +47,7 @@ Simplest example defines component, instantiates it and mounts it on a page:
 (rum/defc label [n text]
   [:.label (repeat n text)])
 
-(rum/mount (label 5 "abc") (.-body js/document))
+(rum/mount (label 5 "abc") js/document.body)
 ```
 
 For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
@@ -156,7 +156,7 @@ Note that we used `defcs` instead of `defc` to get state as first argument to `r
   [:.label {:style {:color (rum/react color)}}
     (rum/react text)])
     
-(rum/mount (label) (.-body js/document))
+(rum/mount (label) js/document.body)
 (reset! text "Good bye") ;; will cause re-rendering
 (reset! color "#000")    ;; and another one
 ```
@@ -176,7 +176,7 @@ Note that `cursored` mixin creates passive component: it will not react to any c
 (rum/defc body < rum/cursored rum/cursored-watch [color text]
   (label color text))
 
-(rum/mount (body color text) (.-body js/document))
+(rum/mount (body color text) js/document.body)
 
 ;; will cause re-rendering of body and label
 (reset! text "Good bye")
@@ -200,7 +200,7 @@ Rum also provides cursors, an abstraction that provides atom-like interface to s
     (label (rum/cursor state [:color]) (rum/cursor state [:label1]))
     (label (rum/cursor state [:color]) (rum/cursor state [:label2]))])
 
-(rum/mount (body state) (.-body js/document))
+(rum/mount (body state) js/document.body)
 
 ;; will cause re-rendering of second label only
 (swap! state assoc :label2 "Good bye")
@@ -301,7 +301,7 @@ To convert it to React component, you create a mixin:
 Then you build React class from this single mixin:
 
 ```clojure
-(def label-class (rum/build-class label-mixin))
+(def label-class (rum/build-class [label-mixin] "label-class"))
 ```
 
 And define simple wrapper that creates React element from that class:
@@ -314,7 +314,7 @@ And define simple wrapper that creates React element from that class:
 Finally, you call ctor to get instance of element and mount it somewhere on a page:
 
 ```clojure
-(rum/mount (label-ctor "Hello") (.-body js/document))
+(rum/mount (label-ctor "Hello") js/document.body)
 ```
 
 This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`, everything can be simplified to a much more compact code:
@@ -323,7 +323,7 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 (rum/defc label [text]
   [:div.label text])
   
-(rum/mount (label "Hello") (.-body js/document))
+(rum/mount (label "Hello") js/document.body)
 ```
 
 ## Changes
