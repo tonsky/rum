@@ -1,4 +1,4 @@
-(ns rum
+(ns rum.core
   (:require
     [sablono.compiler :as s]))
 
@@ -36,7 +36,7 @@
             ctor#         (fn [& args#]
                             (let [state# (args->state args#)]
                               (rum/element class# state# nil)))]
-        (with-meta ctor# {::class class#})))))
+        (with-meta ctor# {:rum/class class#})))))
 
 (defmacro defc
   "Defc does couple of things:
@@ -82,8 +82,8 @@
    Special properties goes at the end of arguments list and should be namespaced.
    For now only :rum/key and :rum/ref are supported"
   [ctor & args]
-  (let [props {::key "key"
-               ::ref "ref"}
+  (let [props {:rum/key "key"
+               :rum/ref "ref"}
         as (take-while #(not (props %)) args)
         ps (->> (drop-while #(not (props %)) args)
                 (partition 2)

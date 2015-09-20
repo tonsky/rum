@@ -1,10 +1,8 @@
-(ns rum
-  (:require-macros rum)
+(ns rum.core
+  (:require-macros rum.core)
   (:require
     [cljsjs.react]
     [sablono.core]))
-
-#_(enable-console-print!)
 
 (let [last-id (volatile! 0)]
   (defn next-id []
@@ -14,7 +12,7 @@
   (aget (.-state comp) ":rum/state"))
 
 (defn id [comp]
-  (::id @(state comp)))
+  (:rum/id @(state comp)))
 
 (defn- collect [fn-key classes]
   (->> classes
@@ -53,8 +51,8 @@
       (fn []
         (this-as this
           (let [props (.-props this)
-                state (-> { ::react-component this
-                            ::id (next-id) }            ;; assign id on mount?
+                state (-> { :rum/react-component this
+                            :rum/id (next-id) }            ;; assign id on mount?
                         (merge (props->state props)))]
             #js { ":rum/state" (volatile! state) })))
       :componentWillMount
@@ -71,8 +69,8 @@
       (fn [next-props]
         (this-as this
           (let [old-state @(state this)
-                next-state (-> { ::react-component this
-                                 ::id (::id old-state) }
+                next-state (-> { :rum/react-component this
+                                 :rum/id (:rum/id old-state) }
                              (merge (props->state next-props)))
                 next-state (reduce #(%2 old-state %1) next-state transfer-state)]
             (.setState this #js {":rum/state" (volatile! next-state)}))))
@@ -156,16 +154,16 @@
 ;; initialization
 
 (defn render->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (::args state)) state]) })
+  { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
 
 (defn render-state->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn state (::args state)) state]) })
+  { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
 
 (defn render-comp->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (:rum/react-component state) (::args state)) state]) })
+  { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
 
 (defn args->state [args]
-  {::args args})
+  {:rum/args args})
 
 (defn element [class state & [props]]
   (let [props (or props #js {})]
@@ -173,7 +171,7 @@
     (js/React.createElement class props)))
 
 (defn ctor->class [ctor]
-  (::class (meta ctor)))
+  (:rum/class (meta ctor)))
 
 (defn with-key [element key]
   (js/React.cloneElement element #js { "key" key } nil))
@@ -186,7 +184,7 @@
 (def static {
   :should-update
   (fn [old-state new-state]
-    (not= (::args old-state) (::args new-state)))
+    (not= (:rum/args old-state) (:rum/args new-state)))
 })
 
 ;; local mixin
@@ -215,18 +213,18 @@
 (def ^:dynamic *reactions*)
 
 (defn- reactive-key [state]
-  (str ":rum/reactive-" (::id state)))
+  (str ":rum/reactive-" (:rum/id state)))
 
 (def reactive {
   :transfer-state
   (fn [old new]
-    (assoc new ::refs (::refs old)))
+    (assoc new :rum/refs (:rum/refs old)))
   :wrap-render
   (fn [render-fn]
     (fn [state]
       (binding [*reactions* (volatile! #{})]
-        (let [comp             (::react-component state)
-              old-reactions    (::refs state #{})
+        (let [comp             (:rum/react-component state)
+              old-reactions    (:rum/refs state #{})
               [dom next-state] (render-fn state)
               new-reactions    @*reactions*
               key              (reactive-key state)]
@@ -238,13 +236,13 @@
               (add-watch ref key
                 (fn [_ _ _ _]
                   (request-render comp)))))
-          [dom (assoc next-state ::refs new-reactions)]))))
+          [dom (assoc next-state :rum/refs new-reactions)]))))
   :will-unmount
   (fn [state]
     (let [key (reactive-key state)]
-      (doseq [ref (::refs state)]
+      (doseq [ref (:rum/refs state)]
         (remove-watch ref key)))
-    (dissoc state ::refs))
+    (dissoc state :rum/refs))
 })
 
 (defn react [ref]
@@ -325,31 +323,31 @@
 (def cursored {
   :transfer-state
   (fn [old new]
-    (assoc new ::om-args (::om-args old)))
+    (assoc new :rum/om-args (:rum/om-args old)))
   :should-update
   (fn [old-state new-state]
-    (not= (::om-args old-state) (deref-args (::args new-state))))
+    (not= (:rum/om-args old-state) (deref-args (:rum/args new-state))))
   :wrap-render
   (fn [render-fn]
     (fn [state]
       (let [[dom next-state] (render-fn state)]
-        [dom (assoc next-state ::om-args (deref-args (::args state)))])))
+        [dom (assoc next-state :rum/om-args (deref-args (:rum/args state)))])))
 })
 
 (defn- cursored-key [state]
-  (str ":rum/cursored-" (::id state)))
+  (str ":rum/cursored-" (:rum/id state)))
 
 (def cursored-watch {
   :did-mount
     (fn [state]
-      (doseq [arg (::args state)
+      (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
         (add-watch arg (cursored-key state)
-          (fn [_ _ _ _] (request-render (::react-component state)))))
+          (fn [_ _ _ _] (request-render (:rum/react-component state)))))
       state)
   :will-unmount
     (fn [state]
-      (doseq [arg (::args state)
+      (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
         (remove-watch arg (cursored-key state)))
       state)

@@ -35,14 +35,14 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-1. Add `[rum "0.3.0"]` to dependencies
-2. `(require 'rum)`.
+1. Add `[rum "0.4.0"]` to dependencies
+2. `(require '[rum.core :as rum])`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
 
 ```clojure
 (ns example
-  (:require rum))
+  (:require [rum.core :as rum]))
 
 (rum/defc label [n text]
   [:.label (repeat n text)])
@@ -51,14 +51,6 @@ Simplest example defines component, instantiates it and mounts it on a page:
 ```
 
 For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
-
-Note: _To suppress warning about single-segmented namespace, add this:_
-
-```clojure
-:compiler {
-  {:warnings {:single-segment-namespace false}}
-}
-```
 
 ## Rum resources
 
@@ -90,7 +82,7 @@ Behind the scenes, `defc` does couple of things:
 
 When called, `name` function will create new React element from built React class and pass through `argvec` so it’ll be available inside `render-body`
 
-To mount component, use `rum/mount`:
+To mount component, use `rum.core/mount`:
 
 ```clojure
 (rum/mount element dom-node)
@@ -121,7 +113,7 @@ or call `request-render` function:
 
 Rum comes with a couple of mixins which emulate behaviors known from `quiescent`, `om` and `reagent`. Developing your own mixin is also very simple.
 
-`rum/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
+`rum.core/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
 
 ```clojure
 (rum/defc label < rum/static [n text]
@@ -132,7 +124,7 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (rum/mount (label 1 "xyz") body) ;; this will cause a re-render
 ```
 
-`rum/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
+`rum.core/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
 
 ```clojure
 (rum/defcs stateful < (rum/local 0) [state title]
@@ -144,9 +136,9 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (rum/mount (stateful "Clicks count") js/document.body)
 ```
 
-Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
+Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum.core/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
 
-`rum/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
+`rum.core/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
 
 ```clojure
 (def color (atom "#cc3333"))
@@ -161,16 +153,16 @@ Note that we used `defcs` instead of `defc` to get state as first argument to `r
 (reset! color "#000")    ;; and another one
 ```
 
-`rum/react` function used in this example works as `deref`, and additionally adds watch on that reference.
+`rum.core/react` function used in this example works as `deref`, and additionally adds watch on that reference.
 
-Finally, `rum/cursored` is a mixin that will track changes in references passed as arguments:
+Finally, `rum.core/cursored` is a mixin that will track changes in references passed as arguments:
 
 ```clojure
 (rum/defc label < rum/cursored [color text]
   [:.label {:style {:color @color}} @text])
 ```
 
-Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
+Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum.core/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
 
 ```clojure
 (rum/defc body < rum/cursored rum/cursored-watch [color text]
@@ -327,6 +319,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.4.0
+
+- [ BREAKING ] Core namespace was renamed from `rum` to `rum.core` to supress CLJS warnings
 
 ### 0.3.0
 

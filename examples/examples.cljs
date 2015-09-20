@@ -1,7 +1,7 @@
 (ns examples
   (:require
     [clojure.string :as str]
-    [rum]))
+    [rum.core :as rum]))
 
 (enable-console-print!)
 
