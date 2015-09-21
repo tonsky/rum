@@ -32,10 +32,10 @@
         render-fn (map compile-body bodies)]
    `(def ~name ~doc
       (let [render-mixin# (~render-ctor (fn ~@render-fn))
-            class#        (rum/build-class (concat [render-mixin#] ~mixins) ~(str name))
+            class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
             ctor#         (fn [& args#]
                             (let [state# (args->state args#)]
-                              (rum/element class# state# nil)))]
+                              (rum.core/element class# state# nil)))]
         (with-meta ctor# {:rum/class class#})))))
 
 (defmacro defc
@@ -51,7 +51,7 @@
   
        (defc name doc-string? [< mixins+]? [params*] render-body+)"
   [& body]
-  (-defc 'rum/render->mixin body))
+  (-defc 'rum.core/render->mixin body))
 
 (defmacro defcs
   "Same as defc, but render will take additional first argument: state
@@ -60,7 +60,7 @@
 
         (defcs name doc-string? [< mixins+]? [state params*] render-body+)"
   [& body]
-  (-defc 'rum/render-state->mixin body))
+  (-defc 'rum.core/render-state->mixin body))
 
 (defmacro defcc
   "Same as defc, but render will take additional first argument: react component
@@ -69,15 +69,15 @@
 
         (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
   [& body]
-  (-defc 'rum/render-comp->mixin body))
+  (-defc 'rum.core/render-comp->mixin body))
 
 (defmacro with-props
-  "DEPRECATED. Use rum/with-key and rum/with-ref functions
+  "DEPRECATED. Use rum.core/with-key and rum.core/with-ref functions
   
    Calling function returned by defc will get you component. To specify
    special React properties, create component using with-props:
    
-       (rum/with-props <ctor> <arg1> <arg2> :rum/key <key>)
+       (rum.core/with-props <ctor> <arg1> <arg2> :rum/key <key>)
   
    Special properties goes at the end of arguments list and should be namespaced.
    For now only :rum/key and :rum/ref are supported"
@@ -88,6 +88,6 @@
         ps (->> (drop-while #(not (props %)) args)
                 (partition 2)
                 (mapcat (fn [[k v]] [(props k) v])))]
-    `(rum/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
+    `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
 
 
