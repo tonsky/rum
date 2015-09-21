@@ -320,6 +320,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ## Changes
 
+### 0.4.1
+
+- Fixed but with rum macros emitting wrong namespace. You can now require `rum.core` under any alias you want (thx @[Stuart Hinson](https://github.com/stuarth), PR #42)
+
 ### 0.4.0
 
 - [ BREAKING ] Core namespace was renamed from `rum` to `rum.core` to supress CLJS warnings

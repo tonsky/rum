@@ -1,4 +1,4 @@
-(defproject rum "0.4.0"
+(defproject rum "0.4.1"
   :description "ClojureScript wrapper for React"
   :license     { :name "Eclipse"
                  :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -24,9 +24,8 @@
          :output-to      "target/main.js"
          :optimizations  :advanced
          :source-map     "target/main.js.map"
-         :pretty-print   true
-         :compiler-stats true
-         :warnings       {:single-segment-namespace false} }}
+         :pretty-print   false
+         :compiler-stats true }}
      { :id "none"
        :source-paths ["src" "examples"]
        :compiler
@@ -36,5 +35,4 @@
          :asset-path     "target/none"
          :optimizations  :none
          :source-map     "target/main.js.map"
-         :compiler-stats true
-         :warnings       {:single-segment-namespace false} }}]})
+         :compiler-stats true }}]})
