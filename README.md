@@ -1,4 +1,4 @@
-# Rum: Yet another React wrapper for ClojureScript
+# Rum: simple, flexible, extensible React wrapper for CLJS
 
 <p align="center"><img src="https://dl.dropboxusercontent.com/u/561580/imgs/rum_logo.svg" style="height: 400px;"></p>
 
@@ -35,30 +35,22 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-1. Add `[rum "0.2.7"]` to dependencies
-2. `(require 'rum)`.
+1. Add `[rum "0.4.2"]` to dependencies
+2. `(require '[rum.core :as rum])`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
 
 ```clojure
 (ns example
-  (:require rum))
+  (:require [rum.core :as rum]))
 
 (rum/defc label [n text]
   [:.label (repeat n text)])
 
-(rum/mount (label 5 "abc") (.-body js/document))
+(rum/mount (label 5 "abc") js/document.body)
 ```
 
 For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
-
-Note: _To suppress warning about single-segmented namespace, add this:_
-
-```clojure
-:compiler {
-  {:warnings {:single-segment-namespace false}}
-}
-```
 
 ## Rum resources
 
@@ -90,7 +82,7 @@ Behind the scenes, `defc` does couple of things:
 
 When called, `name` function will create new React element from built React class and pass through `argvec` so it’ll be available inside `render-body`
 
-To mount component, use `rum/mount`:
+To mount component, use `rum.core/mount`:
 
 ```clojure
 (rum/mount element dom-node)
@@ -121,7 +113,7 @@ or call `request-render` function:
 
 Rum comes with a couple of mixins which emulate behaviors known from `quiescent`, `om` and `reagent`. Developing your own mixin is also very simple.
 
-`rum/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
+`rum.core/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
 
 ```clojure
 (rum/defc label < rum/static [n text]
@@ -132,7 +124,7 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (rum/mount (label 1 "xyz") body) ;; this will cause a re-render
 ```
 
-`rum/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
+`rum.core/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
 
 ```clojure
 (rum/defcs stateful < (rum/local 0) [state title]
@@ -144,9 +136,9 @@ Rum comes with a couple of mixins which emulate behaviors known from `quiescent`
 (rum/mount (stateful "Clicks count") js/document.body)
 ```
 
-Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
+Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum.core/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
 
-`rum/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
+`rum.core/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
 
 ```clojure
 (def color (atom "#cc3333"))
@@ -156,27 +148,27 @@ Note that we used `defcs` instead of `defc` to get state as first argument to `r
   [:.label {:style {:color (rum/react color)}}
     (rum/react text)])
     
-(rum/mount (label) (.-body js/document))
+(rum/mount (label) js/document.body)
 (reset! text "Good bye") ;; will cause re-rendering
 (reset! color "#000")    ;; and another one
 ```
 
-`rum/react` function used in this example works as `deref`, and additionally adds watch on that reference.
+`rum.core/react` function used in this example works as `deref`, and additionally adds watch on that reference.
 
-Finally, `rum/cursored` is a mixin that will track changes in references passed as arguments:
+Finally, `rum.core/cursored` is a mixin that will track changes in references passed as arguments:
 
 ```clojure
 (rum/defc label < rum/cursored [color text]
   [:.label {:style {:color @color}} @text])
 ```
 
-Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
+Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum.core/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
 
 ```clojure
 (rum/defc body < rum/cursored rum/cursored-watch [color text]
   (label color text))
 
-(rum/mount (body color text) (.-body js/document))
+(rum/mount (body color text) js/document.body)
 
 ;; will cause re-rendering of body and label
 (reset! text "Good bye")
@@ -200,7 +192,7 @@ Rum also provides cursors, an abstraction that provides atom-like interface to s
     (label (rum/cursor state [:color]) (rum/cursor state [:label1]))
     (label (rum/cursor state [:color]) (rum/cursor state [:label2]))])
 
-(rum/mount (body state) (.-body js/document))
+(rum/mount (body state) js/document.body)
 
 ;; will cause re-rendering of second label only
 (swap! state assoc :label2 "Good bye")
@@ -224,10 +216,10 @@ Each component in Rum has state associated with it. State is just a CLJS map wit
 
 * `:rum/react-component` — link to React component/element object
 * `:rum/id` — unique component id
-* everything mixins are using for they internal bookkeeping 
-* anything your own code put here
+* everything mixins are using for their internal bookkeeping
+* anything you’ve put there (feel free to populate state with your own stuff!)
 
-Reference to current state is stored as `volatile!` boxed value at `props[":rum/state"]`.
+Reference to current state is stored as `volatile!` boxed value at `state[":rum/state"]`.
 Effectively state is mutable, but components do not change volatile reference directly,
 instead all lifecycle functions accept and return state value.
 
@@ -236,19 +228,27 @@ Classes define component behavior, including render function. Class is built fro
 Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions:
 
 ```clojure
-{ :init            ;; state, props     ⇒ state
-  :will-mount      ;; state            ⇒ state
-  :did-mount       ;; state            ⇒ state
-  :transfer-state  ;; old-state, state ⇒ state
-  :should-update   ;; old-state, state ⇒ boolean
-  :will-update     ;; state            ⇒ state
-  :render          ;; state            ⇒ [pseudo-dom state]
-  :wrap-render     ;; render-fn        ⇒ render-fn
-  :did-update      ;; state            ⇒ state
-  :will-unmount    ;; state            ⇒ state }
+{ :init                 ;; state, props     ⇒ state
+  :will-mount           ;; state            ⇒ state
+  :did-mount            ;; state            ⇒ state
+  :transfer-state       ;; old-state, state ⇒ state
+  :should-update        ;; old-state, state ⇒ boolean
+  :will-update          ;; state            ⇒ state
+  :render               ;; state            ⇒ [pseudo-dom state]
+  :wrap-render          ;; render-fn        ⇒ render-fn
+  :did-update           ;; state            ⇒ state
+  :will-unmount         ;; state            ⇒ state 
+  :child-context        ;; state            ⇒ child-context }
 ```
 
-Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum.
+Additionaly, mixin can specify following maps:
+
+```clojure
+{ :child-context-types  { ... }
+  :context-types        { ... } }
+```
+
+Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
 
 Rendering is modeled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
 
@@ -293,7 +293,7 @@ To convert it to React component, you create a mixin:
 Then you build React class from this single mixin:
 
 ```clojure
-(def label-class (rum/build-class label-mixin))
+(def label-class (rum/build-class [label-mixin] "label-class"))
 ```
 
 And define simple wrapper that creates React element from that class:
@@ -306,7 +306,7 @@ And define simple wrapper that creates React element from that class:
 Finally, you call ctor to get instance of element and mount it somewhere on a page:
 
 ```clojure
-(rum/mount (label-ctor "Hello") (.-body js/document))
+(rum/mount (label-ctor "Hello") js/document.body)
 ```
 
 This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`, everything can be simplified to a much more compact code:
@@ -315,10 +315,30 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 (rum/defc label [text]
   [:div.label text])
   
-(rum/mount (label "Hello") (.-body js/document))
+(rum/mount (label "Hello") js/document.body)
 ```
 
 ## Changes
+
+### 0.4.2
+
+- Check for `setTimeout` in global scope instead of in window (thx [Alexander Solovyov](https://github.com/piranha), PR #43)
+
+### 0.4.1
+
+- Fixed bug with rum macros emitting wrong namespace. You can now require `rum.core` under any alias you want (thx [Stuart Hinson](https://github.com/stuarth), PR #42)
+
+### 0.4.0
+
+- [ BREAKING ] Core namespace was renamed from `rum` to `rum.core` to supress CLJS warnings
+
+### 0.3.0
+
+- Upgraded to React 0.13.3, Sablono 0.3.6, ClojueScript 1.7.48
+- New API to access context: `child-context`, `child-context-types`, `context-types` (thx [Karanbir Toor](https://github.com/currentoor), PR #37)
+- New `defcc` macro for when you only need React component, not the whole Rum state
+- [ BREAKING ] Component inner state (`:rum/state`) was moved from `props` to `state`. It doesn’t change a thing if you were using Rum API only, but might break something if you were relaying on internal details
+- Deprecated `rum/with-props` macro, use `rum/with-key` or `rum/with-ref` fns instead
 
 ### 0.2.7
 
@@ -335,11 +355,11 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ### 0.2.4
 
-- `will-update` and `did-update` lifecycle methods added (thx @[Andrey Vasenin](https://github.com/avasenin), pull request #18)
+- `will-update` and `did-update` lifecycle methods added (thx [Andrey Vasenin](https://github.com/avasenin), pull request #18)
 
 ### 0.2.3
 
-- Components defined via `defc/defcs` will have `displayName` defined (thx @[Ivan Dubrov](https://github.com/idubrov), pull request #16)
+- Components defined via `defc/defcs` will have `displayName` defined (thx [Ivan Dubrov](https://github.com/idubrov), pull request #16)
 - Not referencing `requestAnimationFrame` when used in headless environment (thx @[whodidthis](https://github.com/whodidthis), pull request #14)
 
 ### 0.2.2

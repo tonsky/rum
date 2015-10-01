@@ -1,7 +1,7 @@
 (ns examples
   (:require
     [clojure.string :as str]
-    [rum]))
+    [rum.core :as rum]))
 
 (enable-console-print!)
 
@@ -100,18 +100,16 @@
                           :else ["red" "obese"])]
     (reset! bmi-data data)
     [:div.bmi
-     [:div
-      "Height: " (int height) "cm"
-      (slider :height height 100 220)
-      ]
-     [:div
-      "Weight: " (int weight) "kg"
-      (slider :weight weight 30 150)]
-     [:div
-      "BMI: " (int bmi) " "
-      [:span {:style {:color color}} diagnose]
-      (slider :bmi bmi 10 50)]
-     ]))
+      [:div
+        "Height: " (int height) "cm"
+        (slider :height height 100 220)]
+      [:div
+        "Weight: " (int weight) "kg"
+        (slider :weight weight 30 150)]
+      [:div
+        "BMI: " (int bmi) " "
+        [:span {:style {:color color}} diagnose]
+        (slider :bmi bmi 10 50)]]))
 
 ;; After initial mount, all changes will be re-rendered automatically
 (rum/mount (bmi-component) (el "reactive-bmi-calculator"))
@@ -234,7 +232,8 @@
       [:div.art-row {:key y}
         (for [x (range 0 board-width)]
           ;; this is how one can specify React key for component
-          (rum/with-props rcell x y :rum/key [x y]))])
+          (-> (rcell x y)
+              (rum/with-key [x y])))])
    (board-stats rboard rboard-renders)])
 
 (rum/mount (art-rboard) (el "rboard"))
@@ -263,7 +262,8 @@
       [:div.art-row {:key y}
         (for [x (range 0 board-width)
               :let [x-cursor (rum/cursor y-cursor [x])]]
-          (rum/with-props art-cell x y x-cursor :rum/key [x y]))])
+          (-> (art-cell x y x-cursor)
+              (rum/with-key [x y])))])
     (board-stats board board-renders)])
 
 (rum/mount (artboard board) (el "artboard"))
@@ -279,17 +279,16 @@
            :value (rum/react ref)
            :on-change #(reset! ref (.. % -target -value))}])
 
-(rum/defcs restricting-input < rum/reactive [state ref fn]
-  (let [comp (:rum/react-component state)]
-    [:input {:type "text"
-             :style {:width 170}
-             :value (rum/react ref)
-             :on-change #(let [new-val (.. % -target -value)]
-                           (if (fn new-val)
-                             (reset! ref new-val)
-                             ;; request-render is mandatory because sablono :input
-                             ;; keeps current value in input’s state and always applies changes to it
-                             (rum/request-render comp)))}]))
+(rum/defcc restricting-input < rum/reactive [comp ref fn]
+  [:input {:type "text"
+           :style {:width 170}
+           :value (rum/react ref)
+           :on-change #(let [new-val (.. % -target -value)]
+                         (if (fn new-val)
+                           (reset! ref new-val)
+                           ;; request-render is mandatory because sablono :input
+                           ;; keeps current value in input’s state and always applies changes to it
+                           (rum/request-render comp)))}])
 
 (rum/defcs restricting-input-native < rum/reactive [state ref fn]
   (let [comp (:rum/react-component state)]
@@ -340,4 +339,43 @@
         [:.leaf   offset (str form)]))))
 
 (rum/mount (tree [:a [:b [:c :d [:e] :g]]]) (el "selfie"))
+
+
+;; Components with context that all descendants have implicitly.
+
+;; This is useful when you are using child components you
+;; cannot modify. For example, a JS library that gives you
+;; components which rely on a context value being set by an
+;; ancestor component.
+
+;; Assume the following component comes from a third party library
+;; which relies on (.-context this).
+(def child-from-lib-class
+  (js/React.createClass #js {
+    :contextTypes
+    #js {:color js/React.PropTypes.string}
+    :displayName
+    "child-from-lib"
+    :render
+    (fn []
+      (this-as this
+        (js/React.createElement
+          "div"
+          #js {:style #js {:color (.. this -context -color)}}
+          "Child component uses context to color font.")))}))
+
+(defn child-from-lib-ctor []
+  (rum/element child-from-lib-class {}))
+
+;; Assume the following component is from our source code.
+(def color-theme
+  {:child-context-types {:color js/React.PropTypes.string}
+   :child-context   (fn [state] {:color @color})})
+
+(rum/defc our-src < color-theme []
+  [:div
+   [:div "Root component implicitly passes data to descendants."]
+   (child-from-lib-ctor)])
+
+(rum/mount (our-src) (el "context"))
 

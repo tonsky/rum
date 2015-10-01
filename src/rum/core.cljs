@@ -1,22 +1,20 @@
-(ns rum
-  (:require-macros rum)
+(ns rum.core
+  (:require-macros rum.core)
   (:require
     [cljsjs.react]
     [sablono.core]))
-
-(enable-console-print!)
 
 (let [last-id (volatile! 0)]
   (defn next-id []
     (vswap! last-id inc)))
 
 (defn state [comp]
-  (aget (.-props comp) ":rum/state"))
+  (aget (.-state comp) ":rum/state"))
 
 (defn id [comp]
-  (::id @(state comp)))
+  (:rum/id @(state comp)))
 
-(defn- fns [fn-key classes]
+(defn- collect [fn-key classes]
   (->> classes
        (map fn-key)
        (remove nil?)))
@@ -29,18 +27,22 @@
     fns))
 
 (defn build-class [classes display-name]
-  (let [init           (fns :init classes)           ;; state props -> state
-        will-mount     (fns :will-mount classes)     ;; state -> state
-        did-mount      (fns :did-mount classes)      ;; state -> state
-        transfer-state (fns :transfer-state classes) ;; old-state state -> state
-        should-update  (fns :should-update classes)  ;; old-state state -> boolean
-        will-update    (fns :will-update classes)    ;; state -> state
-        render         (first (fns :render classes)) ;; state -> [dom state]
-        wrapped-render (reduce #(%2 %1) render (fns :wrap-render classes)) ;; render-fn -> render-fn
-        did-update     (fns :did-update classes)     ;; state -> state
-        will-unmount   (fns :will-unmount classes)   ;; state -> state
-        props->state   (fn [props]
-                         (call-all (aget props ":rum/state") init props))
+  (assert (sequential? classes))
+  (let [init                (collect :init classes)                ;; state props -> state
+        will-mount          (collect :will-mount classes)          ;; state -> state
+        did-mount           (collect :did-mount classes)           ;; state -> state
+        transfer-state      (collect :transfer-state classes)      ;; old-state state -> state
+        should-update       (collect :should-update classes)       ;; old-state state -> boolean
+        will-update         (collect :will-update classes)         ;; state -> state
+        render              (first (collect :render classes))      ;; state -> [dom state]
+        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
+        did-update          (collect :did-update classes)          ;; state -> state
+        will-unmount        (collect :will-unmount classes)        ;; state -> state
+        props->state        (fn [props]
+                              (call-all (aget props ":rum/initial-state") init props))
+        child-context-types (collect :child-context-types classes) ;; chilid-context-types
+        child-context       (collect :child-context classes)       ;; state -> child-context
+        context-types       (collect :context-types classes)       ;; context-types
     ]
 
     (js/React.createClass #js {
@@ -49,10 +51,10 @@
       (fn []
         (this-as this
           (let [props (.-props this)
-                state (-> { ::react-component this
-                            ::id (next-id) }            ;; assign id on mount?
+                state (-> { :rum/react-component this
+                            :rum/id (next-id) }            ;; assign id on mount?
                         (merge (props->state props)))]
-            (aset props ":rum/state" (volatile! state)))))
+            #js { ":rum/state" (volatile! state) })))
       :componentWillMount
       (when-not (empty? will-mount)
         (fn []
@@ -67,24 +69,24 @@
       (fn [next-props]
         (this-as this
           (let [old-state @(state this)
-                next-state (-> { ::react-component this
-                                 ::id (::id old-state) }
+                next-state (-> { :rum/react-component this
+                                 :rum/id (:rum/id old-state) }
                              (merge (props->state next-props)))
                 next-state (reduce #(%2 old-state %1) next-state transfer-state)]
-            (aset next-props ":rum/state" (volatile! next-state)))))
+            (.setState this #js {":rum/state" (volatile! next-state)}))))
       :shouldComponentUpdate
       (if (empty? should-update)
         (constantly true)
-        (fn [next-props _]
+        (fn [next-props next-state]
           (this-as this
             (let [old-state @(state this)
-                  new-state @(aget next-props ":rum/state")]
+                  new-state @(aget next-state ":rum/state")]
               (or (some #(% old-state new-state) should-update) false)))))
       :componentWillUpdate
       (when-not (empty? will-update)
-        (fn [next-props _]
+        (fn [_ next-state]
           (this-as this
-            (let [new-state (aget next-props ":rum/state")]
+            (let [new-state (aget next-state ":rum/state")]
               (vswap! new-state call-all will-update)))))
       :render
       (fn []
@@ -102,18 +104,30 @@
       (when-not (empty? will-unmount)
         (fn []
           (this-as this
-            (vswap! (state this) call-all will-unmount))))})))
+            (vswap! (state this) call-all will-unmount))))
+      :childContextTypes
+      (when-not (empty? child-context-types)
+        (clj->js (apply merge child-context-types)))
+      :contextTypes
+      (when-not (empty? context-types)
+        (clj->js (apply merge context-types)))
+      :getChildContext
+      (when-not (empty? child-context)
+        (fn []
+          (this-as this
+            (let [state @(state this)]
+              (clj->js (transduce (map #(% state)) merge {} child-context))))))})))
 
 
 ;; render queue
 
 (def schedule
-  (and (exists? js/window)
-       (or js/window.requestAnimationFrame
-           js/window.webkitRequestAnimationFrame
-           js/window.mozRequestAnimationFrame
-           js/window.msRequestAnimationFrame
-           #(js/setTimeout % 16))))
+  (or (and (exists? js/window)
+           (or js/window.requestAnimationFrame
+               js/window.webkitRequestAnimationFrame
+               js/window.mozRequestAnimationFrame
+               js/window.msRequestAnimationFrame))
+    #(js/setTimeout % 16)))
 
 (defn compare-by [keyfn]
   (fn [x y]
@@ -140,28 +154,37 @@
 ;; initialization
 
 (defn render->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (::args state)) state]) })
+  { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
 
 (defn render-state->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn state (::args state)) state]) })
+  { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
+
+(defn render-comp->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
 
 (defn args->state [args]
-  {::args args})
+  {:rum/args args})
 
 (defn element [class state & [props]]
   (let [props (or props #js {})]
-    (aset props ":rum/state" state)
+    (aset props ":rum/initial-state" state)
     (js/React.createElement class props)))
 
 (defn ctor->class [ctor]
-  (::class (meta ctor)))
+  (:rum/class (meta ctor)))
+
+(defn with-key [element key]
+  (js/React.cloneElement element #js { "key" key } nil))
+
+(defn with-ref [element ref]
+  (js/React.cloneElement element #js { "ref" ref } nil))
 
 ;; static mixin
 
 (def static {
   :should-update
   (fn [old-state new-state]
-    (not= (::args old-state) (::args new-state)))
+    (not= (:rum/args old-state) (:rum/args new-state)))
 })
 
 ;; local mixin
@@ -190,18 +213,18 @@
 (def ^:dynamic *reactions*)
 
 (defn- reactive-key [state]
-  (str ":rum/reactive-" (::id state)))
+  (str ":rum/reactive-" (:rum/id state)))
 
 (def reactive {
   :transfer-state
   (fn [old new]
-    (assoc new ::refs (::refs old)))
+    (assoc new :rum/refs (:rum/refs old)))
   :wrap-render
   (fn [render-fn]
     (fn [state]
       (binding [*reactions* (volatile! #{})]
-        (let [comp             (::react-component state)
-              old-reactions    (::refs state #{})
+        (let [comp             (:rum/react-component state)
+              old-reactions    (:rum/refs state #{})
               [dom next-state] (render-fn state)
               new-reactions    @*reactions*
               key              (reactive-key state)]
@@ -213,13 +236,13 @@
               (add-watch ref key
                 (fn [_ _ _ _]
                   (request-render comp)))))
-          [dom (assoc next-state ::refs new-reactions)]))))
+          [dom (assoc next-state :rum/refs new-reactions)]))))
   :will-unmount
   (fn [state]
     (let [key (reactive-key state)]
-      (doseq [ref (::refs state)]
+      (doseq [ref (:rum/refs state)]
         (remove-watch ref key)))
-    (dissoc state ::refs))
+    (dissoc state :rum/refs))
 })
 
 (defn react [ref]
@@ -300,31 +323,31 @@
 (def cursored {
   :transfer-state
   (fn [old new]
-    (assoc new ::om-args (::om-args old)))
+    (assoc new :rum/om-args (:rum/om-args old)))
   :should-update
   (fn [old-state new-state]
-    (not= (::om-args old-state) (deref-args (::args new-state))))
+    (not= (:rum/om-args old-state) (deref-args (:rum/args new-state))))
   :wrap-render
   (fn [render-fn]
     (fn [state]
       (let [[dom next-state] (render-fn state)]
-        [dom (assoc next-state ::om-args (deref-args (::args state)))])))
+        [dom (assoc next-state :rum/om-args (deref-args (:rum/args state)))])))
 })
 
 (defn- cursored-key [state]
-  (str ":rum/cursored-" (::id state)))
+  (str ":rum/cursored-" (:rum/id state)))
 
 (def cursored-watch {
   :did-mount
     (fn [state]
-      (doseq [arg (::args state)
+      (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
         (add-watch arg (cursored-key state)
-          (fn [_ _ _ _] (request-render (::react-component state)))))
+          (fn [_ _ _ _] (request-render (:rum/react-component state)))))
       state)
   :will-unmount
     (fn [state]
-      (doseq [arg (::args state)
+      (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
         (remove-watch arg (cursored-key state)))
       state)
