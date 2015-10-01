@@ -341,7 +341,8 @@
 (rum/mount (tree [:a [:b [:c :d [:e] :g]]]) (el "selfie"))
 
 
-;; Components with context that all descendants have implicitly.
+;; Components with context that all descendants have access
+;; to implicitly.
 
 ;; This is useful when you are using child components you
 ;; cannot modify. For example, a JS library that gives you
@@ -378,4 +379,20 @@
    (child-from-lib-ctor)])
 
 (rum/mount (our-src) (el "context"))
+
+
+;; Custom methods and data on the underlying React
+;; components.
+
+(def custom-attrs
+  {:data    {:msgData "Components can store custom data on the underlying React component."}
+   :methods {:msgMethod (fn [] "Custom methods too.")}})
+
+(rum/defcs custom < custom-attrs [{this :rum/react-component}]
+  [:div
+   ;; using aget to avoid writing externs
+   [:div (aget this "msgData")]
+   [:div ((aget this "msgMethod"))]])
+
+(rum/mount (custom) (el "custom"))
 
