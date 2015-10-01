@@ -248,6 +248,13 @@ Additionaly, mixin can specify following maps:
   :context-types        { ... } }
 ```
 
+Lastly, you can specify arbitrary methods and data on the component using maps:
+
+```clojure
+{ :methods  { ... }
+  :data     { ... } }
+```
+
 Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
 
 Rendering is modeled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
