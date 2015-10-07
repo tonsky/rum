@@ -323,7 +323,7 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ### 0.5.0
 
-- Added `:class-properties` to define arbitrary properties on a React class
+- Added `:class-properties` to define arbitrary properties on a React class (thx [Karanbir Toor](https://github.com/currentoor), PR #44)
 - [ BREAKING ] Removed support for `:child-context-types` and `:context-types`. Use `{ :class-properties { :childContextTypes ..., :contextTypes ... } }` instead.
 
 ### 0.4.2
