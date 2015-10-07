@@ -241,18 +241,10 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
   :child-context        ;; state            ⇒ child-context }
 ```
 
-Additionaly, mixin can specify following maps:
+To define arbitrary properties and methods on a component class, specify `:class-properties` map:
 
 ```clojure
-{ :child-context-types  { ... }
-  :context-types        { ... } }
-```
-
-Lastly, you can specify arbitrary methods and data on the component using maps:
-
-```clojure
-{ :methods  { ... }
-  :data     { ... } }
+{ :class-properties { ... } }
 ```
 
 Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
@@ -326,6 +318,11 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.5.0
+
+- Added `:class-properties` to define arbitrary properties on a React class
+- [ BREAKING ] Removed support for `:child-context-types` and `:context-types`. Use `{ :class-properties { :childContextTypes ..., :contextTypes ... } }` instead.
 
 ### 0.4.2
 

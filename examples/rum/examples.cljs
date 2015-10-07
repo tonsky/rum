@@ -1,4 +1,4 @@
-(ns examples
+(ns rum.examples
   (:require
     [clojure.string :as str]
     [rum.core :as rum]))
@@ -370,8 +370,8 @@
 
 ;; Assume the following component is from our source code.
 (def color-theme
-  {:child-context-types {:color js/React.PropTypes.string}
-   :child-context   (fn [state] {:color @color})})
+  { :child-context (fn [state] {:color @color}) 
+    :class-properties { :childContextTypes {:color js/React.PropTypes.string} } })
 
 (rum/defc our-src < color-theme []
   [:div
@@ -381,18 +381,17 @@
 (rum/mount (our-src) (el "context"))
 
 
-;; Custom methods and data on the underlying React
-;; components.
+;; Custom methods and data on the underlying React components.
 
-(def custom-attrs
-  {:data    {:msgData "Components can store custom data on the underlying React component."}
-   :methods {:msgMethod (fn [] "Custom methods too.")}})
+(def custom-props
+  {:msgData   "Components can store custom data on the underlying React component."
+   :msgMethod (fn [] "Custom methods too.")})
 
-(rum/defcs custom < custom-attrs [{this :rum/react-component}]
+(rum/defcs custom < {:class-properties custom-props} [{this :rum/react-component}]
   [:div
-   ;; using aget to avoid writing externs
-   [:div (aget this "msgData")]
-   [:div ((aget this "msgMethod"))]])
+    ;; using aget to avoid writing externs
+    [:div (aget this "msgData")]
+    [:div ((aget this "msgMethod"))]])
 
 (rum/mount (custom) (el "custom"))
 

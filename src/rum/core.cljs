@@ -40,86 +40,76 @@
         will-unmount        (collect :will-unmount classes)        ;; state -> state
         props->state        (fn [props]
                               (call-all (aget props ":rum/initial-state") init props))
-        child-context-types (collect :child-context-types classes) ;; chilid-context-types
         child-context       (collect :child-context classes)       ;; state -> child-context
-        context-types       (collect :context-types classes)       ;; context-types
+        class-properties    (reduce merge (collect :class-properties classes))] ;; custom properties and methods
 
-        methods             (reduce #(merge %1 %2) (collect :methods classes)) ;; custom methods
-        data                (reduce #(merge %1 %2) (collect :data classes)) ;; custom data
-
-        default-attrs       {:displayName display-name
-                             :getInitialState
-                             (fn []
-                               (this-as this
-                                        (let [props (.-props this)
-                                              state (-> { :rum/react-component this
-                                                         :rum/id (next-id) }            ;; assign id on mount?
-                                                        (merge (props->state props)))]
-                                          #js { ":rum/state" (volatile! state) })))
-                             :componentWillMount
-                             (when-not (empty? will-mount)
-                               (fn []
-                                 (this-as this
-                                          (vswap! (state this) call-all will-mount))))
-                             :componentDidMount
-                             (when-not (empty? did-mount)
-                               (fn []
-                                 (this-as this
-                                          (vswap! (state this) call-all did-mount))))
-                             :componentWillReceiveProps
-                             (fn [next-props]
-                               (this-as this
-                                        (let [old-state @(state this)
-                                              next-state (-> { :rum/react-component this
-                                                              :rum/id (:rum/id old-state) }
-                                                             (merge (props->state next-props)))
-                                              next-state (reduce #(%2 old-state %1) next-state transfer-state)]
-                                          (.setState this #js {":rum/state" (volatile! next-state)}))))
-                             :shouldComponentUpdate
-                             (if (empty? should-update)
-                               (constantly true)
-                               (fn [next-props next-state]
-                                 (this-as this
-                                          (let [old-state @(state this)
-                                                new-state @(aget next-state ":rum/state")]
-                                            (or (some #(% old-state new-state) should-update) false)))))
-                             :componentWillUpdate
-                             (when-not (empty? will-update)
-                               (fn [_ next-state]
-                                 (this-as this
-                                          (let [new-state (aget next-state ":rum/state")]
-                                            (vswap! new-state call-all will-update)))))
-                             :render
-                             (fn []
-                               (this-as this
-                                        (let [state (state this)
-                                              [dom next-state] (wrapped-render @state)]
-                                          (vreset! state next-state)
-                                          dom)))
-                             :componentDidUpdate
-                             (when-not (empty? did-update)
-                               (fn [_ _]
-                                 (this-as this
-                                          (vswap! (state this) call-all did-update))))
-                             :componentWillUnmount
-                             (when-not (empty? will-unmount)
-                               (fn []
-                                 (this-as this
-                                          (vswap! (state this) call-all will-unmount))))
-                             :childContextTypes
-                             (when-not (empty? child-context-types)
-                               (clj->js (apply merge child-context-types)))
-                             :contextTypes
-                             (when-not (empty? context-types)
-                               (clj->js (apply merge context-types)))
-                             :getChildContext
-                             (when-not (empty? child-context)
-                               (fn []
-                                 (this-as this
-                                          (let [state @(state this)]
-                                            (clj->js (transduce (map #(% state))
-                                                                merge {} child-context))))))}]
-    (js/React.createClass (clj->js (merge methods data default-attrs)))))
+    (-> {:displayName display-name
+         :getInitialState
+         (fn []
+           (this-as this
+             (let [props (.-props this)
+                   state (-> { :rum/react-component this
+                               :rum/id (next-id) }            ;; assign id on mount?
+                             (merge (props->state props)))]
+               #js { ":rum/state" (volatile! state) })))
+         :componentWillMount
+         (when-not (empty? will-mount)
+           (fn []
+             (this-as this
+               (vswap! (state this) call-all will-mount))))
+         :componentDidMount
+         (when-not (empty? did-mount)
+           (fn []
+             (this-as this
+               (vswap! (state this) call-all did-mount))))
+         :componentWillReceiveProps
+         (fn [next-props]
+           (this-as this
+             (let [old-state @(state this)
+                   next-state (-> { :rum/react-component this
+                                    :rum/id (:rum/id old-state) }
+                                  (merge (props->state next-props)))
+                   next-state (reduce #(%2 old-state %1) next-state transfer-state)]
+               (.setState this #js {":rum/state" (volatile! next-state)}))))
+         :shouldComponentUpdate
+         (when-not (empty? should-update)
+           (fn [next-props next-state]
+             (this-as this
+               (let [old-state @(state this)
+                     new-state @(aget next-state ":rum/state")]
+                 (or (some #(% old-state new-state) should-update) false)))))
+         :componentWillUpdate
+         (when-not (empty? will-update)
+           (fn [_ next-state]
+             (this-as this
+               (let [new-state (aget next-state ":rum/state")]
+                 (vswap! new-state call-all will-update)))))
+         :render
+         (fn []
+           (this-as this
+             (let [state (state this)
+                   [dom next-state] (wrapped-render @state)]
+               (vreset! state next-state)
+               dom)))
+         :componentDidUpdate
+         (when-not (empty? did-update)
+           (fn [_ _]
+             (this-as this
+               (vswap! (state this) call-all did-update))))
+         :componentWillUnmount
+         (when-not (empty? will-unmount)
+           (fn []
+             (this-as this
+               (vswap! (state this) call-all will-unmount))))
+         :getChildContext
+         (when-not (empty? child-context)
+           (fn []
+             (this-as this
+               (let [state @(state this)]
+                 (clj->js (transduce (map #(% state)) merge {} child-context))))))}
+      (merge class-properties)
+      (clj->js)
+      (js/React.createClass))))
 
 
 ;; render queue

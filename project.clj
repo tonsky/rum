@@ -20,7 +20,7 @@
     [{ :id "advanced"
        :source-paths ["src" "examples"]
        :compiler
-       { :main           examples
+       { :main           rum.examples
          :output-to      "target/main.js"
          :optimizations  :advanced
          :source-map     "target/main.js.map"
@@ -29,10 +29,10 @@
      { :id "none"
        :source-paths ["src" "examples"]
        :compiler
-       { :main           examples
+       { :main           rum.examples
          :output-to      "target/main.js"
          :output-dir     "target/none"
          :asset-path     "target/none"
          :optimizations  :none
-         :source-map     "target/main.js.map"
+         :source-map     true
          :compiler-stats true }}]})
