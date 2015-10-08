@@ -3,6 +3,8 @@
     [clojure.string :as str]
     [rum.core :as rum]))
 
+(js/console.time "Init")
+
 (enable-console-print!)
 
 (defn now []
@@ -384,14 +386,21 @@
 ;; Custom methods and data on the underlying React components.
 
 (def custom-props
-  {:msgData   "Components can store custom data on the underlying React component."
-   :msgMethod (fn [] "Custom methods too.")})
+  {:msgData "Components can store custom data on the underlying React component."
+   :msgMethod #(this-as this
+                 [:div {:style {:cursor "pointer"}
+                        :on-mouse-move
+                        (fn [_]
+                          (aset this "msgData" (rand))
+                          (rum/request-render this))}
+                  "Custom methods too. Hover me!"])})
 
-(rum/defcs custom < {:class-properties custom-props} [{this :rum/react-component}]
+(rum/defcc custom < {:class-properties custom-props} [this]
   [:div
-    ;; using aget to avoid writing externs
-    [:div (aget this "msgData")]
-    [:div ((aget this "msgMethod"))]])
+   ;; using aget to avoid writing externs
+   [:div (aget this "msgData")]
+   [:div ((aget this "msgMethod"))]])
 
 (rum/mount (custom) (el "custom"))
 
+(js/console.timeEnd "Init")
