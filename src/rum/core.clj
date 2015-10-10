@@ -19,6 +19,7 @@
         (every? fn-body? xs) (assoc res :bodies xs)
         (string? x)          (recur (assoc res :doc x) next nil)
         (= '< x)             (recur res next :mixins)
+        (= '> x)             (recur (assoc res :props? true) next nil)
         (= mode :mixins)
           (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
         :else
@@ -28,15 +29,21 @@
   (list argvec (s/compile-html `(do ~@body))))
 
 (defn- -defc [render-ctor body]
-  (let [{:keys [name doc mixins bodies]} (parse-defc body)
+  (let [{:keys [name doc mixins props? bodies]} (parse-defc body)
         render-fn (map compile-body bodies)]
-   `(def ~name ~doc
-      (let [render-mixin# (~render-ctor (fn ~@render-fn))
-            class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
-            ctor#         (fn [& args#]
-                            (let [state# (args->state args#)]
-                              (rum.core/element class# state# nil)))]
-        (with-meta ctor# {:rum/class class#})))))
+    `(let []
+       (def ~name ~doc
+         (let [render-mixin# (~render-ctor (fn ~@render-fn))
+               class# (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
+               ctor#  (fn [& args#]
+                        (let [state# (args->state args#)]
+                          (rum.core/element class# state# nil)))]
+           (with-meta ctor# {:rum/class class#})))
+       ~(when props?
+          `(def ~(symbol (str ">" name))
+             (fn [props# & args#]
+               (let [state# (args->state args#)]
+                 (rum.core/element (ctor->class ~name) state# props#))))))))
 
 (defmacro defc
   "Defc does couple of things:
