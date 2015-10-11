@@ -70,7 +70,7 @@ For more examples, see [examples/examples.cljs](examples/examples.cljs). Live ve
 Rum provides `defc` macro (short from “define component”):
 
 ```clojure
-(rum/defc name doc-string? [< mixins+]? [params*] render-body+)
+(rum/defc name doc-string? [< mixins+]? [>]? [params*] render-body+)
 ```
 
 `defc` defines top-level function that accepts `argvec` and returns React element that renders as specified in `render-body`.
