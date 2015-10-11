@@ -50,7 +50,7 @@ Simplest example defines component, instantiates it and mounts it on a page:
 (rum/mount (label 5 "abc") js/document.body)
 ```
 
-For more examples, see [examples/examples.cljs](examples/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
+For more examples, see [examples/rum/examples.cljs](examples/rum/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
 
 ## Rum resources
 
