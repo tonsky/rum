@@ -52,12 +52,19 @@ Simplest example defines component, instantiates it and mounts it on a page:
 
 For more examples, see [examples/rum/examples.cljs](examples/rum/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
 
-## Rum resources
+## Talks
 
 - [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
+
+## Examples
+
 - DataScript Chat sample app: [github.com/tonsky/datascript-chat](https://github.com/tonsky/datascript-chat)
 - DataScript ToDo sample app: [github.com/tonsky/datascript-todo](https://github.com/tonsky/datascript-todo)
 - DataScript Menu example: [github.com/tonsky/datascript-menu](https://github.com/tonsky/datascript-menu)
+
+## Libraries
+
+- [Reforms](http://bilus.github.io/reforms/)
 
 ## Who’s using Rum?
 
