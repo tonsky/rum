@@ -12,7 +12,7 @@ Rum goals:
 
 Rum is not a framework that tells you how your components should work.
 Instead, it’s a library that gives you the tools, so you can build components
-that fits your needs best.
+that fit your needs best.
 
 ## Comparison to other frameworks
 
