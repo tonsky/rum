@@ -3,13 +3,13 @@
   :license     { :name "Eclipse"
                  :url  "http://www.eclipse.org/legal/epl-v10.html" }
   :url         "https://github.com/tonsky/rum"
-  
+
   :dependencies
   [ [org.clojure/clojure        "1.7.0"   :scope "provided"]
-    [org.clojure/clojurescript  "1.7.122" :scope "provided"]
+    [org.clojure/clojurescript  "1.7.170" :scope "provided"]
     [cljsjs/react               "0.13.3-1"]
     [sablono                    "0.3.6"] ]
-  
+
   :global-vars
   { *warn-on-reflection* true }
 
