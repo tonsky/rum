@@ -5,10 +5,11 @@
   :url         "https://github.com/tonsky/rum"
 
   :dependencies
-  [ [org.clojure/clojure        "1.7.0"   :scope "provided"]
-    [org.clojure/clojurescript  "1.7.170" :scope "provided"]
-    [cljsjs/react               "0.13.3-1"]
-    [sablono                    "0.3.6"] ]
+  [[org.clojure/clojure        "1.7.0"   :scope "provided"]
+   [org.clojure/clojurescript  "1.7.170" :scope "provided"]
+   [cljsjs/react "0.14.3-0"]
+   [cljsjs/react-dom "0.14.3-0"]
+   [sablono "0.4.0"]]
 
   :global-vars
   { *warn-on-reflection* true }

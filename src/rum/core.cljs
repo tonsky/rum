@@ -2,6 +2,7 @@
   (:require-macros rum.core)
   (:require
     [cljsjs.react]
+    [cljsjs.react.dom]
     [sablono.core]))
 
 (let [last-id (volatile! 0)]
@@ -142,7 +143,7 @@
   (vswap! render-queue conj component))
 
 (defn mount [component node]
-  (js/React.render component node))
+  (js/ReactDOM.render component node))
 
 ;; initialization
 
