@@ -35,7 +35,7 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-1. Add `[rum "0.5.0"]` to dependencies
+1. Add `[rum "0.6.0"]` to dependencies
 2. `(require '[rum.core :as rum])`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
@@ -327,6 +327,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.6.0
+
+- [ BREAKING ] Updated to [React 0.14.3](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html) (thx [Andrey Antukh](https://github.com/niwinz), PR #53)
 
 ### 0.5.0
 
