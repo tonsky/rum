@@ -26,7 +26,8 @@
          :optimizations  :advanced
          :source-map     "target/main.js.map"
          :pretty-print   false
-         :compiler-stats true }}
+         :compiler-stats true
+         :parallel-build true }}
      { :id "none"
        :source-paths ["src" "examples"]
        :compiler
@@ -36,4 +37,5 @@
          :asset-path     "target/none"
          :optimizations  :none
          :source-map     true
-         :compiler-stats true }}]})
+         :compiler-stats true
+         :parallel-build true }}]})
