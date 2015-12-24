@@ -9,7 +9,7 @@
    [org.clojure/clojurescript  "1.7.170" :scope "provided"]
    [cljsjs/react "0.14.3-0"]
    [cljsjs/react-dom "0.14.3-1"]
-   [sablono "0.4.0"]]
+   [sablono "0.6.0"]]
 
   :global-vars
   { *warn-on-reflection* true }
