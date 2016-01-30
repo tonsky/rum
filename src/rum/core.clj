@@ -1,7 +1,8 @@
 (ns rum.core
   (:require
    [sablono.compiler :as s]
-   [rum.server :as server]))
+   [rum.server :as server]
+   [rum.server-render :as render]))
 
 (defn- fn-body? [form]
   (and (seq? form)
@@ -99,6 +100,8 @@
     `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
 
 ;;; Server-side rendering support
+
+(def render-html render/render-html)
 
 (def build-class server/build-class)
 (def args->state server/args->state)

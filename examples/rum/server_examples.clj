@@ -174,5 +174,5 @@
 
 (defn -main [& args]
   (doseq [func @to-run]
-    (pr (func))
+    (println (rum/render-html (func)))
     (println)))
