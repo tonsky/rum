@@ -1,9 +1,10 @@
 (ns rum.core
   (:require
-    [sablono.compiler :as s]))
+   [sablono.compiler :as s]
+   [rum.server :as server]))
 
 (defn- fn-body? [form]
-  (and (list? form)
+  (and (seq? form)
        (vector? (first form))))
 
 (defn- parse-defc [xs]
@@ -27,16 +28,23 @@
 (defn- compile-body [[argvec & body]]
   (list argvec (s/compile-html `(do ~@body))))
 
+(defmacro if-cljs
+  "Return then if we are generating cljs code and else for Clojure code.
+   https://groups.google.com/d/msg/clojurescript/iBY5HaQda4A/w1lAQi9_AwsJ
+   https://github.com/plumatic/schema/blob/master/src/clj/schema/macros.clj#L15-L19"
+  [then else]
+  (if (:ns &env) then else))
+
 (defn- -defc [render-ctor body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
         render-fn (map compile-body bodies)]
-   `(def ~name ~doc
-      (let [render-mixin# (~render-ctor (fn ~@render-fn))
-            class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
-            ctor#         (fn [& args#]
-                            (let [state# (args->state args#)]
-                              (rum.core/element class# state# nil)))]
-        (with-meta ctor# {:rum/class class#})))))
+    `(def ~name ~(or doc "")
+       (let [render-mixin# (~render-ctor (fn ~@(if-cljs render-fn bodies)))
+             class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
+             ctor#         (fn [& args#]
+                             (let [state# (args->state args#)]
+                               (rum.core/element class# state# nil)))]
+         (with-meta ctor# {:rum/class class#})))))
 
 (defmacro defc
   "Defc does couple of things:
@@ -90,4 +98,29 @@
                 (mapcat (fn [[k v]] [(props k) v])))]
     `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
 
+;;; Server-side rendering support
 
+(def build-class server/build-class)
+(def args->state server/args->state)
+(def element server/element)
+(def render->mixin server/render->mixin)
+(def render-state->mixin server/render-state->mixin)
+(def render-comp->mixin server/render-comp->mixin)
+(def with-key server/with-key)
+(def with-ref server/with-ref)
+
+;; included mixins
+(def static {})
+
+(defn local [initial & [key]]
+  (let [key (or key :rum/local)]
+    {:will-mount (fn [state]
+                   (assoc state key (atom initial)))}))
+
+(def reactive {})
+(def react deref)
+
+(defn cursor [ref path]
+  (atom (get-in @ref path)))
+(def cursored {})
+(def cursored-watch {})
