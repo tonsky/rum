@@ -1,6 +1,7 @@
 (ns rum.server-render
   (:require [clojure.string :as str])
-  (:import [clojure.lang IPersistentVector ISeq Named]))
+  (:import [clojure.lang IPersistentVector ISeq Named]
+           [java.util.zip Adler32]))
 
 ;; From Weavejester's Hiccup
 ;; https://github.com/weavejester/hiccup/blob/master/src/hiccup/compiler.clj#L32
@@ -13,6 +14,13 @@
   void-tags
   #{"area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen" "link"
     "meta" "param" "source" "track" "wbr"})
+
+;;; adler32
+
+(defn adler32 [value]
+  (-> (doto (Adler32.)
+        (.update (.getBytes ^String value)))
+    .getValue))
 
 ;;; to-str
 
@@ -54,7 +62,7 @@
   [tag-attrs attrs]
   (let [attrs (for [[k v] attrs
                     :let [k (react-attr->html k)]
-                    :when (not (.startsWith k "on"))]
+                    :when (not (.startsWith ^String k "on"))]
                 [k v])
         class (if (:class tag-attrs)
                 (str (:class tag-attrs) " " (:class attrs))
@@ -69,8 +77,8 @@
   (when (not (or (keyword? tag) (symbol? tag) (string? tag)))
     (throw (IllegalArgumentException. (str tag " is not a valid element name."))))
   (let [[_ tag id class] (re-matches re-tag (name tag))
-        tag-attrs        {:id id
-                          :class (if class (.replace ^String class "." " "))}
+        tag-attrs        {"id"    id
+                          "class" (if class (.replace ^String class "." " "))}
         map-attrs        (first content)]
     (if (map? map-attrs)
       [tag (merge-attrs tag-attrs map-attrs) (next content)]
@@ -103,35 +111,54 @@
 ;;; render html
 
 (defprotocol HtmlRenderer
-  (render-html [this]
-    "Turn a Clojure data type into a string of HTML."))
+  (-render-html [this parent path]
+    "Turn a Clojure data type into a string of HTML with react ids."))
 
-(defn- render-element
+(defn -render-element
   "Render an element vector as a HTML element."
-  [element]
-  (let [[tag attrs content] (normalize-element element)]
+  [element path]
+  (let [[tag attrs content] (normalize-element element)
+        path                (if (attrs "key")
+                              (conj (subvec path 0 (dec (count path)))
+                                "$" (attrs "key"))
+                              path)
+        attrs               (assoc attrs "key" nil
+                              "data-reactid" (str/join "" path))]
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
-           (render-html content)
+           (-render-html content element path)
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
 
 (extend-protocol HtmlRenderer
   IPersistentVector
-  (render-html [this]
-    (render-element this))
+  (-render-html [this parent path]
+    (-render-element this path))
   ISeq
-  (render-html [this]
-    (apply str (map render-html this)))
+  (-render-html [this parent path]
+    (if (= 1 (count this))
+      (-render-html (first this) this path)
+      (let [separator (if (and (not (vector? parent))
+                               (not= this (first parent)))
+                        ":" ".")]
+        (->> this
+          (map-indexed #(-render-html %2 this (conj path separator %1)))
+          (apply str)))))
   Named
-  (render-html [this]
+  (-render-html [this parent path]
     (name this))
   String
-  (render-html [this]
+  (-render-html [this parent path]
     this)
   Object
-  (render-html [this]
+  (-render-html [this parent path]
     (str this))
   nil
-  (render-html [this]
+  (-render-html [this parent path]
     ""))
+
+(defn render-html [src]
+  (let [result   (-render-html src nil ["." 0])
+        checksum (adler32 result)]
+    (str/replace-first result ">"
+      (str " data-react-checksum=\"" checksum "\">"))))
