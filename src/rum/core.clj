@@ -29,18 +29,13 @@
 (defn- compile-body [[argvec & body]]
   (list argvec (s/compile-html `(do ~@body))))
 
-(defmacro if-cljs
-  "Return then if we are generating cljs code and else for Clojure code.
-   https://groups.google.com/d/msg/clojurescript/iBY5HaQda4A/w1lAQi9_AwsJ
-   https://github.com/plumatic/schema/blob/master/src/clj/schema/macros.clj#L15-L19"
-  [then else]
-  (if (:ns &env) then else))
-
-(defn- -defc [render-ctor body]
+(defn- -defc [render-ctor is-cljs body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
-        render-fn (map compile-body bodies)]
+        render-fn (if is-cljs
+                    (map compile-body bodies)
+                    bodies)]
     `(def ~name ~(or doc "")
-       (let [render-mixin# (~render-ctor (fn ~@(if-cljs render-fn bodies)))
+       (let [render-mixin# (~render-ctor (fn ~@render-fn))
              class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
              ctor#         (fn [& args#]
                              (let [state# (args->state args#)]
@@ -60,7 +55,7 @@
   
        (defc name doc-string? [< mixins+]? [params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render->mixin body))
+  (-defc 'rum.core/render->mixin (:ns &env) body))
 
 (defmacro defcs
   "Same as defc, but render will take additional first argument: state
@@ -69,7 +64,7 @@
 
         (defcs name doc-string? [< mixins+]? [state params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-state->mixin body))
+  (-defc 'rum.core/render-state->mixin (:ns &env) body))
 
 (defmacro defcc
   "Same as defc, but render will take additional first argument: react component
@@ -78,7 +73,7 @@
 
         (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-comp->mixin body))
+  (-defc 'rum.core/render-comp->mixin (:ns &env) body))
 
 (defmacro with-props
   "DEPRECATED. Use rum.core/with-key and rum.core/with-ref functions
