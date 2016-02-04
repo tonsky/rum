@@ -15,7 +15,7 @@
             state       (merge state (props->state props))
             state       (merge state (call-all state will-mount))
             [dom state] (wrapped-render state)]
-        dom))))
+        (or dom [:noscript])))))
 
 (defn args->state [args]
   {:rum/args args})

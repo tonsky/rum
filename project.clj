@@ -4,6 +4,7 @@
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
   :url          "https://github.com/tonsky/rum"
   :source-paths ["src" "examples"]
+  :java-source-paths ["src"]
 
   :dependencies
   [[org.clojure/clojure        "1.7.0"   :scope "provided"]

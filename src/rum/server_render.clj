@@ -1,7 +1,7 @@
 (ns rum.server-render
   (:require [clojure.string :as str])
   (:import [clojure.lang IPersistentVector ISeq Named]
-           [java.util.zip Adler32]))
+           [rum Adler32]))
 
 ;; From Weavejester's Hiccup
 ;; https://github.com/weavejester/hiccup/blob/master/src/hiccup/compiler.clj#L32
@@ -14,13 +14,6 @@
   void-tags
   #{"area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen" "link"
     "meta" "param" "source" "track" "wbr"})
-
-;;; adler32
-
-(defn adler32 [value]
-  (-> (doto (Adler32.)
-        (.update (.getBytes ^String value)))
-    .getValue))
 
 ;;; to-str
 
@@ -56,29 +49,54 @@
 (defn react-attr->html [attr]
   (-> (attr-mapping attr attr)
     as-str
+    .toLowerCase
     (.replace "-" "")))
 
 (defn merge-attrs
   [tag-attrs attrs]
-  (let [attrs (for [[k v] attrs
-                    :let [k (react-attr->html k)]
-                    :when (not (.startsWith ^String k "on"))]
-                [k v])
-        class (if (:class tag-attrs)
-                (str (:class tag-attrs) " " (:class attrs))
-                (:class attrs))]
+  (let [attrs       (->> (for [[k v] attrs
+                               :let [k (react-attr->html k)]
+                               :when (not (.startsWith ^String k "on"))]
+                           [(keyword k) v])
+                      (into {}))
+        tag-class   (:class tag-attrs)
+        attrs-class (:class attrs)
+        class       (if (and tag-class attrs-class)
+                      (str tag-class " " attrs-class)
+                      (or tag-class attrs-class))]
     (-> tag-attrs
-        (into attrs)
-        (assoc :class class))))
+      (into attrs)
+      (assoc :class class))))
+
+(defn strip-css
+  "Strip the # and . characters from the beginning of `s`."
+  [s] (if s (str/replace s #"^[.#]" "")))
+
+(defn match-tag
+  "Match `s` as a CSS tag and return a vector of tag name, CSS id and
+  CSS classes."
+  [s]
+  (let [matches (re-seq #"[#.]?[^#.]+" (name s))
+        [tag-name names]
+        (cond (empty? matches)
+              (throw (ex-info (str "Can't match CSS tag: " s) {:tag s}))
+              (#{\# \.} (ffirst matches)) ;; shorthand for div
+              ["div" matches]
+              :default
+              [(first matches) (rest matches)])]
+    [tag-name
+     (first (map strip-css (filter #(= \# (first %1)) names)))
+     (vec (map strip-css (filter #(= \. (first %1)) names)))]))
 
 (defn normalize-element
   "Ensure an element vector is of the form [tag-name attrs content]."
   [[tag & content]]
   (when (not (or (keyword? tag) (symbol? tag) (string? tag)))
     (throw (IllegalArgumentException. (str tag " is not a valid element name."))))
-  (let [[_ tag id class] (re-matches re-tag (name tag))
-        tag-attrs        {"id"    id
-                          "class" (if class (.replace ^String class "." " "))}
+  (let [[tag id classes] (match-tag tag)
+        tag-attrs        {:id    id
+                          :class (when-not (empty? classes)
+                                   (str/join " " classes))}
         map-attrs        (first content)]
     (if (map? map-attrs)
       [tag (merge-attrs tag-attrs map-attrs) (next content)]
@@ -87,26 +105,62 @@
 ;;; render attributes
 
 (defn render-style [value]
-  (apply str
+  (str/join " "
     (for [[k v] value
           :when v]
-      (str (as-str k) "=" (as-str v) "; "))))
+      (str (as-str k) ":" (as-str v) ";"))))
 
 (defn attr-value [name value]
   (condp = (as-str name)
     "style" (render-style value)
             (as-str value)))
 
-(defn render-attribute [[name value]]
+(defn render-attr [[name value]]
   (cond
     (true? value) (str " " (as-str name))
     (not value)   ""
     :else         (str " " (as-str name) "=\""
                     (attr-value name value) "\"")))
 
+(def attr->rank
+  {:id     0
+   :shape  2
+   :coords 3
+   :href   10
+   :style  20
+   :alt    30
+   :rel    35
+   :target 40
+   :src    45
+   :usemap 46
+   :class  50
+   :name   60})
+
+(defn rank-attr [[attr value]]
+  [(attr->rank attr 99) attr])
+
 (defn render-attr-map [attrs]
-  (apply str
-    (sort (map render-attribute attrs))))
+  (->> attrs
+    (sort-by rank-attr)
+    (map render-attr)
+    (apply str)))
+
+(defn escape-html
+  "Change special characters into HTML character entities."
+  [^String text]
+  (.. ^String text
+    (replace "&"  "&amp;")
+    (replace "<"  "&lt;")
+    (replace ">"  "&gt;")
+    (replace "\"" "&quot;")
+    (replace "'"  "&#x27;")))
+
+(defn react-key
+  "React escapes some characters in key"
+  [^String text]
+  (.. ^String text
+    (replace "=" "=0")
+    (replace ":" "=2")))
 
 ;;; render html
 
@@ -118,12 +172,12 @@
   "Render an element vector as a HTML element."
   [element path]
   (let [[tag attrs content] (normalize-element element)
-        path                (if (attrs "key")
-                              (conj (subvec path 0 (dec (count path)))
-                                "$" (attrs "key"))
+        path                (if (:key attrs)
+                              (conj (pop path) "$" (react-key (:key attrs)))
                               path)
-        attrs               (assoc attrs "key" nil
-                              "data-reactid" (str/join "" path))]
+        attrs               (assoc attrs
+                              :key nil
+                              :data-reactid (str/join "" path))]
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
            (-render-html content element path)
@@ -136,20 +190,21 @@
     (-render-element this path))
   ISeq
   (-render-html [this parent path]
-    (if (= 1 (count this))
-      (-render-html (first this) this path)
-      (let [separator (if (and (not (vector? parent))
-                               (not= this (first parent)))
-                        ":" ".")]
-        (->> this
-          (map-indexed #(-render-html %2 this (conj path separator %1)))
-          (apply str)))))
+    ;; (println "============")
+    ;; (println "PATH  " (str/join "" path))
+    ;; (println "PARENT" parent (not (vector? parent)))
+    ;; (println "THIS  " this (= (list this) parent))
+    (let [separator (if (or (vector? parent) (= (list this) parent)) "." ":")
+          path      (if (= (list this) parent) (-> path pop pop) path)]
+      (->> this
+        (map-indexed #(-render-html %2 this (conj path separator %1)))
+        (apply str))))
   Named
   (-render-html [this parent path]
     (name this))
   String
   (-render-html [this parent path]
-    this)
+    (escape-html this))
   Object
   (-render-html [this parent path]
     (str this))
@@ -159,6 +214,6 @@
 
 (defn render-html [src]
   (let [result   (-render-html src nil ["." 0])
-        checksum (adler32 result)]
+        checksum (Adler32/calc result)]
     (str/replace-first result ">"
       (str " data-react-checksum=\"" checksum "\">"))))
