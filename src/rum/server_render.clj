@@ -98,7 +98,7 @@
                           :class (when-not (empty? classes)
                                    (str/join " " classes))}
         map-attrs        (first content)]
-    (if (map? map-attrs)
+    (if (or (map? map-attrs) (nil? map-attrs))
       [tag (merge-attrs tag-attrs map-attrs) (next content)]
       [tag tag-attrs content])))
 
@@ -128,9 +128,11 @@
    :coords 3
    :href   10
    :style  20
+   :title  25
    :alt    30
    :rel    35
    :target 40
+   :type   41
    :src    45
    :usemap 46
    :class  50

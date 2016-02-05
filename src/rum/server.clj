@@ -33,7 +33,9 @@
   { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
 
 (defn with-key [element key]
-  (assoc-in element [1 :key] key))
+  (if (map? (get element 1))
+    (assoc-in element [1 :key] key)
+    (into [(first element) {:key key}] (next element))))
 
 (defn with-ref [element ref]
   element)
