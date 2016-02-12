@@ -1,7 +1,8 @@
 (ns rum.server-render
-  (:require [clojure.string :as str])
-  (:import [clojure.lang IPersistentVector ISeq Named]
-           [rum Adler32]))
+  (:require
+    [clojure.string :as str])
+  (:import
+    [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
 ;; From Weavejester's Hiccup
 ;; https://github.com/weavejester/hiccup/blob/master/src/hiccup/compiler.clj#L32
@@ -21,9 +22,9 @@
   (^String to-str [x] "Convert a value into a string."))
 
 (extend-protocol ToString
-  clojure.lang.Keyword
+  Keyword
   (to-str [k] (name k))
-  clojure.lang.Ratio
+  Ratio
   (to-str [r] (str (float r)))
   Object
   (to-str [x] (str x))
@@ -214,10 +215,45 @@
   (-render-html [this parent path]
     ""))
 
+
+;; https://github.com/facebook/react/blob/master/src/shared/utils/adler32.js
+(defn adler32 [^String s]
+  (let [l (count s)
+        m (bit-and l -4)]
+    (loop [a (long 1)
+           b (long 0)
+           i 0
+           n (min (+ i 4096) m)]
+     (cond
+       (< i n)
+       (let [c0 (int (.charAt s i))
+             c1 (int (.charAt s (+ i 1)))
+             c2 (int (.charAt s (+ i 2)))
+             c3 (int (.charAt s (+ i 3)))
+             b  (+ b a c0 
+                     a c0 c1
+                     a c0 c1 c2
+                     a c0 c1 c2 c3)
+             a  (+ a c0 c1 c2 c3)]
+         (recur (rem a 65521) (rem b 65521) (+ i 4) n))
+      
+       (< i m)
+       (recur a b i (min (+ i 4096) m))
+      
+       (< i l)
+       (let [c0 (int (.charAt s i))]
+         (recur (+ a c0) (+ b a c0) (+ i 1) n))
+      
+       :else
+       (let [a (rem a 65521)
+             b (rem b 65521)]
+         (bit-or (int a) (Numbers/shiftLeftInt b 16)))))))
+
+
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
     (let [result   (-render-html src nil ["." (:root-key opts 0)])
-          checksum (Adler32/calc result)]
+          checksum (adler32 result)]
       (str/replace-first result ">"
         (str " data-react-checksum=\"" checksum "\">")))))

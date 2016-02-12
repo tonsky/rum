@@ -3,8 +3,7 @@
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
   :url          "https://github.com/tonsky/rum"
-  :source-paths ["src" "examples"]
-  :java-source-paths ["src"]
+  :source-paths ["src"]
 
   :dependencies
   [[org.clojure/clojure        "1.7.0"   :scope "provided"]
@@ -14,14 +13,15 @@
    [sablono "0.4.0"]]
 
   :global-vars
-  { *warn-on-reflection* true }
+  { *warn-on-reflection* true
+     *unchecked-math* :warn-on-boxed }
 
   :plugins [ [lein-cljsbuild "1.1.1"] ]
 
   :cljsbuild
   { :builds
     [{ :id "advanced"
-       :source-paths ["src" "examples"]
+       :source-paths ["src" "examples" "test"]
        :compiler
        { :main           rum.examples
          :output-to      "target/main.js"
@@ -31,7 +31,7 @@
          :compiler-stats true
          :parallel-build true }}
      { :id "none"
-       :source-paths ["src" "examples"]
+       :source-paths ["src" "examples" "test"]
        :compiler
        { :main           rum.examples
          :output-to      "target/main.js"

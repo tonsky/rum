@@ -29,9 +29,9 @@
 (defn- compile-body [[argvec & body]]
   (list argvec (s/compile-html `(do ~@body))))
 
-(defn- -defc [render-ctor is-cljs body]
+(defn- -defc [render-ctor cljs? body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
-        render-fn (if is-cljs
+        render-fn (if cljs?
                     (map compile-body bodies)
                     bodies)]
     `(def ~name ~(or doc "")
@@ -55,7 +55,7 @@
   
        (defc name doc-string? [< mixins+]? [params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render->mixin (:ns &env) body))
+  (-defc 'rum.core/render->mixin (boolean (:ns &env)) body))
 
 (defmacro defcs
   "Same as defc, but render will take additional first argument: state
