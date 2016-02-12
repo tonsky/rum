@@ -175,7 +175,7 @@
   [element path]
   (let [[tag attrs content] (normalize-element element)
         path                (if (:key attrs)
-                              (conj (pop path) "$" (react-key (:key attrs)))
+                              (conj (pop path) "$" (react-key (to-str (:key attrs))))
                               path)
         attrs               (assoc attrs
                               :key nil
