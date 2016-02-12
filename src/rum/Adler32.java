@@ -6,12 +6,12 @@ public class Adler32 {
     public static int MOD = 65521;
 
     public static int calc(String data) {
-        long a = 1;
-        long b = 0;
+        int a = 1;
+        int b = 0;
         int i = 0;
         int l = data.length();
-        long m = l & ~0x3;
-        long n;
+        int m = l & ~0x3;
+        int n;
         while (i < m) {
             n = Math.min(i + 4096, m);
             for (; i < n; i += 4) {
@@ -28,6 +28,6 @@ public class Adler32 {
         }
         a %= MOD;
         b %= MOD;
-        return (int) a | (int) b << 16;
+        return a | b << 16;
     }
 }
