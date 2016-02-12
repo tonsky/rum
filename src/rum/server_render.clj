@@ -214,8 +214,10 @@
   (-render-html [this parent path]
     ""))
 
-(defn render-html [src]
-  (let [result   (-render-html src nil ["." 0])
-        checksum (Adler32/calc result)]
-    (str/replace-first result ">"
-      (str " data-react-checksum=\"" checksum "\">"))))
+(defn render-html
+  ([src] (render-html src nil))
+  ([src opts]
+    (let [result   (-render-html src nil ["." (:root-key opts 0)])
+          checksum (Adler32/calc result)]
+      (str/replace-first result ">"
+        (str " data-react-checksum=\"" checksum "\">")))))
