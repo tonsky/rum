@@ -10,16 +10,19 @@
        :private true}
   re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
+
 (def ^{:doc "A list of elements that must be rendered without a closing tag."
        :private true}
   void-tags
   #{"area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen" "link"
     "meta" "param" "source" "track" "wbr"})
 
+
 ;;; to-str
 
 (defprotocol ToString
   (^String to-str [x] "Convert a value into a string."))
+
 
 (extend-protocol ToString
   Keyword
@@ -31,33 +34,49 @@
   nil
   (to-str [_] ""))
 
+
 (defn ^String as-str
   "Converts its arguments into a string using to-str."
   [& xs]
   (apply str (map to-str xs)))
 
+
 (defn container-tag? [tag content]
   (or content (not (void-tags tag))))
+
 
 ;;; other
 
 (def attr-mapping
-  {:class-name :class
-   :className :class
-   :html-for :for
-   :htmlFor :for})
+  {:class-name "class"
+   :className  "class"
+   :html-for   "for"
+   :htmlFor    "for"})
 
-(defn react-attr->html [attr]
-  (-> (attr-mapping attr attr)
-    as-str
-    .toLowerCase
-    (.replace "-" "")))
+
+(defn react-attr->html ^String [attr]
+  (-> (or (attr-mapping attr)
+          (as-str attr))
+    (str/lower-case)
+    (str/replace "-" "")))
+
+
+(defn escape-html
+  "Change special characters into HTML character entities."
+  [^String text]
+  (.. ^String text
+    (replace "&"  "&amp;")
+    (replace "<"  "&lt;")
+    (replace ">"  "&gt;")
+    (replace "\"" "&quot;")
+    (replace "'"  "&#x27;")))
+
 
 (defn merge-attrs
   [tag-attrs attrs]
   (let [attrs       (->> (for [[k v] attrs
                                :let [k (react-attr->html k)]
-                               :when (not (.startsWith ^String k "on"))]
+                               :when (not (.startsWith k "on"))]
                            [(keyword k) v])
                       (into {}))
         tag-class   (:class tag-attrs)
@@ -69,9 +88,11 @@
       (into attrs)
       (assoc :class class))))
 
+
 (defn strip-css
   "Strip the # and . characters from the beginning of `s`."
   [s] (if s (str/replace s #"^[.#]" "")))
+
 
 (defn match-tag
   "Match `s` as a CSS tag and return a vector of tag name, CSS id and
@@ -89,6 +110,7 @@
      (first (map strip-css (filter #(= \# (first %1)) names)))
      (vec (map strip-css (filter #(= \. (first %1)) names)))]))
 
+
 (defn normalize-element
   "Ensure an element vector is of the form [tag-name attrs content]."
   [[tag & content]]
@@ -103,25 +125,54 @@
       [tag (merge-attrs tag-attrs map-attrs) (next content)]
       [tag tag-attrs content])))
 
+
 ;;; render attributes
 
-(defn render-style [value]
-  (str/join " "
-    (for [[k v] value
-          :when v]
-      (str (as-str k) ":" (as-str v) ";"))))
 
-(defn attr-value [name value]
-  (condp = (as-str name)
-    "style" (render-style value)
-            (as-str value)))
+;; https://github.com/facebook/react/blob/master/src/renderers/dom/shared/CSSProperty.js
+(def unitless-css-props
+  (into #{}
+    (for [key ["animation-iteration-count" "box-flex" "box-flex-group" "box-ordinal-group" "column-count" "flex" "flex-grow" "flex-positive" "flex-shrink" "flex-negative" "flex-order" "grid-row" "grid-column" "font-weight" "line-clamp" "line-height" "opacity" "order" "orphans" "tab-size" "widows" "z-index" "zoom" "fill-opacity" "stop-opacity" "stroke-dashoffset" "stroke-opacity" "stroke-width"]
+          prefix ["" "-webkit-" "-ms-" "-moz-" "-o-"]]
+      (str prefix key))))
+
+
+(defn normalize-css-key [k]
+  (-> (as-str k)
+      (str/replace #"[A-Z]" (fn [ch] (str "-" (str/lower-case ch))))
+      (str/replace #"^ms-" "-ms-")))
+
+
+(defn normalize-css-value [key value]
+  (cond
+    (contains? unitless-css-props key)
+      (escape-html (as-str value))
+    (number? value)
+      (str value "px")
+    (and (string? value)
+         (re-matches #"\s*(\d+)\s*" value))
+      (recur key (-> value str/trim Long/parseLong))
+    :else
+      (escape-html (as-str value))))
+
+
+(defn render-style [value]
+  (->> (for [[k v] value
+             :when v
+             :let [key   (normalize-css-key k)
+                   value (normalize-css-value key v)]]
+         (str key ":" value ";"))
+       (str/join "")))
+
 
 (defn render-attr [[name value]]
-  (cond
-    (true? value) (str " " (as-str name))
-    (not value)   ""
-    :else         (str " " (as-str name) "=\""
-                    (attr-value name value) "\"")))
+  (let [name (as-str name)]
+    (cond
+      (true? value)    (str " " name)
+      (not value)      ""
+      (= "style" name) (str " style=\"" (render-style value) "\"")
+      :else            (str " " name "=\"" (as-str value) "\""))))
+
 
 (def attr->rank
   {:id     0
@@ -139,8 +190,10 @@
    :class  50
    :name   60})
 
+
 (defn rank-attr [[attr value]]
   [(attr->rank attr 99) attr])
+
 
 (defn render-attr-map [attrs]
   (->> attrs
@@ -148,15 +201,6 @@
     (map render-attr)
     (apply str)))
 
-(defn escape-html
-  "Change special characters into HTML character entities."
-  [^String text]
-  (.. ^String text
-    (replace "&"  "&amp;")
-    (replace "<"  "&lt;")
-    (replace ">"  "&gt;")
-    (replace "\"" "&quot;")
-    (replace "'"  "&#x27;")))
 
 (defn react-key
   "React escapes some characters in key"
@@ -165,11 +209,14 @@
     (replace "=" "=0")
     (replace ":" "=2")))
 
+
 ;;; render html
+
 
 (defprotocol HtmlRenderer
   (-render-html [this parent path]
     "Turn a Clojure data type into a string of HTML with react ids."))
+
 
 (defn -render-element
   "Render an element vector as a HTML element."
@@ -186,6 +233,7 @@
            (-render-html content element path)
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
+
 
 (extend-protocol HtmlRenderer
   IPersistentVector
@@ -220,8 +268,8 @@
 (defn adler32 [^String s]
   (let [l (count s)
         m (bit-and l -4)]
-    (loop [a (long 1)
-           b (long 0)
+    (loop [a (int 1)
+           b (int 0)
            i 0
            n (min (+ i 4096) m)]
      (cond
