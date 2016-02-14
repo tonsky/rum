@@ -60,15 +60,65 @@
               "zIndex"          1 }}]]) ;; accept strings too
 
 
+(rum/defc comp-attrs-order []
+  [:div
+    [:a { :title  "a"
+          :alt    "b"
+          :rel    "c"
+          :target "d"
+          :src    "e" }]
+    [:a { :src    "a"
+          :target "b"
+          :rel    "c"
+          :alt    "d"
+          :title  "e" }]
+    [:a       { :title "a" :class "b"       :rel "d" }]
+    [:a       { :title "a" :class ["b" "c"] :rel "d" }]
+    [:a.clazz { :title "a" :class "b"       :rel "d" }]
+    [:a.clazz { :title "a" :class ["b" "c"] :rel "d" }]
+    [:a.clazz#id { :title "a" }]
+    [:a#id.clazz { :title "a" }]
+    [:a.clazz#id { :title "a" :class "b" }]
+    [:a#clazz.id { :title "a" :class "b" }]
+])
+
+
+(rum/defc comp-classes []
+  [:div
+    [:div { :class :c3 }]
+    [:div { :class [:c3 :c4] }]        ;; list form
+    [:div { :class "c3" }]             ;; string form
+    [:div { :class ["c3" "c4"]}]
+    [:div { :class [" c3  " "  c4 "]}] ;; trimming
+    [:div { :class [:c3 nil :c4] }]    ;; nils are not removed
+    [:div { :class [:c2 :c3]}]         ;; removing duplicates
+    [:.c1.c2 { :class :c3 }]
+    [:.c1.c2 { :class [:c3 :c4] }]        ;; list form
+    [:.c1.c2 { :class "c3" }]             ;; string form
+    [:.c1.c2 { :class ["c3" "c4"]}]
+    [:.c1.c2 { :class [" c3  " "  c4 "]}] ;; trimming
+    [:.c1.c2 { :class [:c3 nil :c4] }]    ;; nils are not removed
+    [:.c1.c2 { :class [:c2 :c3]}]])       ;; removing duplicates
+
+
+(rum/defc comp-reactid [] ;; check for proper reactid allocation
+  [:div
+    (map (fn [i] [:div (str i)]) (range 100))])
+
+  
 (def components
-  { "tag"      comp-tag
-    "list"     comp-list
-    "header"   comp-header
-    "campaign" comp-campaign
-    "styles"   comp-styles })
+  { "tag"         comp-tag
+    "list"        comp-list
+    "header"      comp-header
+    "campaign"    comp-campaign
+    "styles"      comp-styles
+    "attrs-order" comp-attrs-order
+    "classes"     comp-classes
+    "reactid"     comp-reactid })
 
 
 (def render-dir "target/server_render_test")
+
 
 #?(:cljs
 (defn ^:export react_render_html

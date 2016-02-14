@@ -29,6 +29,8 @@
   (to-str [k] (name k))
   Ratio
   (to-str [r] (str (float r)))
+  String
+  (to-str [s] s)
   Object
   (to-str [x] (str x))
   nil
@@ -82,10 +84,11 @@
         tag-class   (:class tag-attrs)
         attrs-class (:class attrs)
         class       (if (and tag-class attrs-class)
-                      (str tag-class " " attrs-class)
+                      [tag-class attrs-class]
                       (or tag-class attrs-class))]
     (-> tag-attrs
       (into attrs)
+      (dissoc :class)
       (assoc :class class))))
 
 
@@ -118,12 +121,15 @@
     (throw (IllegalArgumentException. (str tag " is not a valid element name."))))
   (let [[tag id classes] (match-tag tag)
         tag-attrs        {:id    id
-                          :class (when-not (empty? classes)
-                                   (str/join " " classes))}
+                          :class classes}
         map-attrs        (first content)]
-    (if (or (map? map-attrs) (nil? map-attrs))
-      [tag (merge-attrs tag-attrs map-attrs) (next content)]
-      [tag tag-attrs content])))
+    (cond
+      (map? map-attrs)
+        [tag (merge-attrs tag-attrs map-attrs) (next content)]
+      (nil? map-attrs)
+        [tag tag-attrs (next content)]
+      :else
+        [tag tag-attrs content])))
 
 
 ;;; render attributes
@@ -165,47 +171,41 @@
        (str/join "")))
 
 
+(defn normalize-classes* [cs]
+  (cond 
+    (sequential? cs) (mapcat normalize-classes* cs)
+    (set? cs)        (mapcat normalize-classes* cs)
+    :else            [(as-str cs)]))
+
+  
+(defn normalize-classes [cs]
+  (when (or (string? cs)
+            (not-empty cs))
+    (when-let [cs (not-empty (normalize-classes* cs))]
+      (str/join " " (distinct cs)))))
+
+
 (defn render-attr [[name value]]
   (let [name (as-str name)]
     (cond
       (true? value)    (str " " name)
       (not value)      ""
       (= "style" name) (str " style=\"" (render-style value) "\"")
+      (= "class" name) (when-let [value (normalize-classes value)]
+                         (str " class=\"" value "\""))
       :else            (str " " name "=\"" (as-str value) "\""))))
-
-
-(def attr->rank
-  {:id     0
-   :shape  2
-   :coords 3
-   :href   10
-   :style  20
-   :title  25
-   :alt    30
-   :rel    35
-   :target 40
-   :type   41
-   :src    45
-   :usemap 46
-   :class  50
-   :name   60})
-
-
-(defn rank-attr [[attr value]]
-  [(attr->rank attr 99) attr])
 
 
 (defn render-attr-map [attrs]
   (->> attrs
-    (sort-by rank-attr)
     (map render-attr)
-    (apply str)))
+    (str/join "")))
 
 
 (defn react-key
   "React escapes some characters in key"
   [^String text]
-  (.. ^String text
+  (.. text
     (replace "=" "=0")
     (replace ":" "=2")))
 
@@ -218,6 +218,13 @@
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
+;; https://github.com/facebook/react/blob/v0.14.7/src/renderers/shared/reconciler/ReactInstanceHandles.js
+(defn render-reactid [path]
+  (->> path
+       (map #(if (number? %) (Long/toString % 36) %))
+       (str/join "")))
+
+
 (defn -render-element
   "Render an element vector as a HTML element."
   [element path]
@@ -227,7 +234,7 @@
                               path)
         attrs               (assoc attrs
                               :key nil
-                              :data-reactid (str/join "" path))]
+                              :data-reactid (render-reactid path))]
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
            (-render-html content element path)
@@ -241,10 +248,6 @@
     (-render-element this path))
   ISeq
   (-render-html [this parent path]
-    ;; (println "============")
-    ;; (println "PATH  " (str/join "" path))
-    ;; (println "PARENT" parent (not (vector? parent)))
-    ;; (println "THIS  " this (= (list this) parent))
     (let [separator (if (or (vector? parent) (= (list this) parent)) "." ":")
           path      (if (= (list this) parent) (-> path pop pop) path)]
       (->> this
