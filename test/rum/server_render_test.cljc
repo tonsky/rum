@@ -27,6 +27,11 @@
    nil
    [:div.child]])
 
+(rum/defc comp-span []
+  [:div
+   "test"
+   [:div "passed"]])
+
 (rum/defc comp-campaign []
   [:div#today.content.wrapper
     (list 
@@ -115,6 +120,7 @@
     "list"        comp-list
     "header"      comp-header
     "nil"         comp-nil
+    "span"        comp-span
     "campaign"    comp-campaign
     "styles"      comp-styles
     "attrs-order" comp-attrs-order
