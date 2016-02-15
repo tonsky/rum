@@ -22,6 +22,10 @@
           [:li.menu-item {:key "M"} "Мужчинам"])
     [:li.menu-item {:key "outlet"} "Outlet"]])
 
+(rum/defc comp-nil []
+  [:div {:class "parent"}
+   nil
+   [:div.child]])
 
 (rum/defc comp-campaign []
   [:div#today.content.wrapper
@@ -110,6 +114,7 @@
   { "tag"         comp-tag
     "list"        comp-list
     "header"      comp-header
+    "nil"         comp-nil
     "campaign"    comp-campaign
     "styles"      comp-styles
     "attrs-order" comp-attrs-order
