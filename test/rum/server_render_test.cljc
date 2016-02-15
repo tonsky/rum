@@ -22,10 +22,18 @@
           [:li.menu-item {:key "M"} "Мужчинам"])
     [:li.menu-item {:key "outlet"} "Outlet"]])
 
-(rum/defc comp-nil []
+(rum/defc comp-nil1 []
   [:div {:class "parent"}
    nil
    [:div.child]])
+
+(rum/defc comp-nil2 []
+  [:div {:class "parent"}
+   (list
+     nil
+     [:div.child]
+     nil
+     [:div.child2])])
 
 (rum/defc comp-span []
   [:div
@@ -119,7 +127,8 @@
   { "tag"         comp-tag
     "list"        comp-list
     "header"      comp-header
-    "nil"         comp-nil
+    "nil1"        comp-nil1
+    "nil2"        comp-nil2
     "span"        comp-span
     "campaign"    comp-campaign
     "styles"      comp-styles

@@ -237,7 +237,7 @@
                               :data-reactid (render-reactid path))]
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
-           (-render-html content element path)
+           (-render-html (filter identity content) element path)
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
 
@@ -251,7 +251,6 @@
     (let [separator (if (or (vector? parent) (= (list this) parent)) "." ":")
           path      (if (= (list this) parent) (-> path pop pop) path)]
       (->> this
-        (filter identity)
         (map-indexed #(-render-html %2 this (conj path separator %1)))
         (apply str))))
   Named
