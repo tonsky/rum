@@ -23,15 +23,17 @@
     [:li.menu-item {:key "outlet"} "Outlet"]])
 
 (rum/defc comp-nil1 []
+  "In this case nil will be not counted against reactid"
   [:div {:class "parent"}
    nil
    [:div.child]])
 
 (rum/defc comp-nil2 []
+  "In this case *both* nils will be counted against reactid"
   [:div {:class "parent"}
+   nil
+   [:div.child]
    (list
-     nil
-     [:div.child]
      nil
      [:div.child2])])
 
