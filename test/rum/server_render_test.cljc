@@ -30,7 +30,7 @@
 (rum/defc comp-span []
   [:div
    "test"
-   [:div "passed"]])
+   "passed"])
 
 (rum/defc comp-campaign []
   [:div#today.content.wrapper

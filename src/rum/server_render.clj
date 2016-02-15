@@ -259,7 +259,9 @@
     (name this))
   String
   (-render-html [this parent path]
-    (escape-html this))
+    (if (> (count parent) 1)
+      (-render-html [:span this] parent path)
+      (escape-html this)))
   Object
   (-render-html [this parent path]
     (str this))
