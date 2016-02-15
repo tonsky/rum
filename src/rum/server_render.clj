@@ -182,7 +182,7 @@
   (when (or (string? cs)
             (not-empty cs))
     (when-let [cs (not-empty (normalize-classes* cs))]
-      (str/join " " (distinct cs)))))
+      (str/join " " (dedupe cs)))))
 
 
 (defn render-attr [[name value]]
