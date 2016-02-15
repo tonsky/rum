@@ -264,7 +264,7 @@
       (escape-html this)))
   Object
   (-render-html [this parent path]
-    (str this))
+    (-render-html (str this) parent path))
   nil
   (-render-html [this parent path]
     ""))
