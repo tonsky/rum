@@ -234,10 +234,23 @@
                               path)
         attrs               (assoc attrs
                               :key nil
-                              :data-reactid (render-reactid path))]
+                              :data-reactid (render-reactid path))
+        inner-html          (:dangerouslysetinnerhtml attrs)
+        attrs               (if inner-html
+                              (dissoc attrs :dangerouslysetinnerhtml)
+                              attrs)]
+
+    (when inner-html
+      (when-not (empty? content)
+        (throw (Exception. "Invariant Violation: Can only set one of `children` or `props.dangerouslySetInnerHTML`.")))
+      (when-not (:__html inner-html)
+        (throw (Exception. "Invariant Violation: `props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information."))))
+
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
-           (-render-html (filter identity content) element path)
+           (if inner-html
+             (:__html inner-html)
+             (-render-html (filter identity content) element path))
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
 

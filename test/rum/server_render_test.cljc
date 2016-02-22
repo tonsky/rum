@@ -124,6 +124,10 @@
   [:div
     (map (fn [i] [:div (str i)]) (range 100))])
 
+
+(rum/defc comp-html []
+  [:div {:dangerouslySetInnerHTML {:__html "<span>test</span>"}}])
+
   
 (def components
   { "tag"         comp-tag
@@ -136,7 +140,8 @@
     "styles"      comp-styles
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
-    "reactid"     comp-reactid })
+    "reactid"     comp-reactid
+    "html"        comp-html })
 
 
 (def render-dir "target/server_render_test")
