@@ -207,6 +207,7 @@
   [^String text]
   (.. text
     (replace "=" "=0")
+    (replace "." "=1")
     (replace ":" "=2")))
 
 
