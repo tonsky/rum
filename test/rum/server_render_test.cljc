@@ -117,7 +117,7 @@
     [:.c1.c2 { :class ["c3" "c4"]}]
     [:.c1.c2 { :class [" c3  " "  c4 "]}] ;; trimming
     [:.c1.c2 { :class [:c3 nil :c4] }]    ;; nils are not removed
-    [:.c1.c2 { :class [:c2 :c3]}]])       ;; removing duplicates
+    [:.c1.c2 { :class [:c2 :c3]}]])       ;; not removing duplicates
 
 
 (rum/defc comp-reactid [] ;; check for proper reactid allocation

@@ -182,7 +182,7 @@
   (when (or (string? cs)
             (not-empty cs))
     (when-let [cs (not-empty (normalize-classes* cs))]
-      (str/join " " (dedupe cs)))))
+      (str/join " " cs))))
 
 
 (defn render-attr [[name value]]
@@ -260,6 +260,7 @@
   IPersistentVector
   (-render-html [this parent path]
     (-render-element this path))
+
   ISeq
   (-render-html [this parent path]
     (let [separator (if (or (vector? parent) (= (list this) parent)) "." ":")
@@ -267,17 +268,21 @@
       (->> this
         (map-indexed #(-render-html %2 this (conj path separator %1)))
         (apply str))))
+
   Named
   (-render-html [this parent path]
     (name this))
+
   String
   (-render-html [this parent path]
     (if (> (count parent) 1)
       (-render-html [:span this] parent path)
       (escape-html this)))
+
   Object
   (-render-html [this parent path]
     (-render-html (str this) parent path))
+
   nil
   (-render-html [this parent path]
     ""))
