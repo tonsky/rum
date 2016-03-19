@@ -71,7 +71,7 @@ For more examples, see [examples/rum/examples.cljs](examples/rum/examples.cljs).
 - [Cognician](https://cognician.com/), coaching platform
 - [PartsBox.io](https://partsbox.io/), inventory management
 - [UXBox](http://uxbox.github.io/)
-- [TourneyBot](https://github.com/oakmac/tourney-bot), open source web application to run an Ultimate Frisbee Tournament
+- [TourneyBot](https://github.com/oakmac/tourney-bot), ultimate frisbee tournament app
 
 ## Rum API
 
