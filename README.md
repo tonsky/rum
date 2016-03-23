@@ -70,6 +70,7 @@ For more examples, see [examples/rum/examples.cljs](examples/rum/examples.cljs).
 
 - [Cognician](https://cognician.com/), coaching platform
 - [PartsBox.io](https://partsbox.io/), inventory management
+- [modnaKasta](https://modnaKasta.ua/), online shopping
 - [UXBox](http://uxbox.github.io/)
 
 ## Rum API
