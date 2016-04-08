@@ -79,6 +79,15 @@
               "zIndex"          1 }}]]) ;; accept strings too
 
 
+(rum/defc comp-attrs []
+  [:div
+    [:div { :data-attr-ibute   "b"   ;; should not touch data-* and aria* attr names
+            :aria-checked      "c"
+            :form-enc-type     "text/plain" ;; should normalize (remove dashes)
+            :checked           false        ;; nil and false attrs not printed
+            :allow-full-screen true } ]])   ;; true printed as attr=""
+
+
 (rum/defc comp-attrs-order []
   [:div
     [:a { :title  "a"
@@ -100,6 +109,7 @@
     [:a.clazz#id { :title "a" :class "b" }]
     [:a#clazz.id { :title "a" :class "b" }]
 ])
+
 
 
 (rum/defc comp-classes []
@@ -138,6 +148,7 @@
     "span"        comp-span
     "campaign"    comp-campaign
     "styles"      comp-styles
+    "attrs"       comp-attrs
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
     "reactid"     comp-reactid
@@ -190,3 +201,5 @@
             [_ react-checksum] (re-find #"data-react-checksum=\"([^\"]+)\"" react-html)
             rum-html           (rum/render-html (ctor) {:root-key react-root-key})]
         (is (= react-html rum-html)))))))
+
+

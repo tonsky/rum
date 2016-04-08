@@ -1,6 +1,7 @@
 (ns rum.server-render
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [sablono.compiler :as s])
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
@@ -57,10 +58,14 @@
 
 
 (defn react-attr->html ^String [attr]
-  (-> (or (attr-mapping attr)
-          (as-str attr))
-    (str/lower-case)
-    (str/replace "-" "")))
+  (let [attr-str (-> (or (attr-mapping attr)
+                         (as-str attr))
+                     (str/lower-case))]
+    (if (or (.startsWith attr-str "data-")
+            (.startsWith attr-str "aria-")
+            (.startsWith attr-str "-"))
+      attr-str
+      (str/replace attr-str "-" ""))))
 
 
 (defn escape-html
@@ -74,22 +79,25 @@
     (replace "'"  "&#x27;")))
 
 
+(defn normalize-attrs [attrs]
+  (->> (for [[k v] attrs
+             :let [k (react-attr->html k)]
+             :when (not (.startsWith k "on"))]
+         [(keyword k) v])
+       (into {})))
+
+
 (defn merge-attrs
   [tag-attrs attrs]
-  (let [attrs       (->> (for [[k v] attrs
-                               :let [k (react-attr->html k)]
-                               :when (not (.startsWith k "on"))]
-                           [(keyword k) v])
-                      (into {}))
+  (let [attrs       (normalize-attrs attrs)
         tag-class   (:class tag-attrs)
         attrs-class (:class attrs)
         class       (if (and tag-class attrs-class)
                       [tag-class attrs-class]
                       (or tag-class attrs-class))]
-    (-> tag-attrs
-      (into attrs)
-      (dissoc :class)
-      (assoc :class class))))
+    (-> (into (dissoc tag-attrs :class)
+              (dissoc attrs :class))
+        (assoc :class class))))
 
 
 (defn strip-css
@@ -120,8 +128,8 @@
   (when (not (or (keyword? tag) (symbol? tag) (string? tag)))
     (throw (IllegalArgumentException. (str tag " is not a valid element name."))))
   (let [[tag id classes] (match-tag tag)
-        tag-attrs        {:id    id
-                          :class classes}
+        tag-attrs        { :id id
+                           :class classes }
         map-attrs        (first content)]
     (cond
       (map? map-attrs)
@@ -188,7 +196,7 @@
 (defn render-attr [[name value]]
   (let [name (as-str name)]
     (cond
-      (true? value)    (str " " name)
+      (true? value)    (str " " name "=\"\"")
       (not value)      ""
       (= "style" name) (str " style=\"" (render-style value) "\"")
       (= "class" name) (when-let [value (normalize-classes value)]
@@ -251,7 +259,10 @@
       (str "<" tag (render-attr-map attrs) ">"
            (if inner-html
              (:__html inner-html)
-             (-render-html (filter identity content) element path))
+             (let [content' (case (@#'s/element-compile-strategy content)
+                              ::s/all-literal (remove nil? content)
+                              content)]
+               (-render-html content' element path)))
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
 
