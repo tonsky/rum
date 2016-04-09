@@ -187,7 +187,7 @@
 #?(:clj
 (deftest test-server-render
   ;; run cljsbuid to get target/test.js
-  (exec "lein" "with-profile" "server" "cljsbuild" "once" "test")
+  (exec "lein" "with-profile" "dev" "cljsbuild" "once" "test")
   (exec "rm" "-rf" render-dir)
   (exec "mkdir" render-dir)
   ;; run react_render_html using node

@@ -50,7 +50,7 @@ Simplest example defines component, instantiates it and mounts it on a page:
 (rum/mount (label 5 "abc") js/document.body)
 ```
 
-For more examples, see [examples/rum/examples.cljs](examples/rum/examples.cljs). Live version of examples [is here](http://tonsky.me/rum/)
+For more examples, see [examples/rum/examples/](examples/rum/examples/). Live version of examples [is here](http://tonsky.me/rum/)
 
 ## Talks
 
@@ -408,6 +408,6 @@ All heavy lifting done by [React](http://facebook.github.io/react/) and [Clojure
 
 ## License
 
-Copyright © 2014–2015 Nikita Prokopov
+Copyright © 2014–2016 Nikita Prokopov
 
 Licensed under Eclipse Public License (see [LICENSE](LICENSE)).

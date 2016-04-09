@@ -17,8 +17,11 @@
   :plugins [ [lein-cljsbuild "1.1.2"] ]
 
   :profiles {
-    :server {
-      :dependencies [[cljsjs/react-dom-server "0.14.3-0"]] }}
+    :dev {
+      :source-paths ["src" "examples"]
+      :dependencies [[cljsjs/react-dom-server "0.14.3-0"]] } }
+  
+  :aliases {"package" ["do" "clean" ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]}
   
   :cljsbuild
   { :builds

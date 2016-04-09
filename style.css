@@ -1,7 +1,7 @@
 * { box-sizing: border-box; vertical-align: top; text-rendering: optimizelegibility; }
 tr, td, table, tbody { padding: 0; margin: 0; border-collapse: collapse; }
 
-body, input, button { font: 16px/20px 'Input Sans Narrow';}
+body, input, button { font: 16px/20px 'Input Sans Narr', 'Input Sans Narrow', sans-serif;}
 
 .example { border: 2px solid #ccc; border-radius: 2px; padding: 20px; width: 300px; display: inline-block; height: 260px; margin: 10px 5px; line-height: 28px; }
 .example-title { border-bottom: 1px solid #ccc; margin: -4px 0 20px; line-height: 30px; }
