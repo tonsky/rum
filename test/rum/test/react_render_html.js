@@ -16,4 +16,4 @@ function nodeGlobalRequire(file) {
 
 nodeGlobalRequire('./target/test.js');
 
-rum.server_render_test.react_render_html(fs.writeFileSync);
+rum.test.server_render.react_render_html(fs.writeFileSync);

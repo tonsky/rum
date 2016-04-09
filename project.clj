@@ -48,7 +48,7 @@
      { :id "test"
        :source-paths ["src" "test"]
        :compiler
-       { :main           rum.server-render-test
+       { :main           rum.test.server-render
          :output-to      "target/test.js"
          :output-dir     "target/test"
          :asset-path     "target/test"

@@ -1,4 +1,4 @@
-(ns rum.server-render-test
+(ns rum.test.server-render
   (:require
     [rum.core :as rum]
     [clojure.string :as str]
@@ -138,7 +138,7 @@
 (rum/defc comp-html []
   [:div {:dangerouslySetInnerHTML {:__html "<span>test</span>"}}])
 
-  
+
 (def components
   { "tag"         comp-tag
     "list"        comp-list
@@ -191,7 +191,7 @@
   (exec "rm" "-rf" render-dir)
   (exec "mkdir" render-dir)
   ;; run react_render_html using node
-  (exec "node" "test/rum/react_render_html.js")
+  (exec "node" "test/rum/test/react_render_html.js")
   (doseq [[name ctor] components]
     (testing name
       ;; compare html rendered with react 
