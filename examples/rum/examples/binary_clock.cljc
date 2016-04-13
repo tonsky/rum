@@ -16,23 +16,24 @@
 
 (rum/defc bit < rum/static [n bit]
   (swap! *bclock-renders inc)
-  [:td.bclock-bit {:style (when (bit-test n bit) {:backgroundColor @core/*color})}])
+  [:td.bclock-bit {:style (when (bit-test n bit) {:backgroundColor @core/*color}) }])
 
 
 (rum/defc binary-clock < rum/reactive []
   (let [ts   (rum/react core/*clock)
-        date #?(:cljs (js/Date. ts)
-                :clj  (java.util.Date. ts))
-        hh   (quot (.getHours date) 10)
-        hl   (mod  (.getHours date) 10)
-        mh   (quot (.getMinutes date) 10)
-        ml   (mod  (.getMinutes date) 10)
-        sh   (quot (.getSeconds date) 10)
-        sl   (mod  (.getSeconds date) 10)
-        ms   (mod  ts 1000)
-        msh  (quot ms 100)
-        msm  (->   ms (quot 10) (mod 10))
-        msl  (mod  ms 10)]
+        msec (mod ts 1000)
+        sec  (mod (quot ts 1000) 60)
+        min  (mod (quot ts 60000) 60)
+        hour (mod (quot ts 3600000) 24)
+        hh   (quot hour 10)
+        hl   (mod  hour 10)
+        mh   (quot min 10)
+        ml   (mod  min 10)
+        sh   (quot sec 10)
+        sl   (mod  sec 10)
+        msh  (quot msec 100)
+        msm  (->   msec (quot 10) (mod 10))
+        msl  (mod  msec 10)]
     [:table.bclock
       [:tbody
         [:tr [:td]      (bit hl 3) [:th] [:td]      (bit ml 3) [:th] [:td]      (bit sl 3) [:th] (bit msh 3) (bit msm 3) (bit msl 3)]

@@ -24,16 +24,17 @@
   </head>
 
   <body>
-    <div class=example>
-      <div class=example-title>Controls</div>
-      <div id=controls>" (rum/render-html (controls/controls) {:root-key "a"}) "</div>
-    </div>
 
     <div class=example>
       <div class=example-title>Timers</div>
-      <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock) {:root-key "b"}) "</div>
-      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced) {:root-key "c"}) "</div>
-      <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive) {:root-key "d"}) "</div>
+      <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock) {:root-key "a"}) "</div>
+      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced) {:root-key "b"}) "</div>
+      <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive) {:root-key "c"}) "</div>
+    </div>
+
+    <div class=example>
+      <div class=example-title>Controls</div>
+      <div id=controls>" (rum/render-html (controls/controls) {:root-key "d"}) "</div>
     </div>
 
     <div class=example>

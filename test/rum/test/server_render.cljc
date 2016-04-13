@@ -62,21 +62,26 @@
 
 (rum/defc comp-styles []
   [:div 
-    [:div { :style
-            { :background-image "url(\"123\")" ;; should escape quotes
-              :line-height      24         ;; unitless, should not add 'px'
-              :-webkit-box-flex 3          ;; prefixed unitless
-              :margin-top       17         ;; should add 'px'
-              :border-width     " 1  "     ;; trim  numeric & append 'px'
-              :padding-bottom   "1em"      ;; do not add 'px' if unit already specified
-              :text-align       " left  "  ;; don’t trim non-numeric values
-              :flex-grow        " 1  " }}] ;; do not trim unitless values
-    [:div { :style
-            { :background-image "url('123')" ;; should escape quotes
-              :fontWeight       10      ;; should convert from react-style properties to CSS
-              "WebkitFlex"      1       ;; prefixed react-style prop
-              "msFlex"          1       ;; prefixed react-style prop (lowecase ms)
-              "zIndex"          1 }}]]) ;; accept strings too
+    [:div.a { :style {} }]
+    [:div.b { :style { :background-color nil } }]
+    [:div.c { :style { :background-color "" } }]
+    [:div.d { :style
+              { :background-image "url(\"123\")" ;; should escape quotes
+                :line-height      24         ;; unitless, should not add 'px'
+                :-webkit-box-flex 3          ;; prefixed unitless
+                :margin-top       17         ;; should add 'px'
+                :margin-left      0 }}]      ;; no 'px' added to 0
+    [:div.e { :style
+              { :border-width     " 1  "     ;; trim  numeric & append 'px'
+                :padding-bottom   "1em"      ;; do not add 'px' if unit already specified
+                :text-align       " left  "  ;; don’t trim non-numeric values
+                :flex-grow        " 1  " }}] ;; do not trim unitless values
+    [:div.f { :style
+              { :background-image "url('123')" ;; should escape quotes
+                :fontWeight       10      ;; should convert from react-style properties to CSS
+                "WebkitFlex"      1       ;; prefixed react-style prop
+                "msFlex"          1       ;; prefixed react-style prop (lowecase ms)
+                "zIndex"          1 }}]]) ;; accept strings too
 
 
 (rum/defc comp-attrs []

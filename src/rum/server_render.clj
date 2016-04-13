@@ -162,7 +162,7 @@
     (contains? unitless-css-props key)
       (escape-html (as-str value))
     (number? value)
-      (str value "px")
+      (str value (when (not= 0 value) "px"))
     (and (string? value)
          (re-matches #"\s*(\d+)\s*" value))
       (recur key (-> value str/trim Long/parseLong))
@@ -198,7 +198,10 @@
     (cond
       (true? value)    (str " " name "=\"\"")
       (not value)      ""
-      (= "style" name) (str " style=\"" (render-style value) "\"")
+      (= "style" name) (let [style (render-style value)]
+                         (if (str/blank? style)
+                           ""
+                           (str " style=\"" style "\"")))
       (= "class" name) (when-let [value (normalize-classes value)]
                          (str " class=\"" value "\""))
       :else            (str " " name "=\"" (as-str value) "\""))))

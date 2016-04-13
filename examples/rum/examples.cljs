@@ -24,10 +24,10 @@
 
 ;; Mount everything
 
-(controls/mount!        (core/el "controls"))
 (timer-static/mount!    (core/el "timer-static"))
 (timer-forced/mount!    (core/el "timer-forced"))
 (timer-reactive/mount!  (core/el "timer-reactive"))
+(controls/mount!        (core/el "controls"))
 (binary-clock/mount!    (core/el "binary-clock"))
 (board-reactive/mount!  (core/el "board-reactive"))
 (board-cursored/mount!  (core/el "board-cursored"))
