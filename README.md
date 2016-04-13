@@ -72,6 +72,7 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 - [PartsBox.io](https://partsbox.io/), inventory management
 - [modnaKasta](https://modnaKasta.ua/), online shopping
 - [UXBox](http://uxbox.github.io/)
+- [TourneyBot](https://github.com/oakmac/tourney-bot), ultimate frisbee tournament app
 
 ## Rum API
 
