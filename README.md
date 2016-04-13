@@ -121,7 +121,7 @@ or call `request-render` function:
 
 ## Server-side rendering
 
-Since 0.7.0, Rum supports server-side rendering. In your clj/cljc file:
+Since 0.7.0, Rum supports pure-Clojure server-side rendering. In your clj/cljc file:
 
 1. Import `rum.core` as usual
 2. Define components using `rum/defc` or other macros as usual
@@ -138,6 +138,8 @@ Since 0.7.0, Rum supports server-side rendering. In your clj/cljc file:
 (rum/render-html (my-comp "hello"))
 ;; => "<div data-reactid=\".ibf34u\" data-react-checksum=\"189533501\">hello</div>"
 ```
+
+Rum server-side rendering does not use React or Sablono, it runs completely in JVM with no overhead/complications of JavaScript.
 
 Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
 
