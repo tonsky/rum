@@ -1,4 +1,4 @@
-(defproject rum "0.6.0"
+(defproject rum "0.7.0"
   :description  "ClojureScript wrapper for React"
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -9,7 +9,7 @@
    [org.clojure/clojurescript  "1.7.228" :scope "provided"]
    [cljsjs/react               "0.14.3-0"]
    [cljsjs/react-dom           "0.14.3-1"]
-   [sablono                    "0.6.2"]]
+   [sablono                    "0.6.3"]]
 
   :global-vars
   { *warn-on-reflection* true }

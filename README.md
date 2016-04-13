@@ -119,6 +119,30 @@ or call `request-render` function:
 
 `request-render` does not execute rendering immediately, instead, it will place your component to render queue and re-render on `requestAnimationFrame` callback. `request-render` is preferable way to refresh component.
 
+## Server-side rendering
+
+Since 0.7.0, Rum supports server-side rendering. In your clj/cljc file:
+
+1. Import `rum.core` as usual
+2. Define components using `rum/defc` or other macros as usual
+3. Instead of mounting, call `rum/render-html` to render into a string
+4. Generate HTML page using that string
+5. On a client, mount _the same_ component over the node where you rendered your server-side component
+
+```clojure
+(require '[rum.core :as rum])
+
+(rum/defc my-comp [s]
+  [:div s])
+  
+(rum/render-html (my-comp "hello"))
+;; => "<div data-reactid=\".ibf34u\" data-react-checksum=\"189533501\">hello</div>"
+```
+
+Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
+
+For example, see [examples_page.clj](examples/rum/examples_page.clj).
+
 ## Mixins
 
 Rum comes with a couple of mixins which emulate behaviors known from `quiescent`, `om` and `reagent`. Developing your own mixin is also very simple.
@@ -328,6 +352,10 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.7.0
+
+- Server-side rendering via `rum/render-html` (thx [Alexander Solovyov](https://github.com/piranha))
 
 ### 0.6.0
 
