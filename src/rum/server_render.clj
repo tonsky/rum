@@ -339,7 +339,8 @@
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
-    (let [result   (-render-html src nil ["." (:root-key opts 0)])
+    (let [result   (-render-html src nil ["." (or (:root-key opts)
+                                                  (int (* Integer/MAX_VALUE (rand))))])
           checksum (adler32 result)]
       (str/replace-first result ">"
         (str " data-react-checksum=\"" checksum "\">")))))
