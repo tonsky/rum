@@ -17,11 +17,18 @@
   :plugins [ [lein-cljsbuild "1.1.2"] ]
 
   :profiles {
-    :dev {
-      :source-paths ["src" "examples"]
-      :dependencies [[cljsjs/react-dom-server "15.0.1-0"]] } }
+    :dev  { :source-paths ["examples"]
+            :dependencies 
+            [[cljsjs/react-dom-server "15.0.1-0"]] }
+    :perf { :source-paths ["perf"]
+            :dependencies 
+            [[enlive    "1.1.6"]
+             [criterium "0.4.4"]
+             [hiccup    "1.0.5"]] } }
   
-  :aliases {"package" ["do" "clean" ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]}
+  :aliases {"package" ["do" "clean" ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]
+            "perf"    ["with-profile" "perf" "run" "-m" "rum.perf"]}
+  
   
   :cljsbuild
   { :builds
