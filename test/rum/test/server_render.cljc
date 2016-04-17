@@ -8,6 +8,20 @@
              [cljsjs.react.dom.server]])))
 
 
+(rum/defc comp-simple []
+  [:div
+    [:div "A"
+      [:span "A1"]
+      [:span "A2"]]
+    [:div "B"]
+    [:div "C" "D"]
+    [:div "E"
+      [:span "E1"]]
+    [:div nil]
+    [:div nil "F"]
+    [:div {} ((constantly nil)) "G"]])
+
+
 (rum/defc comp-tag []
   [:div.header#up "test"])
 
@@ -145,7 +159,8 @@
 
 
 (def components
-  { "tag"         comp-tag
+  { "simple"      comp-simple
+    "tag"         comp-tag
     "list"        comp-list
     "header"      comp-header
     "nil1"        comp-nil1
@@ -201,10 +216,8 @@
     (testing name
       ;; compare html rendered with react 
       ;;      to html rendered with rum/render-html
-      (let [react-html         (slurp (str render-dir "/" name ".html"))
-            [_ react-root-key] (re-find #"data-reactid=\"\.([^\"]+)\"" react-html)
-            [_ react-checksum] (re-find #"data-react-checksum=\"([^\"]+)\"" react-html)
-            rum-html           (rum/render-html (ctor) {:root-key react-root-key})]
+      (let [react-html (slurp (str render-dir "/" name ".html"))
+            rum-html   (rum/render-html (ctor))]
         (is (= react-html rum-html)))))))
 
 

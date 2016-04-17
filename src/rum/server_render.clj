@@ -1,7 +1,6 @@
 (ns rum.server-render
   (:require
-    [clojure.string :as str]
-    [sablono.compiler :as s])
+    [clojure.string :as str])
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
@@ -110,13 +109,13 @@
   CSS classes."
   [s]
   (let [matches (re-seq #"[#.]?[^#.]+" (name s))
-        [tag-name names]
-        (cond (empty? matches)
-              (throw (ex-info (str "Can't match CSS tag: " s) {:tag s}))
-              (#{\# \.} (ffirst matches)) ;; shorthand for div
-              ["div" matches]
-              :default
-              [(first matches) (rest matches)])]
+        [tag-name names] (cond 
+                           (empty? matches)
+                             (throw (ex-info (str "Can't match CSS tag: " s) {:tag s}))
+                           (#{\# \.} (ffirst matches)) ;; shorthand for div
+                             ["div" matches]
+                           :default
+                             [(first matches) (rest matches)])]
     [tag-name
      (first (map strip-css (filter #(= \# (first %1)) names)))
      (vec (map strip-css (filter #(= \. (first %1)) names)))]))
@@ -213,40 +212,24 @@
     (str/join "")))
 
 
-(defn react-key
-  "React escapes some characters in key"
-  [^String text]
-  (.. text
-    (replace "=" "=0")
-    (replace "." "=1")
-    (replace ":" "=2")))
-
-
 ;;; render html
 
 
 (defprotocol HtmlRenderer
-  (-render-html [this parent path]
+  (-render-html [this parent *key]
     "Turn a Clojure data type into a string of HTML with react ids."))
-
-
-;; https://github.com/facebook/react/blob/v0.14.7/src/renderers/shared/reconciler/ReactInstanceHandles.js
-(defn render-reactid [path]
-  (->> path
-       (map #(if (number? %) (Long/toString % 36) %))
-       (str/join "")))
 
 
 (defn -render-element
   "Render an element vector as a HTML element."
-  [element path]
+  [element *key]
   (let [[tag attrs content] (normalize-element element)
-        path                (if (:key attrs)
-                              (conj (pop path) "$" (react-key (to-str (:key attrs))))
-                              path)
-        attrs               (assoc attrs
-                              :key nil
-                              :data-reactid (render-reactid path))
+        key                 @*key
+        _                   (vswap! *key inc)
+        attrs               (cond-> attrs
+                              true       (dissoc :key)
+                              (== key 1) (assoc :data-reactroot "")
+                              true       (assoc  :data-reactid key))
         inner-html          (:dangerouslysetinnerhtml attrs)
         attrs               (if inner-html
                               (dissoc attrs :dangerouslysetinnerhtml)
@@ -257,48 +240,47 @@
         (throw (Exception. "Invariant Violation: Can only set one of `children` or `props.dangerouslySetInnerHTML`.")))
       (when-not (:__html inner-html)
         (throw (Exception. "Invariant Violation: `props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information."))))
-
+    
     (if (container-tag? tag content)
       (str "<" tag (render-attr-map attrs) ">"
            (if inner-html
              (:__html inner-html)
-             (let [content' (case (@#'s/element-compile-strategy content)
-                              ::s/all-literal (remove nil? content)
-                              content)]
-               (-render-html content' element path)))
+             (-render-html content element *key))
            "</" tag ">")
       (str "<" tag (render-attr-map attrs) "/>"))))
 
 
 (extend-protocol HtmlRenderer
   IPersistentVector
-  (-render-html [this parent path]
-    (-render-element this path))
+  (-render-html [this parent *key]
+    (-render-element this *key))
 
   ISeq
-  (-render-html [this parent path]
-    (let [separator (if (or (vector? parent) (= (list this) parent)) "." ":")
-          path      (if (= (list this) parent) (-> path pop pop) path)]
-      (->> this
-        (map-indexed #(-render-html %2 this (conj path separator %1)))
-        (apply str))))
+  (-render-html [this parent *key]
+    (str/join ""
+      (for [element this]
+        (-render-html element this *key))))
 
   Named
-  (-render-html [this parent path]
+  (-render-html [this parent *key]
     (name this))
 
   String
-  (-render-html [this parent path]
+  (-render-html [this parent *key]
     (if (> (count parent) 1)
-      (-render-html [:span this] parent path)
+      (let [key @*key]
+        (vswap! *key inc)
+        (str "<!-- react-text: " key " -->"
+             (escape-html this)
+             "<!-- /react-text -->"))
       (escape-html this)))
 
   Object
-  (-render-html [this parent path]
-    (-render-html (str this) parent path))
+  (-render-html [this parent *key]
+    (-render-html (str this) parent *key))
 
   nil
-  (-render-html [this parent path]
+  (-render-html [this parent *key]
     ""))
 
 
@@ -339,8 +321,7 @@
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
-    (let [result   (-render-html src nil ["." (or (:root-key opts)
-                                                  (int (* Integer/MAX_VALUE (rand))))])
+    (let [result   (-render-html src nil (volatile! 1))
           checksum (adler32 result)]
-      (str/replace-first result ">"
-        (str " data-react-checksum=\"" checksum "\">")))))
+      (str/replace-first result " data-reactid=\"1\""
+        (str " data-reactid=\"1\" data-react-checksum=\"" checksum "\"")))))

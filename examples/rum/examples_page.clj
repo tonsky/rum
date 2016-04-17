@@ -27,35 +27,35 @@
 
     <div class=example>
       <div class=example-title>Timers</div>
-      <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock) {:root-key "a"}) "</div>
-      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced) {:root-key "b"}) "</div>
-      <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive) {:root-key "c"}) "</div>
+      <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock)) "</div>
+      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced)) "</div>
+      <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive)) "</div>
     </div>
 
     <div class=example>
       <div class=example-title>Controls</div>
-      <div id=controls>" (rum/render-html (controls/controls) {:root-key "d"}) "</div>
+      <div id=controls>" (rum/render-html (controls/controls)) "</div>
     </div>
 
     <div class=example>
       <div class=example-title>Reactive binary clock</div>
-      <div id=binary-clock>" (rum/render-html (binary-clock/binary-clock) {:root-key "e"}) "</div>
+      <div id=binary-clock>" (rum/render-html (binary-clock/binary-clock)) "</div>
     </div>
 
     <div class=example>
       <div class=example-title>Reactive artboard</div>
-      <div id=board-reactive>" (rum/render-html (board-reactive/board-reactive) {:root-key "f"}) "</div>
+      <div id=board-reactive>" (rum/render-html (board-reactive/board-reactive)) "</div>
     </div>
 
 
     <div class=example>
       <div class=example-title>Cursor artboard</div>
-      <div id=board-cursored>" (rum/render-html (board-cursored/board-cursored board-cursored/*board) {:root-key "g"}) "</div>
+      <div id=board-cursored>" (rum/render-html (board-cursored/board-cursored board-cursored/*board)) "</div>
     </div>
 
     <div class=example>
       <div class=example-title>BMI Calculator</div>
-      <div id=bmi-calculator>" (rum/render-html (bmi-calculator/bmi-calculator) {:root-key "h"}) "</div>
+      <div id=bmi-calculator>" (rum/render-html (bmi-calculator/bmi-calculator)) "</div>
     </div>
     
     <div class=example>
@@ -65,12 +65,12 @@
 
     <div class=example>
       <div class=example-title>Local state</div>
-      <div id=local-state>" (rum/render-html (local-state/local-state "Clicks count") {:root-key "i"}) "</div>
+      <div id=local-state>" (rum/render-html (local-state/local-state "Clicks count")) "</div>
     </div>
     
     <div class=example>
       <div class=example-title>Self-reference</div>
-      <div id=self-reference>" (rum/render-html (self-reference/self-reference [:a [:b [:c :d [:e] :g]]]) {:root-key "j"}) "</div>
+      <div id=self-reference>" (rum/render-html (self-reference/self-reference [:a [:b [:c :d [:e] :g]]])) "</div>
     </div>
 
     <div class=example>
