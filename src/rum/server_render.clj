@@ -159,33 +159,49 @@
     (number? value)
       (str value (when (not= 0 value) "px"))
     (and (string? value)
-         (re-matches #"\s*(\d+)\s*" value))
+         (re-matches #"\s*\d+\s*" value))
       (recur key (-> value str/trim Long/parseLong))
     :else
       (escape-html (to-str value))))
 
 
-(defn render-style [value]
-  (->> (for [[k v] value
-             :when v
-             :let [key   (normalize-css-key k)
-                   value (normalize-css-value key v)]]
-         (str key ":" value ";"))
-       (str/join)))
+(defn render-style-kv! [sb empty? k v]
+  (if v
+    (do
+      (when empty?
+        (append! sb " style=\""))
+      (let [key (normalize-css-key k)
+            val (normalize-css-value key v)]
+        (append! sb key ":" val ";"))
+      false)
+    empty?))
 
 
-(defn normalize-classes* [cs]
-  (cond 
-    (sequential? cs) (mapcat normalize-classes* cs)
-    (set? cs)        (mapcat normalize-classes* cs)
-    :else            [(to-str cs)]))
+(defn render-style! [map sb]
+  (let [empty? (reduce-kv (partial render-style-kv! sb) true map)]
+    (when-not empty?
+      (append! sb "\""))))
 
-  
-(defn normalize-classes [cs]
-  (when (or (string? cs)
-            (not-empty cs))
-    (when-let [cs (not-empty (normalize-classes* cs))]
-      (str/join " " cs))))
+
+(defn render-class! [sb empty? class]
+  (cond
+    (string? class)
+      (do
+        (if empty?
+          (append! sb " class=\"" class)
+          (append! sb " " class))
+        false)
+    (or (sequential? class)
+        (set? class))
+      (reduce (partial render-class! sb) empty? class)
+    :else
+      (render-class! sb empty? (to-str class))))
+
+
+(defn render-classes! [classes sb]
+  (let [empty? (render-class! sb true classes)]
+    (when-not empty?
+      (append! sb "\""))))
 
 
 (defn render-attr! [name value sb]
@@ -193,17 +209,13 @@
     (cond
       (true? value)    (append! sb " " name "=\"\"")
       (not value)      :nop
-      (= "style" name) (let [style (render-style value)]
-                         (when-not (str/blank? style)
-                           (append! sb " style=\"" style "\"")))
-      (= "class" name) (when-let [value (normalize-classes value)]
-                         (append! sb " class=\"" value "\""))
+      (= "style" name) (render-style! value sb)
+      (= "class" name) (render-classes! value sb)
       :else            (append! sb " " name "=\"" (to-str value) "\""))))
 
 
 (defn render-attrs! [attrs sb]
-  (doseq [[key value] attrs]
-    (render-attr! key value sb)))
+  (reduce-kv (fn [_ k v] (render-attr! k v sb)) nil attrs))
 
 
 ;;; render html
@@ -320,3 +332,5 @@
       (-render-html src nil (volatile! 1) sb)
       (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
       (str sb))))
+
+(render-html [:div { :class [nil] }])

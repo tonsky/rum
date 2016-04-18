@@ -80,11 +80,11 @@
                 "page2.html"
                 "page3.html"]
           :let [path (str "perf/pages/" page)]]
-    (println "\n--- Testing" page (str "(" (file-size path) ")") "---")
     (let [comp (convert-page path)]
+      (println "\n--- Testing" page (str "(" (file-size path) ")") "---")
       (criterium/quick-bench (rum/render-html comp)))
       
-    (println "\n+++ With Hiccup +++")
     (let [comp (binding [*convert-style?* false]
                  (convert-page path))]
+      (println "\n+++ With Hiccup +++")
       (criterium/quick-bench (hiccup/html comp)))))

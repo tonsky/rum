@@ -133,6 +133,7 @@
 
 (rum/defc comp-classes []
   [:div
+    [:div { :class [nil] }]
     [:div { :class :c3 }]
     [:div { :class [:c3 :c4] }]        ;; list form
     [:div { :class "c3" }]             ;; string form
