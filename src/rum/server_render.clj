@@ -149,8 +149,11 @@
     (number? value)
       (str value (when (not= 0 value) "px"))
     (and (string? value)
-         (re-matches #"\s*\d+\s*" value)) ;; FIXME floats?
+         (re-matches #"\s*\d+\s*" value))
       (recur key (-> value str/trim Long/parseLong))
+    (and (string? value)
+         (re-matches #"\s*\d+\.\d+\s*" value))
+      (recur key (-> value str/trim Double/parseDouble))
     :else
       (escape-html (to-str value))))
 

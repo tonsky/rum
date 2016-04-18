@@ -84,9 +84,11 @@
                 :line-height      24         ;; unitless, should not add 'px'
                 :-webkit-box-flex 3          ;; prefixed unitless
                 :margin-top       17         ;; should add 'px'
+                :margin-right     17.1
                 :margin-left      0 }}]      ;; no 'px' added to 0
     [:div.e { :style
               { :border-width     " 1  "     ;; trim  numeric & append 'px'
+                :padding-right    " 1.2 "    
                 :padding-bottom   "1em"      ;; do not add 'px' if unit already specified
                 :text-align       " left  "  ;; don’t trim non-numeric values
                 :flex-grow        " 1  " }}] ;; do not trim unitless values
