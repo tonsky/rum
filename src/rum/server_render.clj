@@ -14,12 +14,17 @@
     (.append sb s0)
     (.append sb s1)
     (.append sb s2))
-  ([^StringBuilder sb s0 s1 s2 & rest]
+  ([^StringBuilder sb s0 s1 s2 s3]
     (.append sb s0)
     (.append sb s1)
     (.append sb s2)
-    (doseq [s rest]
-      (.append sb s))))
+    (.append sb s3))
+  ([^StringBuilder sb s0 s1 s2 s3 s4]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2)
+    (.append sb s3)
+    (.append sb s4)))
 
 
 (defprotocol ToString
@@ -63,16 +68,35 @@
       (str/replace attr-str "-" ""))))
 
 
-(defn escape-html
-  "Change special characters into HTML character entities."
-  ^String [^String text]
-  (.. text
-    (replace "&"  "&amp;")
-    (replace "<"  "&lt;")
-    (replace ">"  "&gt;")
-    (replace "\"" "&quot;")
-    (replace "'"  "&#x27;")))
-
+(defn escape-html [^String s]
+  (let [len (count s)]
+    (loop [^StringBuilder sb nil
+           i                 (int 0)]
+      (if (< i len)
+        (let [char (.charAt s i)
+              repl (case char
+                     \& "&amp;"
+                     \< "&lt;"
+                     \> "&gt;"
+                     \" "&quot;"
+                     \' "&#x27;"
+                     nil)]
+          (if (nil? repl)
+            (if (nil? sb)
+              (recur nil (inc i))
+              (recur (doto sb
+                       (.append char))
+                     (inc i)))
+            (if (nil? sb)
+              (recur (doto (StringBuilder.)
+                       (.append s 0 i)
+                       (.append repl))
+                     (inc i))
+              (recur (doto sb
+                       (.append repl))
+                     (inc i)))))
+        (if (nil? sb) s (str sb))))))
+        
 
 (defn normalize-attrs [attrs]
   (->> (for [[k v] attrs
