@@ -4,12 +4,35 @@
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
-;; From Weavejester's Hiccup
-;; https://github.com/weavejester/hiccup/blob/master/src/hiccup/compiler.clj#L32
-(def ^{:doc "Regular expression that parses a CSS-style id and class from a tag name."
-       :private true}
-  re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
+(defn append!
+  ([^StringBuilder sb s0] (.append sb s0))
+  ([^StringBuilder sb s0 s1]
+    (.append sb s0)
+    (.append sb s1))
+  ([^StringBuilder sb s0 s1 s2]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2))
+  ([^StringBuilder sb s0 s1 s2 & rest]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2)
+    (doseq [s rest]
+      (.append sb s))))
+
+
+(defprotocol ToString
+  (^String to-str [x] "Convert a value into a string."))
+
+
+(extend-protocol ToString
+  Keyword (to-str [k] (name k))
+  Ratio   (to-str [r] (str (float r)))
+  String  (to-str [s] s)
+  Object  (to-str [x] (str x))
+  nil     (to-str [_] ""))
+  
 
 (def ^{:doc "A list of elements that must be rendered without a closing tag."
        :private true}
@@ -18,36 +41,10 @@
     "meta" "param" "source" "track" "wbr"})
 
 
-;;; to-str
-
-(defprotocol ToString
-  (^String to-str [x] "Convert a value into a string."))
-
-
-(extend-protocol ToString
-  Keyword
-  (to-str [k] (name k))
-  Ratio
-  (to-str [r] (str (float r)))
-  String
-  (to-str [s] s)
-  Object
-  (to-str [x] (str x))
-  nil
-  (to-str [_] ""))
-
-
-(defn ^String as-str
-  "Converts its arguments into a string using to-str."
-  [& xs]
-  (apply str (map to-str xs)))
-
-
 (defn container-tag? [tag content]
-  (or content (not (void-tags tag))))
+  (or content
+      (not (contains? void-tags tag))))
 
-
-;;; other
 
 (def attr-mapping
   {:class-name "class"
@@ -57,9 +54,8 @@
 
 
 (defn react-attr->html ^String [attr]
-  (let [attr-str (-> (or (attr-mapping attr)
-                         (as-str attr))
-                     (str/lower-case))]
+  (let [^String attr-str (or (attr-mapping attr)
+                             (str/lower-case (to-str attr)))]
     (if (or (.startsWith attr-str "data-")
             (.startsWith attr-str "aria-")
             (.startsWith attr-str "-"))
@@ -69,8 +65,8 @@
 
 (defn escape-html
   "Change special characters into HTML character entities."
-  [^String text]
-  (.. ^String text
+  ^String [^String text]
+  (.. text
     (replace "&"  "&amp;")
     (replace "<"  "&lt;")
     (replace ">"  "&gt;")
@@ -99,11 +95,6 @@
         (assoc :class class))))
 
 
-(defn strip-css
-  "Strip the # and . characters from the beginning of `s`."
-  [s] (if s (str/replace s #"^[.#]" "")))
-
-
 (defn match-tag
   "Match `s` as a CSS tag and return a vector of tag name, CSS id and
   CSS classes."
@@ -117,8 +108,13 @@
                            :default
                              [(first matches) (rest matches)])]
     [tag-name
-     (first (map strip-css (filter #(= \# (first %1)) names)))
-     (vec (map strip-css (filter #(= \. (first %1)) names)))]))
+     (->> names
+          (filter #(.startsWith ^String % "#"))
+          (map #(subs % 1))
+          first)
+     (->> names
+          (filter #(.startsWith ^String % "."))
+          (mapv #(subs % 1)))]))
 
 
 (defn normalize-element
@@ -151,7 +147,7 @@
 
 
 (defn normalize-css-key [k]
-  (-> (as-str k)
+  (-> (to-str k)
       (str/replace #"[A-Z]" (fn [ch] (str "-" (str/lower-case ch))))
       (str/replace #"^ms-" "-ms-")))
 
@@ -159,14 +155,14 @@
 (defn normalize-css-value [key value]
   (cond
     (contains? unitless-css-props key)
-      (escape-html (as-str value))
+      (escape-html (to-str value))
     (number? value)
       (str value (when (not= 0 value) "px"))
     (and (string? value)
          (re-matches #"\s*(\d+)\s*" value))
       (recur key (-> value str/trim Long/parseLong))
     :else
-      (escape-html (as-str value))))
+      (escape-html (to-str value))))
 
 
 (defn render-style [value]
@@ -175,14 +171,14 @@
              :let [key   (normalize-css-key k)
                    value (normalize-css-value key v)]]
          (str key ":" value ";"))
-       (str/join "")))
+       (str/join)))
 
 
 (defn normalize-classes* [cs]
   (cond 
     (sequential? cs) (mapcat normalize-classes* cs)
     (set? cs)        (mapcat normalize-classes* cs)
-    :else            [(as-str cs)]))
+    :else            [(to-str cs)]))
 
   
 (defn normalize-classes [cs]
@@ -192,43 +188,41 @@
       (str/join " " cs))))
 
 
-(defn render-attr [[name value]]
-  (let [name (as-str name)]
+(defn render-attr! [name value sb]
+  (let [name (to-str name)]
     (cond
-      (true? value)    (str " " name "=\"\"")
-      (not value)      ""
+      (true? value)    (append! sb " " name "=\"\"")
+      (not value)      :nop
       (= "style" name) (let [style (render-style value)]
-                         (if (str/blank? style)
-                           ""
-                           (str " style=\"" style "\"")))
+                         (when-not (str/blank? style)
+                           (append! sb " style=\"" style "\"")))
       (= "class" name) (when-let [value (normalize-classes value)]
-                         (str " class=\"" value "\""))
-      :else            (str " " name "=\"" (as-str value) "\""))))
+                         (append! sb " class=\"" value "\""))
+      :else            (append! sb " " name "=\"" (to-str value) "\""))))
 
 
-(defn render-attr-map [attrs]
-  (->> attrs
-    (map render-attr)
-    (str/join "")))
+(defn render-attrs! [attrs sb]
+  (doseq [[key value] attrs]
+    (render-attr! key value sb)))
 
 
 ;;; render html
 
 
 (defprotocol HtmlRenderer
-  (-render-html [this parent *key]
+  (-render-html [this parent *key sb]
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
 (defn -render-element
   "Render an element vector as a HTML element."
-  [element *key]
+  [element *key sb]
   (let [[tag attrs content] (normalize-element element)
         key                 @*key
         _                   (vswap! *key inc)
         attrs               (cond-> attrs
                               true       (dissoc :key)
-                              (== key 1) (assoc :data-reactroot "")
+                              (== key 1) (assoc  :data-reactroot "")
                               true       (assoc  :data-reactid key))
         inner-html          (:dangerouslysetinnerhtml attrs)
         attrs               (if inner-html
@@ -241,52 +235,53 @@
       (when-not (:__html inner-html)
         (throw (Exception. "Invariant Violation: `props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information."))))
     
+    (append! sb "<" tag)
+    (render-attrs! attrs sb)
+    
     (if (container-tag? tag content)
-      (str "<" tag (render-attr-map attrs) ">"
-           (if inner-html
-             (:__html inner-html)
-             (-render-html content element *key))
-           "</" tag ">")
-      (str "<" tag (render-attr-map attrs) "/>"))))
+      (do
+        (append! sb ">")
+        (if inner-html
+          (append! sb (:__html inner-html))
+          (-render-html content element *key sb))
+        (append! sb "</" tag ">"))
+      (append! sb "/>"))))
 
 
 (extend-protocol HtmlRenderer
   IPersistentVector
-  (-render-html [this parent *key]
-    (-render-element this *key))
+  (-render-html [this parent *key sb]
+    (-render-element this *key sb))
 
   ISeq
-  (-render-html [this parent *key]
-    (str/join ""
-      (for [element this]
-        (-render-html element this *key))))
+  (-render-html [this parent *key sb]
+    (doseq [element this]
+      (-render-html element this *key sb)))
 
   Named
-  (-render-html [this parent *key]
-    (name this))
+  (-render-html [this parent *key sb]
+    (append! sb (name this)))
 
   String
-  (-render-html [this parent *key]
+  (-render-html [this parent *key sb]
     (if (> (count parent) 1)
       (let [key @*key]
         (vswap! *key inc)
-        (str "<!-- react-text: " key " -->"
-             (escape-html this)
-             "<!-- /react-text -->"))
-      (escape-html this)))
+        (append! sb "<!-- react-text: " key " -->" (escape-html this) "<!-- /react-text -->"))
+      (append! sb (escape-html this))))
 
   Object
-  (-render-html [this parent *key]
-    (-render-html (str this) parent *key))
+  (-render-html [this parent *key sb]
+    (-render-html (str this) parent *key sb))
 
   nil
-  (-render-html [this parent *key]
-    ""))
+  (-render-html [this parent *key sb]
+    :nop))
 
 
 ;; https://github.com/facebook/react/blob/master/src/shared/utils/adler32.js
-(defn adler32 [^String s]
-  (let [l (count s)
+(defn adler32 [^StringBuilder sb]
+  (let [l (.length sb)
         m (bit-and l -4)]
     (loop [a (int 1)
            b (int 0)
@@ -294,10 +289,10 @@
            n (min (+ i 4096) m)]
      (cond
        (< i n)
-       (let [c0 (int (.charAt s i))
-             c1 (int (.charAt s (+ i 1)))
-             c2 (int (.charAt s (+ i 2)))
-             c3 (int (.charAt s (+ i 3)))
+       (let [c0 (int (.charAt sb i))
+             c1 (int (.charAt sb (+ i 1)))
+             c2 (int (.charAt sb (+ i 2)))
+             c3 (int (.charAt sb (+ i 3)))
              b  (+ b a c0 
                      a c0 c1
                      a c0 c1 c2
@@ -309,7 +304,7 @@
        (recur a b i (min (+ i 4096) m))
       
        (< i l)
-       (let [c0 (int (.charAt s i))]
+       (let [c0 (int (.charAt sb i))]
          (recur (+ a c0) (+ b a c0) (+ i 1) n))
       
        :else
@@ -321,7 +316,7 @@
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
-    (let [result   (-render-html src nil (volatile! 1))
-          checksum (adler32 result)]
-      (str/replace-first result " data-reactid=\"1\""
-        (str " data-reactid=\"1\" data-react-checksum=\"" checksum "\"")))))
+    (let [sb (StringBuilder.)]
+      (-render-html src nil (volatile! 1) sb)
+      (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
+      (str sb))))
