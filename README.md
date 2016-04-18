@@ -35,7 +35,7 @@ Rum provides basic tools that every React app eventually need:
 
 ## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
 
-1. Add `[rum "0.7.0"]` to dependencies
+1. Add `[rum "0.8.0"]` to dependencies
 2. `(require '[rum.core :as rum])`.
 
 Simplest example defines component, instantiates it and mounts it on a page:
@@ -139,6 +139,8 @@ Since 0.7.0, Rum supports pure-Clojure server-side rendering. In your clj/cljc f
 ```
 
 Rum server-side rendering does not use React or Sablono, it runs completely in JVM with no overhead/complications of JavaScript.
+
+Yes, you can use Rum for classical server-side rendering where you normally would use Hiccup or something similar. As of `[rum "0.8.0"]` and `[hiccup "1.0.5"]`, Rum is 2-3× times faster than Hiccup.
 
 Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
 
@@ -353,6 +355,11 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 ```
 
 ## Changes
+
+### 0.8.0
+
+- Migrated to React 15.0.1
+- Optimized server-side rendering (~4× faster than Rum 0.7.0, ~2-3× faster than Hiccup 1.0.5)
 
 ### 0.7.0
 
