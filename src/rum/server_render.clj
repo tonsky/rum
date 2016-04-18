@@ -46,26 +46,21 @@
     "meta" "param" "source" "track" "wbr"})
 
 
-(defn container-tag? [tag content]
-  (or content
-      (not (contains? void-tags tag))))
-
-
 (def attr-mapping
-  {:class-name "class"
-   :className  "class"
-   :html-for   "for"
-   :htmlFor    "for"})
+  { :class-name "class"
+    :className  "class"
+    :html-for   "for"
+    :htmlFor    "for" })
 
 
-(defn react-attr->html ^String [attr]
-  (let [^String attr-str (or (attr-mapping attr)
-                             (str/lower-case (to-str attr)))]
-    (if (or (.startsWith attr-str "data-")
-            (.startsWith attr-str "aria-")
-            (.startsWith attr-str "-"))
-      attr-str
-      (str/replace attr-str "-" ""))))
+(defn normalize-attr-key ^String [key]
+  (let [^String str (or (attr-mapping key)
+                        (str/lower-case (to-str key)))]
+    (if (or (.startsWith str "data-")
+            (.startsWith str "aria-")
+            (.startsWith str "-"))
+      str
+      (str/replace str "-" ""))))
 
 
 (defn escape-html [^String s]
@@ -98,65 +93,36 @@
         (if (nil? sb) s (str sb))))))
         
 
-(defn normalize-attrs [attrs]
-  (->> (for [[k v] attrs
-             :let [k (react-attr->html k)]
-             :when (not (.startsWith k "on"))]
-         [(keyword k) v])
-       (into {})))
+(defn parse-selector [s]
+  (loop [matches (re-seq #"([#.])?([^#.]+)" (name s))
+         tag     "div"
+         id      nil
+         classes nil]
+    (if-let [[_ prefix val] (first matches)]
+      (case prefix
+        nil (recur (next matches) val id classes)
+        "#" (recur (next matches) tag val classes)
+        "." (recur (next matches) tag id (conj (or classes []) val)))
+      [tag id classes])))
 
 
-(defn merge-attrs
-  [tag-attrs attrs]
-  (let [attrs       (normalize-attrs attrs)
-        tag-class   (:class tag-attrs)
-        attrs-class (:class attrs)
-        class       (if (and tag-class attrs-class)
-                      [tag-class attrs-class]
-                      (or tag-class attrs-class))]
-    (-> (into (dissoc tag-attrs :class)
-              (dissoc attrs :class))
-        (assoc :class class))))
-
-
-(defn match-tag
-  "Match `s` as a CSS tag and return a vector of tag name, CSS id and
-  CSS classes."
-  [s]
-  (let [matches (re-seq #"[#.]?[^#.]+" (name s))
-        [tag-name names] (cond 
-                           (empty? matches)
-                             (throw (ex-info (str "Can't match CSS tag: " s) {:tag s}))
-                           (#{\# \.} (ffirst matches)) ;; shorthand for div
-                             ["div" matches]
-                           :default
-                             [(first matches) (rest matches)])]
-    [tag-name
-     (->> names
-          (filter #(.startsWith ^String % "#"))
-          (map #(subs % 1))
-          first)
-     (->> names
-          (filter #(.startsWith ^String % "."))
-          (mapv #(subs % 1)))]))
-
-
-(defn normalize-element
-  "Ensure an element vector is of the form [tag-name attrs content]."
-  [[tag & content]]
-  (when (not (or (keyword? tag) (symbol? tag) (string? tag)))
-    (throw (IllegalArgumentException. (str tag " is not a valid element name."))))
-  (let [[tag id classes] (match-tag tag)
-        tag-attrs        { :id id
-                           :class classes }
-        map-attrs        (first content)]
-    (cond
-      (map? map-attrs)
-        [tag (merge-attrs tag-attrs map-attrs) (next content)]
-      (nil? map-attrs)
-        [tag tag-attrs (next content)]
-      :else
-        [tag tag-attrs content])))
+(defn normalize-element [[first second & rest]]
+  (when-not (or (keyword? first)
+                (symbol? first)
+                (string? first))
+    (throw (ex-info "Expected a keyword as a tag" { :tag first })))
+  (let [[tag tag-id tag-classes] (parse-selector first)
+        [attrs children] (if (or (map? second)
+                                 (nil? second))
+                           [second rest]
+                           [nil    (cons second rest)])
+        attrs-classes    (or (:class attrs)
+                             (:class-name attrs)
+                             (:className attrs))
+        classes          (if (and tag-classes attrs-classes)
+                           [tag-classes attrs-classes]
+                           (or tag-classes attrs-classes))]
+    [tag tag-id classes attrs children]))
 
 
 ;;; render attributes
@@ -183,7 +149,7 @@
     (number? value)
       (str value (when (not= 0 value) "px"))
     (and (string? value)
-         (re-matches #"\s*\d+\s*" value))
+         (re-matches #"\s*\d+\s*" value)) ;; FIXME floats?
       (recur key (-> value str/trim Long/parseLong))
     :else
       (escape-html (to-str value))))
@@ -223,19 +189,23 @@
 
 
 (defn render-classes! [classes sb]
-  (let [empty? (render-class! sb true classes)]
-    (when-not empty?
-      (append! sb "\""))))
+  (when classes
+    (let [empty? (render-class! sb true classes)]
+      (when-not empty?
+        (append! sb "\"")))))
 
 
-(defn render-attr! [name value sb]
-  (let [name (to-str name)]
+(defn render-attr! [key value sb]
+  (let [attr (normalize-attr-key key)]
     (cond
-      (true? value)    (append! sb " " name "=\"\"")
+      (= "style" attr) (render-style! value sb)
+      (= "key" attr)   :nop
+      (= "class" attr) :nop
       (not value)      :nop
-      (= "style" name) (render-style! value sb)
-      (= "class" name) (render-classes! value sb)
-      :else            (append! sb " " name "=\"" (to-str value) "\""))))
+      (true? value)    (append! sb " " attr "=\"\"")
+      (.startsWith attr "on")            :nop
+      (= "dangerouslysetinnerhtml" attr) :nop
+      :else            (append! sb " " attr "=\"" (to-str value) "\""))))
 
 
 (defn render-attrs! [attrs sb]
@@ -250,49 +220,60 @@
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
-(defn -render-element
+(defn render-inner-html! [attrs children sb]
+  (when-let [inner-html (:dangerouslySetInnerHTML attrs)]
+    (when-not (empty? children)
+      (throw (Exception. "Invariant Violation: Can only set one of `children` or `props.dangerouslySetInnerHTML`.")))
+    (when-not (:__html inner-html)
+      (throw (Exception. "Invariant Violation: `props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information.")))
+    (append! sb (:__html inner-html))
+    true))
+
+  
+(defn render-content! [tag attrs children *key sb]
+  (if (and (nil? children)
+           (contains? void-tags tag))
+    (append! sb "/>")
+    (do
+      (append! sb ">")
+      (or (render-inner-html! attrs children sb)
+          (doseq [element children]
+            (-render-html element children *key sb)))
+      (append! sb "</" tag ">"))))
+
+
+(defn render-element!
   "Render an element vector as a HTML element."
   [element *key sb]
-  (let [[tag attrs content] (normalize-element element)
-        key                 @*key
-        _                   (vswap! *key inc)
-        attrs               (cond-> attrs
-                              true       (dissoc :key)
-                              (== key 1) (assoc  :data-reactroot "")
-                              true       (assoc  :data-reactid key))
-        inner-html          (:dangerouslysetinnerhtml attrs)
-        attrs               (if inner-html
-                              (dissoc attrs :dangerouslysetinnerhtml)
-                              attrs)]
+  (let [[tag id classes attrs children] (normalize-element element)]
 
-    (when inner-html
-      (when-not (empty? content)
-        (throw (Exception. "Invariant Violation: Can only set one of `children` or `props.dangerouslySetInnerHTML`.")))
-      (when-not (:__html inner-html)
-        (throw (Exception. "Invariant Violation: `props.dangerouslySetInnerHTML` must be in the form `{__html: ...}`. Please visit https://fb.me/react-invariant-dangerously-set-inner-html for more information."))))
-    
     (append! sb "<" tag)
+    
+    (when id
+      (append! sb " id=\"" id "\""))
+    
     (render-attrs! attrs sb)
     
-    (if (container-tag? tag content)
-      (do
-        (append! sb ">")
-        (if inner-html
-          (append! sb (:__html inner-html))
-          (-render-html content element *key sb))
-        (append! sb "</" tag ">"))
-      (append! sb "/>"))))
+    (render-classes! classes sb)
+    
+    (when (== @*key 1)
+      (append! sb " data-reactroot=\"\""))
+    
+    (append! sb " data-reactid=\"" @*key "\"")
+    (vswap! *key inc)
+    
+    (render-content! tag attrs children *key sb)))
 
 
 (extend-protocol HtmlRenderer
   IPersistentVector
   (-render-html [this parent *key sb]
-    (-render-element this *key sb))
+    (render-element! this *key sb))
 
   ISeq
   (-render-html [this parent *key sb]
     (doseq [element this]
-      (-render-html element this *key sb)))
+      (-render-html element parent *key sb)))
 
   Named
   (-render-html [this parent *key sb]
@@ -356,5 +337,3 @@
       (-render-html src nil (volatile! 1) sb)
       (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
       (str sb))))
-
-(render-html [:div { :class [nil] }])
