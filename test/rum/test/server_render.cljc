@@ -30,17 +30,26 @@
   [:ul [:li {:key "F"}] [:li {:key "M"}]])
 
 
+(rum/defc comp-lists []
+  [:div
+    [:.a (list [:.b])]
+    [:.c "d" (list [:.e])]
+    [:.f "g" (list [:.h]) "i"]])
+
+
 (rum/defc comp-header []
   [:ul.nav__content
     (list [:li.menu-item {:key "F"} "Женщинам"]
           [:li.menu-item {:key "M"} "Мужчинам"])
     [:li.menu-item {:key "outlet"} "Outlet"]])
 
+
 (rum/defc comp-nil1 []
   "In this case nil will be not counted against reactid"
   [:div {:class "parent"}
    nil
    [:div.child]])
+
 
 (rum/defc comp-nil2 []
   "In this case *both* nils will be counted against reactid"
@@ -51,10 +60,12 @@
      nil
      [:div.child2])])
 
+
 (rum/defc comp-span []
   [:div
    "test"
    "passed"])
+
 
 (rum/defc comp-campaign []
   [:div#today.content.wrapper
@@ -128,9 +139,7 @@
     [:a.clazz#id { :title "a" }]
     [:a#id.clazz { :title "a" }]
     [:a.clazz#id { :title "a" :class "b" }]
-    [:a#clazz.id { :title "a" :class "b" }]
-])
-
+    [:a#clazz.id { :title "a" :class "b" }]])
 
 
 (rum/defc comp-classes []
@@ -165,6 +174,7 @@
   { "simple"      comp-simple
     "tag"         comp-tag
     "list"        comp-list
+    "lists"       comp-lists
     "header"      comp-header
     "nil1"        comp-nil1
     "nil2"        comp-nil2
