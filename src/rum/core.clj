@@ -33,8 +33,11 @@
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
         render-fn (if cljs?
                     (map compile-body bodies)
-                    bodies)]
-    `(def ~name ~(or doc "")
+                    bodies)
+        arglists  (if (= render-ctor 'rum.core/render->mixin)
+                    (map first bodies)
+                    (map #(-> % first rest vec) bodies))]
+    `(def ~(with-meta name `{:arglists '~arglists}) ~(or doc "")
        (let [render-mixin# (~render-ctor (fn ~@render-fn))
              class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
              ctor#         (fn [& args#]
