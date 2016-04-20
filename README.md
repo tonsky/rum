@@ -71,6 +71,7 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 - [Cognician](https://cognician.com/), coaching platform
 - [PartsBox.io](https://partsbox.io/), inventory management
 - [modnaKasta](https://modnaKasta.ua/), online shopping
+- [TourneyBot](http://houstonindoor.com/2016/), frisbee tournament app
 
 ## Rum API
 
