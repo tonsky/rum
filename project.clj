@@ -1,4 +1,4 @@
-(defproject rum "0.8.1"
+(defproject rum "0.8.2"
   :description  "ClojureScript wrapper for React"
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -7,8 +7,8 @@
   :dependencies
   [[org.clojure/clojure        "1.7.0"   :scope "provided"]
    [org.clojure/clojurescript  "1.7.228" :scope "provided"]
-   [cljsjs/react               "15.0.1-0"]
-   [cljsjs/react-dom           "15.0.1-0"]
+   [cljsjs/react               "15.0.1-1"]
+   [cljsjs/react-dom           "15.0.1-1"]
    [sablono                    "0.7.0"]]
 
   :global-vars
@@ -19,7 +19,7 @@
   :profiles {
     :dev  { :source-paths ["examples"]
             :dependencies 
-            [[cljsjs/react-dom-server "15.0.1-0"]] }
+            [[cljsjs/react-dom-server "15.0.1-1"]] }
     :perf { :source-paths ["perf"]
             :dependencies 
             [[enlive    "1.1.6"]

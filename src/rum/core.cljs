@@ -131,6 +131,9 @@
 (defn mount [component node]
   (js/ReactDOM.render component node))
 
+(defn unmount [node]
+  (js/ReactDOM.unmountComponentAtNode node))
+
 ;; initialization
 
 (defn render->mixin [render-fn]
