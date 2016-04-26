@@ -37,7 +37,8 @@
         arglists  (if (= render-ctor 'rum.core/render->mixin)
                     (map (fn [[arglist & _body]] arglist) bodies)
                     (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))]
-    `(def ~(with-meta name `{:arglists '~arglists}) ~(or doc "")
+    `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
+       ~(or doc "")
        (let [render-mixin# (~render-ctor (fn ~@render-fn))
              class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
              ctor#         (fn [& args#]
