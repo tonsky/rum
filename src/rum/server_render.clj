@@ -259,11 +259,12 @@
     
     (render-classes! classes sb)
     
-    (when (== @*key 1)
-      (append! sb " data-reactroot=\"\""))
-    
-    (append! sb " data-reactid=\"" @*key "\"")
-    (vswap! *key inc)
+    (when *key
+      (when (== @*key 1)
+        (append! sb " data-reactroot=\"\""))
+
+      (append! sb " data-reactid=\"" @*key "\"")
+      (vswap! *key inc))
     
     (render-content! tag attrs children *key sb)))
 
@@ -284,7 +285,8 @@
 
   String
   (-render-html [this parent *key sb]
-    (if (> (count parent) 1)
+    (if (and *key
+             (> (count parent) 1))
       (let [key @*key]
         (vswap! *key inc)
         (append! sb "<!-- react-text: " key " -->" (escape-html this) "<!-- /react-text -->"))
@@ -340,3 +342,9 @@
       (-render-html src nil (volatile! 1) sb)
       (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
       (str sb))))
+
+
+(defn render-static-markup [src]
+  (let [sb (StringBuilder.)]
+    (-render-html src nil nil sb)
+    (str sb)))

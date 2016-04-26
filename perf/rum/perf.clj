@@ -82,7 +82,7 @@
           :let [path (str "perf/pages/" page)]]
     (let [comp (convert-page path)]
       (println "\n--- Testing" page (str "(" (file-size path) ")") "---")
-      (criterium/quick-bench (rum/render-html comp)))
+      (criterium/quick-bench (rum/render-static-markup comp)))
       
     (let [comp (binding [*convert-style?* false]
                  (convert-page path))]

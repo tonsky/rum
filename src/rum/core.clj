@@ -101,6 +101,7 @@
 ;;; Server-side rendering support
 
 (def render-html render/render-html)
+(def render-static-markup render/render-static-markup)
 
 (def build-class server/build-class)
 (def args->state server/args->state)

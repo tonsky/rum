@@ -141,7 +141,7 @@ Since 0.7.0, Rum supports pure-Clojure server-side rendering. In your clj/cljc f
 
 Rum server-side rendering does not use React or Sablono, it runs completely in JVM with no overhead/complications of JavaScript.
 
-Yes, you can use Rum for classical server-side rendering where you normally would use Hiccup or something similar. As of `[rum "0.8.0"]` and `[hiccup "1.0.5"]`, Rum is 2-3× times faster than Hiccup.
+Yes, you can use Rum for classical server-side rendering where you normally would use Hiccup or something similar. As of `[rum "0.8.0"]` and `[hiccup "1.0.5"]`, Rum is 2-3× times faster than Hiccup. Use `rum/render-static-markup` if you’re not planning to connect your page with React later.
 
 Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
 
@@ -357,9 +357,14 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 ## Changes
 
+### 0.8.3
+
+- `rum/render-static-markup` call for pure HTML templating. Use it if you’re not planning to connect your page with React later
+- `rum/def*` macros now correctly retain metadata that already exists on a symbol (thx [aJchemist](https://github.com/aJchemist), PR #62)
+
 ### 0.8.2
 
-- Add `rum.core/unmount` function (thx [emnh ](https://github.com/emnh), issue #61)
+- Add `rum.core/unmount` function (thx [emnh](https://github.com/emnh), issue #61)
 
 ### 0.8.1
 
