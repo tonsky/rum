@@ -65,6 +65,7 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 ## Libraries
 
 - [Reforms](http://bilus.github.io/reforms/)
+- [rum-mdl](http://ajchemist.github.io/rum-mdl/)
 
 ## Who’s using Rum?
 
