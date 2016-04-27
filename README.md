@@ -1,4 +1,4 @@
-# Rum: simple, flexible, extensible React wrapper for CLJS
+# Rum: simple, decomplected, isomorphic UI framework for Clojure and ClojureScript
 
 <p align="center"><img src="https://dl.dropboxusercontent.com/u/561580/imgs/rum_logo.svg" style="height: 400px;"></p>
 
