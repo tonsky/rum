@@ -28,7 +28,7 @@
   [board]
   [:div.artboard
     (for [y (range 0 core/board-height)
-          :let [*y-cursor (rum/cursor *board [y])]]
+          :let [*y-cursor (rum/cursor board [y])]]
       [:div.art-row {:key y}
         (for [x (range 0 core/board-width)
               :let [*x-cursor (rum/cursor *y-cursor [x])]]
