@@ -13,83 +13,55 @@
     [rum.examples.local-state    :as local-state]
     [rum.examples.self-reference :as self-reference]))
 
-(def page (str
-"<!doctype html>
-<html>
-  <head>
-    <meta http-equiv='content-type' content='text/html;charset=UTF-8'/>
-    <title>Rum test page</title>
-    <link href='http://cloud.webtype.com/css/34a9dbc8-2766-4967-a61f-35675306f239.css' rel='stylesheet' type='text/css' />
-    <link href='style.css' rel='stylesheet' type='text/css'></link>
-  </head>
-
-  <body>
-
-    <div class=example>
-      <div class=example-title>Timers</div>
-      <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock)) "</div>
-      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced)) "</div>
-      <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive)) "</div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Controls</div>
-      <div id=controls>" (rum/render-html (controls/controls)) "</div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Reactive binary clock</div>
-      <div id=binary-clock>" (rum/render-html (binary-clock/binary-clock)) "</div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Reactive artboard</div>
-      <div id=board-reactive>" (rum/render-html (board-reactive/board-reactive)) "</div>
-    </div>
-
-
-    <div class=example>
-      <div class=example-title>Cursor artboard</div>
-      <div id=board-cursored>" (rum/render-html (board-cursored/board-cursored board-cursored/*board)) "</div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>BMI Calculator</div>
-      <div id=bmi-calculator>" (rum/render-html (bmi-calculator/bmi-calculator)) "</div>
-    </div>
-    
-    <div class=example>
-      <div class=example-title>Form validation</div>
-      <div id=form-validation></div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Local state</div>
-      <div id=local-state>" (rum/render-html (local-state/local-state "Clicks count")) "</div>
-    </div>
-    
-    <div class=example>
-      <div class=example-title>Self-reference</div>
-      <div id=self-reference>" (rum/render-html (self-reference/self-reference [:a [:b [:c :d [:e] :g]]])) "</div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Contexts</div>
-      <div id=context></div>
-    </div>
-
-    <div class=example>
-      <div class=example-title>Custom Methods and Data</div>
-      <div id=custom-props></div>
-    </div>
-
-    
-    <script src='target/main.js' type='text/javascript'></script>
-  </body>
-</html>"))
+(def page
+  (str
+   "<!doctype html>"
+   (rum/render-static-markup-str
+    [:html
+     [:head
+      [:meta {:http-equiv "content-type" :content "text/html" :charset "UTF-8"}]
+      [:title "Rum test page"]
+      [:link {:href "http://cloud.webtype.com/css/34a9dbc8-2766-4967-a61f-35675306f239.css" :rel "stylesheet" :type "text/css"}]
+      [:link {:href "style.css" :rel "stylesheet" :type "text/css"}]]
+     [:body
+      [:.example
+       [:.example-title "Timers"]
+       [:#timer-static   (rum/render-html (timer-static/timer-static "Static" @core/*clock))]
+       [:#timer-forced   (rum/render-html (timer-forced/timer-forced))]
+       [:#timer-reactive (rum/render-html (timer-reactive/timer-reactive))]]
+      [:.example
+       [:.example-title "Controls"]
+       [:#controls       (rum/render-html (controls/controls))]]
+      [:.example
+       [:.example-title "Reactive binary clock"]
+       [:#binary-clock   (rum/render-html (binary-clock/binary-clock))]]
+      [:.example
+       [:.example-title "Reactive artboard"]
+       [:#board-reactive (rum/render-html (board-reactive/board-reactive))]]
+      [:.example
+       [:.example-title "Cursor artboard"]
+       [:#board-cursored (rum/render-html (board-cursored/board-cursored board-cursored/*board))]]
+      [:.example
+       [:.example-title "BMI Calculator"]
+       [:#bmi-calculator (rum/render-html (bmi-calculator/bmi-calculator))]]
+      [:.example
+       [:.example-title "Form validation"]
+       [:#form-validation]]
+      [:.example
+       [:.example-title "Local state"]
+       [:#local-state    (rum/render-html (local-state/local-state "Clicks count"))]]
+      [:.example
+       [:.example-title "Self-reference"]
+       [:#self-reference (rum/render-html (self-reference/self-reference [:a [:b [:c :d [:e] :g]]]))]]
+      [:.example
+       [:.example-title "Contexts"]
+       [:#context]]
+      [:.example
+       [:.example-title "Custom Methods and Data"]
+       [:#custom-props]]
+      [:script {:src "target/main.js" :type "text/javascript"}]]])))
 
 
 (defn -main [& args]
   (println "Writing \"index.html\"")
   (spit "index.html" page))
-
