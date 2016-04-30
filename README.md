@@ -69,7 +69,7 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 
 ## Who’s using Rum?
 
-- [Cognician](https://cognician.com/), coaching platform
+- [Cognician](https://www.cognician.com/), coaching platform
 - [PartsBox.io](https://partsbox.io/), inventory management
 - [modnaKasta](https://modnaKasta.ua/), online shopping
 - [TourneyBot](http://houstonindoor.com/2016/), frisbee tournament app
