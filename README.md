@@ -64,15 +64,16 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 
 ## Libraries
 
-- [Reforms](http://bilus.github.io/reforms/)
-- [rum-mdl](http://ajchemist.github.io/rum-mdl/)
+- [Reforms](http://bilus.github.io/reforms/), Bootstrap 3 forms
+- [rum-mdl](http://ajchemist.github.io/rum-mdl/), Material design lite components
 
 ## Who’s using Rum?
 
-- [Cognician](https://www.cognician.com/), coaching platform
-- [PartsBox.io](https://partsbox.io/), inventory management
-- [modnaKasta](https://modnaKasta.ua/), online shopping
-- [TourneyBot](http://houstonindoor.com/2016/), frisbee tournament app
+- [Cognician](https://www.cognician.com), coaching platform
+- [Attendify](https://attendify.com), mobile app builder
+- [PartsBox.io](https://partsbox.io), inventory management
+- [modnaKasta](https://modnaKasta.ua), online shopping
+- [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 
 ## Rum API
 
