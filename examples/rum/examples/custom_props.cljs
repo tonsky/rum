@@ -6,6 +6,11 @@
 
 ;; Custom methods and data on the underlying React components.
 
+(defn rand-color []
+  (str "#" (-> (rand)
+               (* 0xffffff)
+               (js/Math.floor)
+               (.toString 16))))
 
 (def props
   {:msgData "Components can store custom data on the underlying React component."
@@ -13,7 +18,10 @@
                  [:div {:style {:cursor "pointer"}
                         :on-mouse-move
                         (fn [_]
-                          (aset this "msgData" (rand))
+                          (reset! core/*color (rand-color))
+                          (aset this "msgData" 
+                                [:div {:style {:color @core/*color}}
+                                  (:msgData props)])
                           (rum/request-render this))}
                   "Custom methods too. Hover me!"])})
 

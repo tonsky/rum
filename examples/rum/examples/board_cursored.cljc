@@ -25,7 +25,7 @@
 
 ;; cursored-watch mixin will setup watches for all IWatchable arguments
 (rum/defc board-cursored < rum/cursored rum/cursored-watch
-  [board]
+  [*board]
   [:div.artboard
     (for [y (range 0 core/board-height)
           :let [*y-cursor (rum/cursor *board [y])]]
