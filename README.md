@@ -1,10 +1,8 @@
-# Rum: simple, decomplected, isomorphic HTML UI library for Clojure and ClojureScript
-
 <p align="center"><img src="https://dl.dropboxusercontent.com/u/561580/imgs/rum_logo.svg" style="height: 400px;"></p>
 
 Rum is a client/server library for HTML UI. In ClojureScript, it works as React wrapper, in Clojure, it is a static HTML generator.
 
-### Rum principles
+### Principles
 
 **Simple semantics** Rum is arguably smaller, simpler and more straightforward than React itself.
 
