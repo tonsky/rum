@@ -1,73 +1,30 @@
-# Rum: simple, decomplected, isomorphic UI framework for Clojure and ClojureScript
+# Rum: simple, decomplected, isomorphic HTML UI library for Clojure and ClojureScript
 
 <p align="center"><img src="https://dl.dropboxusercontent.com/u/561580/imgs/rum_logo.svg" style="height: 400px;"></p>
 
-Rum goals:
+Rum is a client/server library for HTML UI. In ClojureScript, it works as React wrapper, in Clojure, it is a static HTML generator.
 
-1. Be ClojureScript-friendly
-2. Provide clean, simple and straightforward API (with simpler semantics than React’s own)
-3. Allow for mixing different kinds of components in a single app
-4. Allow for building new kinds of components easily
-5. Stay minimal
+### Rum principles
 
-Rum is not a framework that tells you how your components should work.
-Instead, it’s a library that gives you the tools, so you can build components
-that fit your needs best.
+**Simple semantics** Rum is arguably smaller, simpler and more straightforward than React itself.
 
-## Comparison to other frameworks
+**Decomplected** Rum is a library, not a framework. Use only parts you need, throw away or replace what you don’t need, combine different approaches in a single app, or even combine Rum with other frameworks.
 
-All ClojureScript frameworks: Om, Reagent and even Quiescent came with built-in component behaviour model. They do not allow to change that without rewriting internals. Rum was designed to specifically address that problem. Rum doesn’t sell you one true component model. Instead, contract on custom component building (mixins) is also considered to be part of API in Rum.
+**No enforced state model** Unlike Om, Reagent or Quiescent, Rum does not dictate you where to keep your state. Instead, it works well with any storage: persistent data structures, atoms, DataScript, JavaScript objects, localStorage or any custom solution you can think of.gi
 
-Rum has two levels of API. On lower level we have tools to build your own component behaviours: low-level details are well-defined and open for extensions. Thanks to that Rum is more customizable, integration with third-party models is simpler (you use storage/data model you want and write component to support that, unlike other solutions which dictate how to store app state), and you can mix different kinds of components in one app.
+**Extensible** API is stable and explicitly defined, including API between Rum internals. It lets you build custom behaviours that change components in a significan ways.
 
-On higher level, Rum comes with already-built types of components which emulate behavior found in Om, Reagent and Quiescent. They were built using the same public API any Rum user can use. No internals hacking. I think it means abstraction is good enough and decomplection was made in the right place. I’m also very proud they take about 10-30 lines of code each.
+**Minimal codebase** You can become Rum expert just by reading its source code (~700 lines)
 
-Rum idea is not to lock you down to a single storage model. Sometimes your dataflow is trickier that just atoms, e.g. you need components to react to DataScript events, core.async channels, ajax/websocket/webworker callbacks. In that case Rum provides well-defined API and set of basic building blocks to write components you need to.
+### Comparison to other frameworks
 
-## What’s in the box?
+Rum:
 
-Rum provides basic tools that every React app eventually need:
+- does not dictate how to store your state,
+- has server-side rendering,
+- is much smaller.
 
-* `requestAnimationFrame`-based render queue
-* component id generator
-* `sablono`-based syntax for generating markup
-* couple of wrapper functions like `mount`, `build-class`, `element` etc.
-
-## Using Rum <a href="https://gitter.im/tonsky/rum?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://camo.githubusercontent.com/da2edb525cde1455a622c58c0effc3a90b9a181c/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Gitter" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a>
-
-1. Add `[rum "0.8.3"]` to dependencies
-2. `(require '[rum.core :as rum])`.
-
-Simplest example defines component, instantiates it and mounts it on a page:
-
-```clojure
-(ns example
-  (:require [rum.core :as rum]))
-
-(rum/defc label [n text]
-  [:.label (repeat n text)])
-
-(rum/mount (label 5 "abc") js/document.body)
-```
-
-For more examples, see [examples/rum/examples/](examples/rum/examples/). Live version of examples [is here](http://tonsky.me/rum/)
-
-## Talks
-
-- [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
-
-## Examples
-
-- DataScript Chat sample app: [github.com/tonsky/datascript-chat](https://github.com/tonsky/datascript-chat)
-- DataScript ToDo sample app: [github.com/tonsky/datascript-todo](https://github.com/tonsky/datascript-todo)
-- DataScript Menu example: [github.com/tonsky/datascript-menu](https://github.com/tonsky/datascript-menu)
-
-## Libraries
-
-- [Reforms](http://bilus.github.io/reforms/), Bootstrap 3 forms
-- [rum-mdl](http://ajchemist.github.io/rum-mdl/), Material design lite components
-
-## Who’s using Rum?
+### Who’s using Rum?
 
 - [Cognician](https://www.cognician.com), coaching platform
 - [Attendify](https://attendify.com), mobile app builder
@@ -75,197 +32,335 @@ For more examples, see [examples/rum/examples/](examples/rum/examples/). Live ve
 - [modnaKasta](https://modnaKasta.ua), online shopping
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 
-## Rum API
+## Using Rum
 
-Rum provides `defc` macro (short from “define component”):
+Add to project.clj: `[rum "0.8.3"]`
+
+### Defining a component
+
+Use `rum.core/defc` (short of “define component”) to define a function that returns component markup:
 
 ```clojure
-(rum/defc name doc-string? [< mixins+]? [params*] render-body+)
+(require [rum.core :as rum])
+
+(rum/defc label [text]
+  [:div {:class "label"} text])
 ```
 
-`defc` defines top-level function that accepts `argvec` and returns React element that renders as specified in `render-body`.
+Rum uses Hiccup-like syntax for defining markup:
 
-Behind the scenes, `defc` does couple of things:
-
-- Creates render function by wrapping `render-body` with implicit `do` and then with `sablono.core/html` macro
-- Builds React class from that render function and provided mixins
-- Using that class, generates constructor fn [params]->ReactElement
-- Defines a top-level var `name` and puts constructor fn there
-
-When called, `name` function will create new React element from built React class and pass through `argvec` so it’ll be available inside `render-body`
-
-To mount component, use `rum.core/mount`:
-
-```clojure
-(rum/mount element dom-node)
+```
+[<tag-n-selector> <attrs>? <children>*]
 ```
 
-`mount` returns mounted component. It’s safe to call it multiple times over same arguments.
-
-Note that `mount` will not make component auto-updatable. It’s up to your code (or mixins) to make it update when you need it. Two common idioms are to mount it again:
+`<tag-n-selector>` defines tag, its id and classes:
 
 ```clojure
-(add-watch state :render
-  (fn [_ _ _ _]
-    (rum/mount element node)))
+  :span
+  :span#id
+  :span.class
+  :span#id.class
+  :span.class.class2
 ```
-
-or call `request-render` function:
-
-```clojure
-(let [component (rum/mount element dom-node)]
-  (add-watch state :render
-    (fn [_ _ _ _]
-      (rum/request-render component))))
-```
-
-`request-render` does not execute rendering immediately, instead, it will place your component to render queue and re-render on `requestAnimationFrame` callback. `request-render` is preferable way to refresh component.
-
-## Server-side rendering
-
-Since 0.7.0, Rum supports pure-Clojure server-side rendering. In your clj/cljc file:
-
-1. Import `rum.core` as usual
-2. Define components using `rum/defc` or other macros as usual
-3. Instead of mounting, call `rum/render-html` to render into a string
-4. Generate HTML page using that string
-5. On a client, mount _the same_ component over the node where you rendered your server-side component
-
-```clojure
-(require '[rum.core :as rum])
-
-(rum/defc my-comp [s]
-  [:div s])
   
-(rum/render-html (my-comp "hello"))
-;; => "<div data-reactid=\".ibf34u\" data-react-checksum=\"189533501\">hello</div>"
+By default, if you omit tag, `div` is assumed:
+
+```
+  :#id    === :div#id
+  :.class === :div.class
 ```
 
-Rum server-side rendering does not use React or Sablono, it runs completely in JVM with no overhead/complications of JavaScript.
+`<attrs>` is an optional map of attributes:
 
-Yes, you can use Rum for classical server-side rendering where you normally would use Hiccup or something similar. As of `[rum "0.8.0"]` and `[hiccup "1.0.5"]`, Rum is 2-3× times faster than Hiccup. Use `rum/render-static-markup` if you’re not planning to connect your page with React later.
+- Use kebab-case keywords for attributes (e.g. `:allow-full-screen` for `allowFullScreen`)
+- You can include `:id` and `:class` there as well
+- `:class` might be a string or a sequence of strings
+- `:style`, if needed, must be a map with kebab-case keywords
+- event handlers should be arity-one functions
 
-Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
+```clojure
+[:input { :type      "text"
+          :allow-full-screen true
+          :id        "comment"
+          :class     ["input_active" "input_error"]
+          :style     { :background-color "#EEE"
+                       :margin-left      42 }
+          :on-change (fn [e]
+                       (js/alert (.. e -target -value))) }]
+```
 
-For example, see [examples_page.clj](examples/rum/examples_page.clj).
+`<children>` is an zero, one or many elements (strings or nested tags) with the same syntax:
 
-## Mixins
+```clojure
+  [:div {} "Text"]         ;; tag, attrs, nested text
+  [:div {} [:span]]        ;; tag, attrs, nested tag
+  [:div "Text"]            ;; omitted attrs
+  [:div "A" [:em "B"] "C"] ;; 3 children, mix of text and tags
+```
 
-Rum comes with a couple of mixins which emulate behaviors known from `quiescent`, `om` and `reagent`. Developing your own mixin is also very simple.
+Children might include lists or sequences which will be flattened:
 
-`rum.core/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
+```clojure
+  [:div (list [:i "A"] [:b "B"])] === [:div [:i "A"] [:b "B"]]
+```
+
+By default all text nodes are escaped. To embed unescaped string into a tag, add `:dangerouslySetInnerHTML` attribute and omit children:
+
+```clojure
+  [:div { :dangerouslySetInnerHTML {:__html "<span></span>"}}]
+```
+
+### Rendering component
+
+Given this code:
+
+```clojure
+(require [rum.core :as rum])
+
+(rum/defc repeat-label [n text]
+  [:div (repeat n [:.label text])])
+```
+
+First, we need to create a component instance by calling its function:
+
+```
+(repeat-label 5 "abc")
+```
+
+Then we need to pass that instance to `(rum.core/mount comp dom-node)`:
+
+```clojure
+(rum/mount (repeat-label 5 "abc") js/document.body)
+```
+
+And we will get something like that:
+
+```html
+  <body>
+    <div>
+      <div class="label">abc</div>
+      <div class="label">abc</div>
+      <div class="label">abc</div>
+      <div class="label">abc</div>
+      <div class="label">abc</div>
+    </div>
+  </body>
+```
+
+`mount` is usually used just once in an app lifecycle to mount top of your component tree to a page. After that, for a dynamic applications, you should either _update_ your components or rely on them to update themselves.
+
+### Updating components manually
+
+Simplest way to update your app is to mount it again:
+
+```clojure
+(rum/mount (repeat-label 5 "abc") js/document.body)
+
+(js/setTimeout
+  #(rum/mount (repeat-label 3 "xyz") js/document.body)
+  1000)
+```
+
+Better way is to use `(rum.core/request-render react-component)` which will schedule update until next animation frame. It will also throttle duplicate update calls if you happen to call `request-render` more than once:
+
+```clojure
+(rum/defc my-app []
+  [:div (rand)])
+
+(let [react-comp (rum/mount (my-app) js/document.body]
+  (js/setTimeout #(rum/request-render react-comp) 1000))
+```
+
+Note that `request-render` accepts React component, not Rum component. One way to get it is to save the return value of `mount`, we’ll see other ways in a “Writing your own mixin” section.
+
+Also note that `request-render` does not let you change component arguments. It expects that component is responsible to get its state in a render functoin itself.
+
+This is already enough to build a simple click counter:
+
+```clojure
+(def count (atom 0))
+
+(rum/defc counter []
+  [:div { :on-click (fn [_] (swap! count inc)) }
+    "Clicks: " @count])
+    
+(let [react-comp (rum/mount (counter) js/document.body]
+  (add-watch count ::render
+    (fn [_ _ _ _]
+      (rum/request-render react-comp))))
+```
+
+### Reactive components
+
+Rum offers mixins as a way to hook into component lifecycle and extend its capabilities or change its behaviour.
+
+One very common use-case is for component to update when some reference changes. Rum has `rum.core/reative` mixin just for that:
+
+```clojure
+(def count (atom 0))
+
+(rum/defc counter < rum/reactive []
+  [:div { :on-click (fn [_] (swap! count inc)) }
+    "Clicks: " (rum/react count)])
+    
+(rum/mount (counter) js/document.body)
+```
+
+There’re two things happening:
+
+1. We’ve added `rum.core/reactive` mixin to the component.
+2. We’ve used `rum.core/react` instead of `deref` in a component body.
+
+This will set up a watch on `count` atom and will automatically call `rum.core/request-render` on the component each time that reference has changed.
+
+If you have a complex state and need component to interact with only some part of it, create a _derived cursor_ using `(rum.core/cursor ref path)`:
+
+```clojure
+(def state (atom { :color "#cc3333"
+                   :user { :name "Ivan" } }))
+
+(def user-name (rum/cursor state [:user :name]))
+
+@user-name ;; => "Ivan"
+
+(reset! user-name "Oleg") ;; => "Oleg"
+
+@state ;; => { :color "#cc3333"
+       ;;      :user  { :name "Oleg" } }
+```
+
+Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They work well with `rum/reactive` and `rum/react` too.
+
+### Component’s local state
+
+Sometimes you need to keep track of some mutable data just inside component and nowhere else. Rum provides `rum.core/local` mixin. It’s a little trickier to use, so hold on:
+
+1. Each compoent in Rum has internal state associated with it, normally used by mixins and Rum internals.
+2. `rum.core/local` creates a mixin that will put an atom into component’s state.
+3. You use `rum.core/defcs` instead of `rum.core/defc` to get hold of components’s state in a render function.
+4. You extract that atom from state and `deref`/`swap!`/`reset!` it as usual.
+5. Any change in that atom will force component to update.
+
+In practice, it’s quite convenient to use:
+
+```clojure
+(rum/defcs stateful < (rum/local 0) [state label]
+  (let [local-atom (:rum/local state)]
+    [:div { :on-click (fn [_] (swap! local-atom inc)) }
+      label ": " @local-atom]))
+      
+(rum/mount (stateful "Click count") js/document.body)
+```
+
+You can change `:rum/local` key to any other by specifying second argument to `rum/local`, e.g.
+
+```clojure
+(rum/defcs input < (rum/local "" ::text)
+  [state]
+  (let [text-atom (::text state)]
+    [:input { :type  "text"
+              :value @text-atom
+              :on-change (fn [e]
+                           (reset! text-atom (.. e -target -value))) }]))
+```
+
+### Optimizing with shouldComponentUpdate
+
+If you component accepts only immutable data structures as arguments, it might be a good idea to add `rum.core/static` mixin:
 
 ```clojure
 (rum/defc label < rum/static [n text]
   [:.label (repeat n text)])
+```
 
+`rum.core/static` will check if arguments of a component constructor have changed (with Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
+
+```
 (rum/mount (label 1 "abc") body)
 (rum/mount (label 1 "abc") body) ;; render won’t be called
 (rum/mount (label 1 "xyz") body) ;; this will cause a re-render
 ```
 
-`rum.core/local` creates an atom that can be used as per-component local state. When you `swap!` or `reset!` this atom, component will be re-rendered automatically. Atom can be found in state under `:rum/local` key:
+Note that this is not enabled by default because a) comparisons might be expensive, and b) it will work wrong if you pass mutable reference as an argument.
+
+### Writing your own mixin
+
+Many applications have very specific requirements and custom optimization opportunities, so odds are you’ll be also writing your own mixins.
+
+Let’s see what Rum component really is. Each Rum component has:
+
+- A render function
+- One or more mixins
+- An internal state map
+- A corresponding React component
+
+For example, if we have this component defined:
 
 ```clojure
-(rum/defcs stateful < (rum/local 0) [state title]
-  (let [local (:rum/local state)]
-    [:div
-     {:on-click (fn [_] (swap! local inc))}
-     title ": " @local]))
-
-(rum/mount (stateful "Clicks count") js/document.body)
-```
-
-Note that we used `defcs` instead of `defc` to get state as first argument to `render`. Also note that `rum.core/local` is not a mixin value, instead, it’s a function, generator-like: it takes initial value and returns mixin.
-
-`rum.core/reactive` will create “reactive” component that will track references used inside `render` function and auto-update when values of these references change.
-
-```clojure
-(def color (atom "#cc3333"))
-(def text (atom "Hello"))
-
-(rum/defc label < rum/reactive []
-  [:.label {:style {:color (rum/react color)}}
-    (rum/react text)])
+(rum/defc input [label value]
+  [:label label ": "
+    [:input { :value value }]])
     
-(rum/mount (label) js/document.body)
-(reset! text "Good bye") ;; will cause re-rendering
-(reset! color "#000")    ;; and another one
+(input "Your name" "")
 ```
 
-`rum.core/react` function used in this example works as `deref`, and additionally adds watch on that reference.
-
-Finally, `rum.core/cursored` is a mixin that will track changes in references passed as arguments:
+It will have following state:
 
 ```clojure
-(rum/defc label < rum/cursored [color text]
-  [:.label {:style {:color @color}} @text])
+{ :rum/id   <int>
+  :rum/args ["Your name" ""]
+  :rum/react-component <react-component> }
 ```
 
-Note that `cursored` mixin creates passive component: it will not react to any changes in references by itself, and will only compare arguments when re-created by its parent. Additional `rum.core/cursored-watch` mixin will add watches on every `IWatchable` in arguments list:
+You can read internal state by using `rum.core/defcs` (short of “define component [and pass] state”) macro instead of `rum.core/defc`. It will pass `state` as the first argument:
 
 ```clojure
-(rum/defc body < rum/cursored rum/cursored-watch [color text]
-  (label color text))
-
-(rum/mount (body color text) js/document.body)
-
-;; will cause re-rendering of body and label
-(reset! text "Good bye")
-
-;; and another one
-(reset! color "#000")
+(rum/defcs label [state label value]
+  [:div "My args:" (pr-str (:rum/args state))])
+  
+(label "A" 3) ;; => <div>My args: ["A" 3]</div>
 ```
 
-Rum also provides cursors, an abstraction that provides atom-like interface to subtrees inside an atom:
+The internal state cannot be directly manipulated, except at certain stages of component lifecycle. Mixins are functions that are invoked at these stages and modify state and/or do side effects to the world.
+
+This mixin will record component’s mount time:
 
 ```clojure
-(def state (atom {:color  "#cc3333"
-                  :label1 "Hello"
-                  :label2 "Goodbye"}))
-
-(rum/defc label < rum/cursored [color text]
-  [:.label {:style {:color @color}} @text])
-
-(rum/defc body < rum/cursored rum/cursored-watch [state]
-  [:div
-    (label (rum/cursor state [:color]) (rum/cursor state [:label1]))
-    (label (rum/cursor state [:color]) (rum/cursor state [:label2]))])
-
-(rum/mount (body state) js/document.body)
-
-;; will cause re-rendering of second label only
-(swap! state assoc :label2 "Good bye")
-
-;; both will be re-rendered
-(swap! state assoc :color "#000")
-
-;; cursors can be swapped and reseted just like atoms
-(reset! (rum/cursor state [:label1]) "Hi")
+(rum/defcs time-label < { :did-mount (fn [state]
+                                       (assoc state ::time (Date.))) }
+  [state label]
+  [:div label ": " (::time state)])
 ```
 
-Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They can be used with `reactive` components as well.
+As you can see, `:did-mount` is a function from `state` to `state` and can populate, clean or modify it just after component has been mounted.
 
-Beauty of Rum approach is that you can combine multiple mixins inside single component and you can use completely different classes around the tree. You can have top-level `reactive` component, couple of nested `static` ones, then a component which updates every second, and inside it a `cursored` one. Decomplected, powerful, simple.
+This mixin will update component each second:
 
-## Rum component model
+```clojure
+(def periodic-update-mixin
+  { :did-mount      (fn [state]
+                      (let [comp      (:rum/react-component state)
+                            callback #(rum/request-render comp)
+                            interval  (js/setInterval callback 1000)]
+                         (assoc state ::interval interval)))
+    :transfer-state (fn [old-state state]
+                      (assoc state (::interval old-state)))
+    :will-unmount   (fn [state]
+                      (js/clearInterval (::interval state))
+                      (dissoc state ::interval)) })
 
-Rum defines classes and components. Internally they are React’s classes and components.
+(rum/defc timer < periodic-update-mixin []
+  [:div (.toISOString (js/Date.))])
+  
+(rum/mount (timer) js/document.body)
+```
 
-Each component in Rum has state associated with it. State is just a CLJS map with:
+Two gotchas:
 
-* `:rum/react-component` — link to React component/element object
-* `:rum/id` — unique component id
-* everything mixins are using for their internal bookkeeping
-* anything you’ve put there (feel free to populate state with your own stuff!)
+- Don’t forget to return `state` from mixin functions. If you’re using them for side-effects only, just return unmodified `state`.
+- If you put something into state in `:did-mount`/`:will-mount`, write a `:transfer-state` function that will move that attribute from old component instance to the new one.
 
-Reference to current state is stored as `volatile!` boxed value at `state[":rum/state"]`.
-Effectively state is mutable, but components do not change volatile reference directly,
-instead all lifecycle functions accept and return state value.
-
-Classes define component behavior, including render function. Class is built from multiple mixins. 
-
-Mixins are basic building blocks for designing new components behaviors in Rum. Each mixin is just a map of one or more of following functions:
+Here’s a full list of callbacks you can define in a mixin:
 
 ```clojure
 { :init                 ;; state, props     ⇒ state
@@ -281,81 +376,103 @@ Mixins are basic building blocks for designing new components behaviors in Rum. 
   :child-context        ;; state            ⇒ child-context }
 ```
 
-To define arbitrary properties and methods on a component class, specify `:class-properties` map:
+Each component can have any number of mixins:
 
 ```clojure
-{ :class-properties { ... } }
+(rum/defcs component < rum/static 
+                       rum/reactive
+                       (rum/local 0 ::count)
+                       (rum/local "" ::text)
+  [state label]
+  (let [count-atom (::count state)
+        text-atom  (::text state)]
+    [:div])
 ```
 
-Imagine a class built from N mixins. When lifecycle event happens in React (e.g. `componentDidMount`), all `:did-mount` functions from first mixin to last will be invoked one after another, threading current state value through them. State returned from last `:did-mount` mixin will be stored in volatile state reference by Rum. Similarly, `context` maps from multiple mixins are combined into one map.
+### Interop with React
 
-Rendering is modeled differently. There must be single `:render` function that accepts state and return 2-vector of dom and new state. If mixin wants to modify render behavior, it should provide `:wrap-render` fn that accepts render function and returns modified render function (similar to ring middlewares). `:wrap-render` fns are applied from left to right, e.g. original `:render` is first passed to first `:wrap-render` function, result is then passed to second one and so on.
-
-## Writing your own mixin
-
-Sample mixin that forces re-render every second:
+You can access raw React component by reading `:rum/react-component` attribute from state:
 
 ```clojure
-(def autorefresh-mixin {
-  :did-mount (fn [state]
-               (let [comp      (:rum/react-component state)
-                     callback #(rum/request-render comp)
-                     interval  (js/setInterval callback 1000)]
-                 (assoc state ::interval interval)))
-  :transfer-state (fn [old-state state]
-                    (merge state (select-keys old-state [::interval])))
-  :will-unmount (fn [state]
-                  (js/clearInterval (::interval state)))})
-
-(rum/defc timer < autorefresh-mixin []
-  [:div.timer (.toISOString (js/Date.))])
+{ :did-mount (fn [state]
+               (let [comp     (:rum/react-component state)
+                     dom-node (js/ReactDOM.findDOMNode comp)]
+                 (set! (.-width (.-style dom-node)) "100px"))
+               state) }
 ```
 
-## How it all fits together
-
-Imagine you have simple render function:
+You can’t specify React key from inside component, but you can do so when you create it:
 
 ```clojure
-(defn render-label [text]
-  (sablono.core/html
-    [:div.label text]))
-```
-
-To convert it to React component, you create a mixin:
-
-```clojure
-(def label-mixin {
-  {:render (fn [state]
-              [(render-label (:text state)) state])}})
-```
-
-Then you build React class from this single mixin:
-
-```clojure
-(def label-class (rum/build-class [label-mixin] "label-class"))
-```
-
-And define simple wrapper that creates React element from that class:
-
-```clojure
-(defn label-ctor [text]
-  (rum/element label-class {:text text} nil))
-```
-
-Finally, you call ctor to get instance of element and mount it somewhere on a page:
-
-```clojure
-(rum/mount (label-ctor "Hello") js/document.body)
-```
-
-This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`, everything can be simplified to a much more compact code:
-
-```clojure
-(rum/defc label [text]
-  [:div.label text])
+(rum/defc my-component [str]
+  ...)
   
-(rum/mount (label "Hello") js/document.body)
+(rum/with-key (my-component "args") 77)
 ```
+
+To define arbitrary properties and methods on a component class, specify `:class-properties` map in a mixin:
+
+```clojure
+(rum/defc comp < { :class-properties { ... } }
+  [:div]))
+```
+
+### Server-side rendering
+
+If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
+
+1. Import `rum.core` as usual.
+2. Define components using `rum/defc` or other macros as usual.
+3. Instead of mounting, call `rum/render-html` to render into a string.
+4. Generate HTML page using that string.
+5. On a client, mount _the same_ component over the node where you rendered your server-side component.
+
+```clojure
+(require '[rum.core :as rum])
+
+(rum/defc my-comp [s]
+  [:div s])
+
+;; on a server
+(rum/render-html (my-comp "hello"))
+;; => "<div data-reactroot=\"\" data-reactid=\"1\" data-react-checksum=\"-857140882\">hello</div>"
+
+;; on a client
+(rum/mount (my-comp "hello") (js/document.querySelector "[data-reactroot]))
+```
+
+Use `rum/render-static-markup` if you’re not planning to connect your page with React later:
+
+```clojure
+(rum/render-static-markup (my-comp "hello")) ;; => <div>hello</div>
+```
+
+Rum server-side rendering does not use React or Sablono, it runs completely in JVM, without involving JavaScript at any stage.
+
+As of `[rum "0.8.3"]` and `[hiccup "1.0.5"]`, Rum is ~3× times faster than Hiccup.
+
+Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component construction time.
+
+## Resources
+
+Ask for help on [Gitter channel](https://gitter.im/tonsky/rum)
+
+### Libraries
+
+- [Reforms](http://bilus.github.io/reforms/), Bootstrap 3 forms
+- [rum-mdl](http://ajchemist.github.io/rum-mdl/), Material design lite components
+
+### Examples
+
+- In this repo see [examples/rum/examples/](examples/rum/examples/). [Live version](http://tonsky.me/rum/)
+- [DataScript Chat app](https://github.com/tonsky/datascript-chat)
+- [DataScript ToDo app](https://github.com/tonsky/datascript-todo)
+- [DataScript Menu app](https://github.com/tonsky/datascript-menu)
+
+### Talks
+
+- [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
+- [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
 
 ## Changes
 
@@ -457,7 +574,7 @@ This is a detailed breakdown of what happens inside of Rum. By using `rum/defc`,
 
 Rum was build on inspiration from [Quiescent](https://github.com/levand/quiescent), [Om](https://github.com/swannodette/om) and [Reagent](https://github.com/reagent-project/reagent).
 
-All heavy lifting done by [React](http://facebook.github.io/react/) and [ClojureScript](https://github.com/clojure/clojurescript).
+All heavy lifting done by [React](http://facebook.github.io/react/), [Ŝablono](https://github.com/r0man/sablono) and [ClojureScript](https://github.com/clojure/clojurescript).
 
 ## License
 
