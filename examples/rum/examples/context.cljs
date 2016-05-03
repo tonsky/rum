@@ -3,33 +3,18 @@
     [rum.core :as rum]
     [rum.examples.core :as core]))
 
-;; Components with context that all descendants have access
-;; to implicitly.
+;; Components with context that all descendants have access to implicitly.
 
-;; This is useful when you are using child components you
-;; cannot modify. For example, a JS library that gives you
-;; components which rely on a context value being set by an
-;; ancestor component.
-
-;; Assume the following component comes from a third party library
-;; which relies on (.-context this).
-(def child-from-lib-class
-  (js/React.createClass #js {
-    :contextTypes
-    #js {:color js/React.PropTypes.string}
-    :displayName
-    "child-from-lib"
-    :render
-    (fn []
-      (this-as this
-        (js/React.createElement
-          "div"
-          #js {:style #js {:color (.. this -context -color)}}
-          "Child component uses context to color font.")))}))
+;; This is useful when you are using child components you cannot modify. 
+;; For example, a JS library that gives you components which rely on a context
+;; value being set by an ancestor component.
 
 
-(defn child-from-lib-ctor []
-  (rum/element child-from-lib-class {}))
+(rum/defcc rum-context-comp < { :class-properties { :contextTypes {:color js/React.PropTypes.string}}}
+  [comp]
+  [:span
+    { :style { :color (.. comp -context -color) }}
+    "Child component uses context to set font color."])
 
 
 ;; Assume the following component is from our source code.
@@ -40,8 +25,8 @@
 
 (rum/defc context < color-theme []
   [:div
-   [:div "Root component implicitly passes data to descendants."]
-   (child-from-lib-ctor)])
+    [:div "Root component implicitly passes data to descendants."]
+    (rum-context-comp)])
 
 
 (defn mount! [mount-el]
