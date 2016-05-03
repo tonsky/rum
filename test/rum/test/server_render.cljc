@@ -230,7 +230,7 @@
       ;; compare html rendered with react 
       ;;      to html rendered with rum/render-html
       (let [react-html (slurp (str render-dir "/" name ".html"))
-            rum-html   (rum/render-html (ctor))]
+            rum-html   (rum/render-html-str (ctor))]
         (is (= react-html rum-html)))))))
 
 

@@ -223,6 +223,13 @@
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
+(deftype HtmlRendered [^StringBuilder sb]
+  Object
+  (toString [_] (str sb))
+  ToString
+  (to-str [_] (str sb)))
+
+
 (defn render-inner-html! [attrs children sb]
   (when-let [inner-html (:dangerouslySetInnerHTML attrs)]
     (when-not (empty? children)
@@ -292,6 +299,10 @@
         (append! sb "<!-- react-text: " key " -->" (escape-html this) "<!-- /react-text -->"))
       (append! sb (escape-html this))))
 
+  HtmlRendered
+  (-render-html [this _ _ sb]
+    (append! sb (str this)))
+
   Object
   (-render-html [this parent *key sb]
     (-render-html (str this) parent *key sb))
@@ -341,10 +352,17 @@
     (let [sb (StringBuilder.)]
       (-render-html src nil (volatile! 1) sb)
       (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
-      (str sb))))
+      (HtmlRendered. sb))))
+
+(defn render-html-str
+  [& xs]
+  (str (apply render-html xs)))
 
 
 (defn render-static-markup [src]
   (let [sb (StringBuilder.)]
     (-render-html src nil nil sb)
-    (str sb)))
+    (HtmlRendered. sb)))
+
+(defn render-static-markup-str [src]
+  (str (render-static-markup src)))

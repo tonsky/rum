@@ -9,13 +9,19 @@
 
 (def props
   {:msgData "Components can store custom data on the underlying React component."
-   :msgMethod #(this-as this
-                 [:div {:style {:cursor "pointer"}
-                        :on-mouse-move
-                        (fn [_]
-                          (aset this "msgData" (rand))
-                          (rum/request-render this))}
-                  "Custom methods too. Hover me!"])})
+   :msgMethod
+   #(this-as this
+      [:div {:style {:cursor "pointer"}
+             :on-mouse-move
+             (fn [_]
+               (let [color (str "#" (-> (rand)
+                                      (* 0xffffff)
+                                      (js/Math.floor)
+                                      (.toString 16)))]
+                 (reset! core/*color color)
+                 (aset this "msgData" [:div {:style {:color color}} (:msgData props)])
+                 (rum/request-render this)))}
+       "Custom methods too. Hover me!"])})
 
 
 (rum/defcc custom-props < {:class-properties props} [this]
