@@ -9,6 +9,8 @@
        (vector? (first form))))
 
 (defn- parse-defc [xs]
+  (when-not (instance? clojure.lang.Symbol (first xs))
+    (throw (IllegalArgumentException. "First argument to defc must be a symbol")))
   (loop [res  {}
          xs   xs
          mode nil]
