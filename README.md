@@ -192,7 +192,7 @@ This is already enough to build a simple click counter:
 
 Rum offers mixins as a way to hook into component lifecycle and extend its capabilities or change its behaviour.
 
-One very common use-case is for component to update when some reference changes. Rum has `rum.core/reative` mixin just for that:
+One very common use-case is for component to update when some reference changes. Rum has `rum.core/reactive` mixin just for that:
 
 ```clojure
 (def count (atom 0))
