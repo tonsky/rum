@@ -165,7 +165,7 @@ Better way is to use `(rum.core/request-render react-component)` which will sche
 (rum/defc my-app []
   [:div (rand)])
 
-(let [react-comp (rum/mount (my-app) js/document.body]
+(let [react-comp (rum/mount (my-app) js/document.body)]
   (js/setTimeout #(rum/request-render react-comp) 1000))
 ```
 
@@ -182,7 +182,7 @@ This is already enough to build a simple click counter:
   [:div { :on-click (fn [_] (swap! count inc)) }
     "Clicks: " @count])
     
-(let [react-comp (rum/mount (counter) js/document.body]
+(let [react-comp (rum/mount (counter) js/document.body)]
   (add-watch count ::render
     (fn [_ _ _ _]
       (rum/request-render react-comp))))
