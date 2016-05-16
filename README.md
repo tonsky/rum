@@ -342,7 +342,7 @@ This mixin will update component each second:
                             interval  (js/setInterval callback 1000)]
                          (assoc state ::interval interval)))
     :transfer-state (fn [old-state state]
-                      (assoc state (::interval old-state)))
+                      (assoc state ::interval (::interval old-state)))
     :will-unmount   (fn [state]
                       (js/clearInterval (::interval state))
                       (dissoc state ::interval)) })
