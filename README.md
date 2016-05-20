@@ -8,9 +8,9 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
 
 **Decomplected** Rum is a library, not a framework. Use only parts you need, throw away or replace what you don’t need, combine different approaches in a single app, or even combine Rum with other frameworks.
 
-**No enforced state model** Unlike Om, Reagent or Quiescent, Rum does not dictate you where to keep your state. Instead, it works well with any storage: persistent data structures, atoms, DataScript, JavaScript objects, localStorage or any custom solution you can think of.gi
+**No enforced state model** Unlike Om, Reagent or Quiescent, Rum does not dictate you where to keep your state. Instead, it works well with any storage: persistent data structures, atoms, DataScript, JavaScript objects, localStorage or any custom solution you can think of.
 
-**Extensible** API is stable and explicitly defined, including API between Rum internals. It lets you build custom behaviours that change components in a significan ways.
+**Extensible** API is stable and explicitly defined, including API between Rum internals. It lets you build custom behaviours that change components in significant ways.
 
 **Minimal codebase** You can become Rum expert just by reading its source code (~700 lines)
 
@@ -264,7 +264,7 @@ You can change `:rum/local` key to any other by specifying second argument to `r
 
 ### Optimizing with shouldComponentUpdate
 
-If you component accepts only immutable data structures as arguments, it might be a good idea to add `rum.core/static` mixin:
+If your component accepts only immutable data structures as arguments, it might be a good idea to add `rum.core/static` mixin:
 
 ```clojure
 (rum/defc label < rum/static [n text]
@@ -283,9 +283,9 @@ Note that this is not enabled by default because a) comparisons might be expensi
 
 ### Writing your own mixin
 
-Many applications have very specific requirements and custom optimization opportunities, so odds are you’ll be also writing your own mixins.
+Many applications have very specific requirements and custom optimization opportunities, so odds are you’ll be writing your own mixins.
 
-Let’s see what Rum component really is. Each Rum component has:
+Let’s see what a Rum component really is. Each Rum component has:
 
 - A render function
 - One or more mixins
