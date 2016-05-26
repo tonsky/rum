@@ -356,7 +356,7 @@ This mixin will update a component each second:
 Two gotchas:
 
 - Don’t forget to return `state` from the mixin functions. If you’re using them for side-effects only, just return an unmodified `state`.
-- If you put add something to the state through `:did-mount`/`:will-mount`, you must write a `:transfer-state` function to move that attribute from the old component instance to the new one.
+- If you add something to the state through `:did-mount`/`:will-mount`, you must write a `:transfer-state` function to move that attribute from the old component instance to the new one.
 
 Here’s a full list of callbacks you can define in a mixin:
 
