@@ -1,6 +1,7 @@
 (ns rum.server-render
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [rum.server :as server])
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
@@ -305,7 +306,14 @@
         (render-content! tag attrs children *key sb))
       (render-content! tag attrs children *key sb))))
 
-
+        
+(defn render-nothing [*key sb]
+  (when *key
+    (let [key @*key]
+      (vswap! *key inc)
+      (append! sb "<!-- react-empty: " key " -->"))))
+        
+        
 (extend-protocol HtmlRenderer
   IPersistentVector
   (-render-html [this parent *key sb]
@@ -331,7 +339,9 @@
 
   Object
   (-render-html [this parent *key sb]
-    (-render-html (str this) parent *key sb))
+    (if (identical? server/nothing this)
+      (render-nothing *key sb)
+      (-render-html (str this) parent *key sb)))
 
   nil
   (-render-html [this parent *key sb]
@@ -377,7 +387,8 @@
   ([src opts]
     (let [sb (StringBuilder.)]
       (-render-html src nil (volatile! 1) sb)
-      (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\""))
+      (when-not (identical? server/nothing src)
+        (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\"")))
       (str sb))))
 
 

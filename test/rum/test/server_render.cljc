@@ -64,6 +64,19 @@
      [:div.child2])])
 
 
+(rum/defc comp-nothing []
+  nil)
+
+
+(rum/defc comp-nothing2 []
+  [:div
+    [:div (comp-nothing)]
+    [:div "a" (comp-nothing)]
+    [:div (comp-nothing) "b"]
+    [:div "a" (comp-nothing) "b"]
+    [:div [:.a] (comp-nothing) [:.b]]])
+
+
 (rum/defc comp-span []
   [:div
    "test"
@@ -198,6 +211,8 @@
     "header"      comp-header
     "nil1"        comp-nil1
     "nil2"        comp-nil2
+    "nothing"     comp-nothing
+    "nothing2"    comp-nothing2
     "span"        comp-span
     "campaign"    comp-campaign
     "styles"      comp-styles

@@ -1,6 +1,10 @@
 (ns rum.server
   (:require [rum.utils :refer [next-id collect call-all]]))
 
+
+(defonce nothing (Object.))
+
+
 (defn build-class [classes display-name]
   (assert (sequential? classes))
   (let [init             (collect :init classes)                ;; state props -> state
@@ -17,27 +21,34 @@
                             (call-all will-mount)
                             (call-all did-mount))
             [dom state] (wrapped-render state)]
-        (or dom [:noscript])))))
+        (or dom nothing)))))
+
 
 (defn args->state [args]
   {:rum/args args})
 
+
 (defn element [class state & [props]]
   (class (assoc props :rum/initial-state state)))
+
 
 (defn render->mixin [render-fn]
   { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
 
+
 (defn render-state->mixin [render-fn]
   { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
 
+
 (defn render-comp->mixin [render-fn]
   { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
+
 
 (defn with-key [element key]
   (if (map? (get element 1))
     (assoc-in element [1 :key] key)
     (into [(first element) {:key key}] (next element))))
+
 
 (defn with-ref [element ref]
   element)
