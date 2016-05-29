@@ -7,8 +7,8 @@
   :dependencies
   [[org.clojure/clojure        "1.7.0"   :scope "provided"]
    [org.clojure/clojurescript  "1.7.228" :scope "provided"]
-   [cljsjs/react               "15.0.1-1"]
-   [cljsjs/react-dom           "15.0.1-1"]
+   [cljsjs/react               "15.1.0-0"]
+   [cljsjs/react-dom           "15.1.0-0"]
    [sablono                    "0.7.1"]]
 
   :global-vars
@@ -18,7 +18,7 @@
 
   :profiles {
     :dev  { :source-paths ["examples" "target/classes"]
-            :dependencies [[cljsjs/react-dom-server "15.0.1-1"]]
+            :dependencies [[cljsjs/react-dom-server "15.1.0-0"]]
             :java-source-paths ["test"]}
     :perf { :source-paths ["perf"]
             :dependencies 
