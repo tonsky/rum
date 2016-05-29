@@ -4,6 +4,7 @@
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
+(def ^:dynamic *select-value*)
 
 (defn append!
   ([^StringBuilder sb s0] (.append sb s0))
@@ -47,10 +48,26 @@
 
 
 (def attr-mapping
-  { :class-name "class"
-    :className  "class"
-    :html-for   "for"
-    :htmlFor    "for" })
+  { :class-name      "class"
+    :className       "class"
+    :html-for        "for"
+    :htmlFor         "for"
+    :default-value   "value"
+    :defaultValue    "value"
+    :default-checked "checked"
+    :defaultChecked  "checked" })
+
+
+(defn get-class [attrs]
+  (or (:class attrs)
+      (:class-name attrs)
+      (:className attrs)))
+
+
+(defn get-value [attrs]
+  (or (:value attrs)
+      (:default-value attrs)
+      (:defaultValue attrs)))
 
 
 (defn normalize-attr-key ^String [key]
@@ -116,9 +133,7 @@
                                  (nil? second))
                            [second rest]
                            [nil    (cons second rest)])
-        attrs-classes    (or (:class attrs)
-                             (:class-name attrs)
-                             (:className attrs))
+        attrs-classes    (get-class attrs)
         classes          (if (and tag-classes attrs-classes)
                            [tag-classes attrs-classes]
                            (or tag-classes attrs-classes))]
@@ -198,12 +213,16 @@
         (append! sb "\"")))))
 
 
-(defn render-attr! [key value sb]
+(defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
     (cond
+      (= "type" attr)  :nop ;; rendered manually in render-element! before id
       (= "style" attr) (render-style! value sb)
       (= "key" attr)   :nop
       (= "class" attr) :nop
+      (and (= "value" attr)
+           (or (= "select" tag)
+               (= "textarea" tag))) :nop
       (not value)      :nop
       (true? value)    (append! sb " " attr "=\"\"")
       (.startsWith attr "on")            :nop
@@ -211,8 +230,8 @@
       :else            (append! sb " " attr "=\"" (to-str value) "\""))))
 
 
-(defn render-attrs! [attrs sb]
-  (reduce-kv (fn [_ k v] (render-attr! k v sb)) nil attrs))
+(defn render-attrs! [tag attrs sb]
+  (reduce-kv (fn [_ k v] (render-attr! tag k v sb)) nil attrs))
 
 
 ;;; render html
@@ -232,14 +251,22 @@
     (append! sb (:__html inner-html))
     true))
 
-  
+
+(defn render-textarea-value! [tag attrs sb]
+  (when (= tag "textarea")
+    (when-some [value (get-value attrs)]
+      (append! sb (escape-html value))
+      true)))
+
+
 (defn render-content! [tag attrs children *key sb]
   (if (and (nil? children)
            (contains? void-tags tag))
     (append! sb "/>")
     (do
       (append! sb ">")
-      (or (render-inner-html! attrs children sb)
+      (or (render-textarea-value! tag attrs sb)
+          (render-inner-html! attrs children sb)
           (doseq [element children]
             (-render-html element children *key sb)))
       (append! sb "</" tag ">"))))
@@ -251,11 +278,18 @@
   (let [[tag id classes attrs children] (normalize-element element)]
 
     (append! sb "<" tag)
+
+    (when-some [type (:type attrs)]
+      (append! sb " type=\"" type "\""))
+    
+    (when (and (= "option" tag)
+               (= (get-value attrs) *select-value*))
+      (append! sb " selected=\"\""))
     
     (when id
       (append! sb " id=\"" id "\""))
     
-    (render-attrs! attrs sb)
+    (render-attrs! tag attrs sb)
     
     (render-classes! classes sb)
     
@@ -266,7 +300,10 @@
       (append! sb " data-reactid=\"" @*key "\"")
       (vswap! *key inc))
     
-    (render-content! tag attrs children *key sb)))
+    (if (= "select" tag)
+      (binding [*select-value* (get-value attrs)]
+        (render-content! tag attrs children *key sb))
+      (render-content! tag attrs children *key sb))))
 
 
 (extend-protocol HtmlRenderer

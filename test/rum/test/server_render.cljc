@@ -173,6 +173,23 @@
   [:div {:dangerouslySetInnerHTML {:__html "<span>test</span>"}}])
 
 
+(rum/defc comp-inputs []
+  [:div
+    [:input#id {:class "x" :type "text" :auto-complete "off"}]
+    [:input {:type "text"     :default-value "x"}]
+    [:input {:type "checkbox" :default-checked true}]
+    [:input {:type "radio"    :default-checked true}]
+    [:select {:default-value "A"}
+      [:option {:value "A"} "Apple"]
+      [:option {:value "B"} "Banana"]]
+    [:select {:value "A"}
+      [:option#id.class {:value "A"} "Apple"]
+      [:option#id.class {:value "B"} "Banana"]]
+    [:textarea {:value "text"}]
+    [:textarea "text"]
+    [:textarea {:default-value "text"}]])
+
+
 (def components
   { "simple"      comp-simple
     "tag"         comp-tag
@@ -188,7 +205,8 @@
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
     "reactid"     comp-reactid
-    "html"        comp-html })
+    "html"        comp-html
+    "inputs"      comp-inputs})
 
 
 (def render-dir "target/server_render_test")
