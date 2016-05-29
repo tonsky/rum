@@ -32,7 +32,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.8.3"]`
+Add to project.clj: `[rum "0.8.4"]`
 
 ### Defining a component
 
@@ -473,6 +473,12 @@ Ask for help on [Gitter channel](https://gitter.im/tonsky/rum)
 - [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
 
 ## Changes
+
+### 0.8.4
+
+- Improved server-side rendering for inputs (issue #67 & beyond)
+- Compatible server-side rendering of components that return nil (issue #64)
+- Upgraded React to 15.1.0
 
 ### 0.8.3
 
