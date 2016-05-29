@@ -17,9 +17,10 @@
   :plugins [ [lein-cljsbuild "1.1.2"] ]
 
   :profiles {
-    :dev  { :source-paths ["examples"]
+    :dev  { :source-paths ["examples" "target/classes"]
             :dependencies 
-            [[cljsjs/react-dom-server "15.0.1-1"]] }
+            [[cljsjs/react-dom-server "15.0.1-1"]]
+            :java-source-paths ["test"]}
     :perf { :source-paths ["perf"]
             :dependencies 
             [[enlive    "1.1.6"]
