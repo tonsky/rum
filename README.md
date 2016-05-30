@@ -474,6 +474,30 @@ Ask for help on [Gitter channel](https://gitter.im/tonsky/rum)
 
 ## Changes
 
+### 0.9.0
+
+- Better support for server-side rendering of SVG
+- [ BREAKING ] Rum used to support multiple ways to specify attributes. You would expect that both `:allow-full-screen`, `:allowFullScreen` and `"allowFullScreen"` would be normalized to `allowfullscreen`. As a result, you have to face three problems: 
+  - how do I decide which variant to use?
+  - how do I ensure consistency accross my team and our codebase?
+  - find & replace become harder
+
+Starting with 0.9.0, Rum will adopt “There's Only One Way To Do It” policy. All attributes MUST be specified as kebab-cased keywords:
+
+| Attribute | What to use | What not to use |
+| --------- | ----------- | --------------- |
+| class     | `:class`    | ~~`:class-name`~~ ~~`:className`~~ |
+| for       | `:for`      | ~~`:html-for`~~ ~~`:htmlFor`~~ |
+| unescaped innerHTML | `:dangerouslySetInnerHTML { :__html { "..." }}` | |
+| uncontrolled value | `:default-value` | ~~`:defaultValue`~~ |
+| uncontrolled checked | `:default-checked` | ~~`:defaultChecked`~~ |
+| itemid, classid | `:item-id`, `:class-id` | ~~`:itemID`~~ ~~`:itemId`~~ ~~`:itemid`~~|
+| xml:lang etc | `:xml-lang` | ~~`:xml/lang`~~ ~~`:xmlLang`~~ ~~`"xml:lang"`~~ |
+| xlink:href etc | `:xlink-href` | ~~`:xlink/href`~~ ~~`:xlinkHref`~~ ~~`"xlink:href"`~~ |
+| xmlns | not supported |  |
+
+To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-standard variants and replace them with recommended ones.
+
 ### 0.8.4
 
 - Improved server-side rendering for inputs (issue #67 & beyond)

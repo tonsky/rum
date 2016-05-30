@@ -203,6 +203,16 @@
     [:textarea {:default-value "text"}]])
 
 
+(rum/defc comp-svg []
+  [:svg.cclogo
+    { :width 100
+      :height 100
+      :view-box "0 232.5 333.2 232.5" ;; should be rendered as viewBox
+      :vector-effect "effect"         ;; should be rendered as vector-effect
+      :version "1.1"
+      :dangerouslySetInnerHTML {:__html "[...tons of raw SVG removed...]"} }])
+                
+                
 (def components
   { "simple"      comp-simple
     "tag"         comp-tag
@@ -221,7 +231,8 @@
     "classes"     comp-classes
     "reactid"     comp-reactid
     "html"        comp-html
-    "inputs"      comp-inputs})
+    "inputs"      comp-inputs
+    "svg"         comp-svg })
 
 
 (def render-dir "target/server_render_test")

@@ -50,8 +50,12 @@
 
 
 (def normalized-attrs
-  ;; https://github.com/facebook/react/blob/master/src/renderers/dom/shared/HTMLDOMPropertyConfig.js
-  { :accept-charset "accept-charset"
+  { ;; special cases
+    :default-checked "checked"
+    :default-value "value"
+
+    ;; https://github.com/facebook/react/blob/master/src/renderers/dom/shared/HTMLDOMPropertyConfig.js
+    :accept-charset "accept-charset"
     :access-key "accesskey"
     :allow-full-screen "allowfullscreen"
     :allow-transparency "allowtransparency"
@@ -61,14 +65,11 @@
     :cell-spacing "cellspacing"
     :char-set "charset"
     :class-id "classid"
-    :class-name "class"
     :col-span "colspan"
     :content-editable "contenteditable"
     :context-menu "contextmenu"
     :cross-origin "crossorigin"
     :date-time "datetime"
-    :default-checked "checked"
-    :default-value "value"
     :enc-type "enctype"
     :form-action "formaction"
     :form-enc-type "formenctype"
@@ -77,7 +78,6 @@
     :form-target "formtarget"
     :frame-border "frameborder"
     :href-lang "hreflang"
-    :html-for "for"
     :http-equiv "http-equiv"
     :input-mode "inputmode"
     :key-params "keyparams"
@@ -182,16 +182,9 @@
     :zoom-and-pan "zoomAndPan" })
 
 
-(defn get-class [attrs]
-  (or (:class attrs)
-      (:class-name attrs)
-      (:className attrs)))
-
-
 (defn get-value [attrs]
   (or (:value attrs)
-      (:default-value attrs)
-      (:defaultValue attrs)))
+      (:default-value attrs)))
 
 
 (defn normalize-attr-key ^String [key]
@@ -252,7 +245,7 @@
                                  (nil? second))
                            [second rest]
                            [nil    (cons second rest)])
-        attrs-classes    (get-class attrs)
+        attrs-classes    (:class attrs)
         classes          (if (and tag-classes attrs-classes)
                            [tag-classes attrs-classes]
                            (or tag-classes attrs-classes))]
