@@ -32,7 +32,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.8.4"]`
+Add to project.clj: `[rum "0.9.0"]`
 
 ### Defining a component
 
