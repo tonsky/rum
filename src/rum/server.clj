@@ -45,8 +45,14 @@
 
 
 (defn with-key [element key]
-  (if (map? (get element 1))
+  (cond
+    (identical? element nothing)
+    element
+
+    (map? (get element 1))
     (assoc-in element [1 :key] key)
+
+    :else
     (into [(first element) {:key key}] (next element))))
 
 
