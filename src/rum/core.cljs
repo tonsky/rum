@@ -28,7 +28,8 @@
         props->state        (fn [props]
                               (call-all (aget props ":rum/initial-state") init props))
         child-context       (collect :child-context classes)       ;; state -> child-context
-        class-properties    (reduce merge (collect :class-properties classes))] ;; custom properties and methods
+        class-properties    (reduce merge (collect :class-properties classes)) ;; custom properties and methods
+        statics             (reduce merge (collect :statics classes))] ;; custom static methods
 
     (-> {:displayName display-name
          :getInitialState
@@ -93,7 +94,9 @@
            (fn []
              (this-as this
                (let [state @(state this)]
-                 (clj->js (transduce (map #(% state)) merge {} child-context))))))}
+                 (clj->js (transduce (map #(% state)) merge {} child-context))))))
+         :statics
+         (clj->js statics)}
       (merge class-properties)
       (clj->js)
       (js/React.createClass))))
@@ -240,7 +243,7 @@
     (-equiv this other))
 
   IAtom
-  
+
   IEquiv
   (-equiv [this other]
     (identical? this other))
@@ -258,7 +261,7 @@
           (when (not= old new)
             (f key this old new)))))
     this)
-  
+
   (-remove-watch [this key]
     (remove-watch parent (list this key))
     this)
@@ -280,7 +283,7 @@
     (-reset! this (f (-deref this) a b)))
   (-swap! [this f a b xs]
     (-reset! this (apply f (-deref this) a b xs)))
-  
+
   IPrintWithWriter
   (-pr-writer [this writer opts]
     (-write writer "#<Cursor: ")
@@ -294,7 +297,7 @@
       (LensCursor. (.-parent ref)
                    (comp getter (.-getter ref))
                    (fn [where what]
-                     (as-> ((.-getter ref) where) focus 
+                     (as-> ((.-getter ref) where) focus
                        (setter focus what)
                        ((.-setter ref) where focus))))
       (LensCursor. ref getter setter))))
