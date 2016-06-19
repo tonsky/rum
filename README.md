@@ -32,7 +32,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.9.0"]`
+Add to project.clj: `[rum "0.9.1"]`
 
 ### Defining a component
 
@@ -473,6 +473,24 @@ Ask for help on [Gitter channel](https://gitter.im/tonsky/rum)
 - [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
 
 ## Changes
+
+### 0.9.1
+
+- Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes. Do:
+
+```clj
+(def *a (atom 2))
+(def *b (atom 3))
+(def *c (rum.core/derived-atom [*a *b] ::c-sum (fn [a b] (+ a b))))
+@*c ;; => 5
+(swap! *a inc)
+@*c ;; => 6
+(swap! *b + 10)
+@*c ;; => 16
+```
+
+- Added `rum.core/dom-node` helper that takes state and finds corresponding top DOM node of a component. Can be called in mixins after initial render only
+- Fixed compatibility of `with-key` on nil-returning component in server rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #73)
 
 ### 0.9.0
 
