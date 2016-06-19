@@ -232,6 +232,11 @@
   (vswap! *reactions* conj ref)
   @ref)
 
+
+;; derived-atom
+
+(def derived-atom utils/derived-atom)
+
 ;; cursors
 
 (deftype LensCursor [parent getter setter]

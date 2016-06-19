@@ -2,7 +2,8 @@
   (:require
    [sablono.compiler :as s]
    [rum.server :as server]
-   [rum.server-render :as render]))
+   [rum.server-render :as render]
+   [rum.utils :as utils]))
 
 (defn- fn-body? [form]
   (and (seq? form)
@@ -99,6 +100,8 @@
                 (partition 2)
                 (mapcat (fn [[k v]] [(props k) v])))]
     `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
+
+(def derived-atom utils/derived-atom)
 
 ;;; Server-side rendering support
 
