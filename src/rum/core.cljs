@@ -162,6 +162,9 @@
 (defn with-ref [element ref]
   (js/React.cloneElement element #js { "ref" ref } nil))
 
+(defn dom-node [state]
+  (js/ReactDOM.findDOMNode (:rum/react-component state)))
+
 ;; static mixin
 
 (def static {
