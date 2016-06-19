@@ -453,7 +453,8 @@ Server-side components do not have full lifecycle support, but `:init`, `:will-m
 
 ## Resources
 
-Ask for help on [Gitter channel](https://gitter.im/tonsky/rum)
+- Ask for help on [Gitter chat](https://gitter.im/tonsky/rum)
+- Check out [our wiki](https://github.com/tonsky/rum/wiki)
 
 ### Libraries
 
