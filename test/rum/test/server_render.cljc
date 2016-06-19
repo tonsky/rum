@@ -3,13 +3,10 @@
     [rum.core :as rum]
     [clojure.string :as str]
   #?@(:clj  [[clojure.test :refer [deftest is are testing]]
-             [clojure.java.shell :as shell]]
+             [clojure.java.shell :as shell]
+             [clj-diffmatchpatch :as diff]]
       :cljs [[cljs.test :refer-macros [deftest is are testing]]
-             [cljsjs.react.dom.server]]))
-#?(:clj
-    (:import
-      [name.fraser.neil.plaintext diff_match_patch])))
-
+             [cljsjs.react.dom.server]])))
 
 (rum/defc comp-simple []
   [:div
@@ -267,11 +264,12 @@
 #?(:clj
 (defn diff [s1 s2]
   (->>
-    (.diff_main (diff_match_patch.) s1 s2)
-    (map #(case (str (.-operation %))
-            "DELETE" (str "\033[37;41;1m" (.-text %) "\033[0m")
-            "INSERT" (str "\033[37;42;1m" (.-text %) "\033[0m")
-            "EQUAL"  (.-text %)))
+    (diff/wdiff s1 s2)
+    (map (fn [[op text]]
+           (case op
+             :delete (str "\033[37;41;1m" text "\033[0m")
+             :insert (str "\033[37;42;1m" text "\033[0m")
+             :equal  text)))
     (str/join))))
             
 
@@ -290,5 +288,3 @@
       (let [react-html (slurp (str render-dir "/" name ".html"))
             rum-html   (rum/render-html (ctor))]
         (is (= react-html rum-html) (diff react-html rum-html)))))))
-
-

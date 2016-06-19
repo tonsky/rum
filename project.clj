@@ -17,16 +17,16 @@
   :plugins [ [lein-cljsbuild "1.1.2"] ]
 
   :profiles {
-    :dev  { :source-paths ["examples" "target/classes"]
-            :dependencies [[cljsjs/react-dom-server "15.1.0-0"]]
-            :java-source-paths ["test"]}
+    :dev  { :source-paths ["examples"]
+            :dependencies [[cljsjs/react-dom-server "15.1.0-0"]
+                           [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
             :dependencies 
             [[enlive    "1.1.6"]
              [criterium "0.4.4"]
              [hiccup    "1.0.5"]] } }
   
-  :aliases {"package" ["do" ["clean"] ["test"] ["clean"] ["javac"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]
+  :aliases {"package" ["do" ["clean"] ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]
             "perf"    ["with-profile" "perf" "run" "-m" "rum.perf"]}
   
   
