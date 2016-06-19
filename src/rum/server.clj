@@ -2,9 +2,6 @@
   (:require [rum.utils :refer [next-id collect call-all]]))
 
 
-(defonce nothing (Object.))
-
-
 (defn build-class [classes display-name]
   (assert (sequential? classes))
   (let [init             (collect :init classes)                ;; state props -> state
@@ -21,7 +18,12 @@
                             (call-all will-mount)
                             (call-all did-mount))
             [dom state] (wrapped-render state)]
-        (or dom nothing)))))
+        (or dom [::nothing])))))
+
+
+(defn nothing? [element]
+  (and (vector? element)
+       (= ::nothing (first element))))
 
 
 (defn args->state [args]
@@ -46,9 +48,9 @@
 
 (defn with-key [element key]
   (cond
-    (identical? element nothing)
+    (nothing? element)
     element
-
+    
     (map? (get element 1))
     (assoc-in element [1 :key] key)
 

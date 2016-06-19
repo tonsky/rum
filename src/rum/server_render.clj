@@ -387,43 +387,40 @@
 (defn render-element!
   "Render an element vector as a HTML element."
   [element *key sb]
-  (let [[tag id classes attrs children] (normalize-element element)]
-
-    (append! sb "<" tag)
-
-    (when-some [type (:type attrs)]
-      (append! sb " type=\"" type "\""))
-    
-    (when (and (= "option" tag)
-               (= (get-value attrs) *select-value*))
-      (append! sb " selected=\"\""))
-    
-    (when id
-      (append! sb " id=\"" id "\""))
-    
-    (render-attrs! tag attrs sb)
-    
-    (render-classes! classes sb)
-    
+  (if (server/nothing? element)
     (when *key
-      (when (== @*key 1)
-        (append! sb " data-reactroot=\"\""))
+      (let [key @*key]
+        (vswap! *key inc)
+        (append! sb "<!-- react-empty: " key " -->")))
+    (let [[tag id classes attrs children] (normalize-element element)]
+      (append! sb "<" tag)
 
-      (append! sb " data-reactid=\"" @*key "\"")
-      (vswap! *key inc))
-    
-    (if (= "select" tag)
-      (binding [*select-value* (get-value attrs)]
-        (render-content! tag attrs children *key sb))
-      (render-content! tag attrs children *key sb))))
+      (when-some [type (:type attrs)]
+        (append! sb " type=\"" type "\""))
 
-        
-(defn render-nothing [*key sb]
-  (when *key
-    (let [key @*key]
-      (vswap! *key inc)
-      (append! sb "<!-- react-empty: " key " -->"))))
-        
+      (when (and (= "option" tag)
+                 (= (get-value attrs) *select-value*))
+        (append! sb " selected=\"\""))
+
+      (when id
+        (append! sb " id=\"" id "\""))
+
+      (render-attrs! tag attrs sb)
+
+      (render-classes! classes sb)
+
+      (when *key
+        (when (== @*key 1)
+          (append! sb " data-reactroot=\"\""))
+
+        (append! sb " data-reactid=\"" @*key "\"")
+        (vswap! *key inc))
+
+      (if (= "select" tag)
+        (binding [*select-value* (get-value attrs)]
+          (render-content! tag attrs children *key sb))
+        (render-content! tag attrs children *key sb)))))
+
         
 (extend-protocol HtmlRenderer
   IPersistentVector
@@ -450,9 +447,7 @@
 
   Object
   (-render-html [this parent *key sb]
-    (if (identical? server/nothing this)
-      (render-nothing *key sb)
-      (-render-html (str this) parent *key sb)))
+    (-render-html (str this) parent *key sb))
 
   nil
   (-render-html [this parent *key sb]
@@ -498,7 +493,7 @@
   ([src opts]
     (let [sb (StringBuilder.)]
       (-render-html src nil (volatile! 1) sb)
-      (when-not (identical? server/nothing src)
+      (when-not (server/nothing? src)
         (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\"")))
       (str sb))))
 

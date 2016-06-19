@@ -74,7 +74,8 @@
     [:div "a" (comp-nothing)]
     [:div (comp-nothing) "b"]
     [:div "a" (comp-nothing) "b"]
-    [:div [:.a] (comp-nothing) [:.b]]])
+    [:div [:.a] (comp-nothing) [:.b]]
+    [:div (rum/with-key (comp-nothing) "K")]])
 
 
 (rum/defc comp-span []
