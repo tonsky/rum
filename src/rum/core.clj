@@ -3,13 +3,16 @@
    [sablono.compiler :as s]
    [rum.server :as server]
    [rum.server-render :as render]
-   [rum.utils :as utils]))
+   [rum.util :as util]))
 
 (defn- fn-body? [form]
   (and (seq? form)
        (vector? (first form))))
 
-(defn- parse-defc [xs]
+(defn- parse-defc
+  ":name  :doc?  <? :mixins* :bodies+
+   symbol string <  exprs    fn-body?"
+  [xs]
   (when-not (instance? clojure.lang.Symbol (first xs))
     (throw (IllegalArgumentException. "First argument to defc must be a symbol")))
   (loop [res  {}
@@ -41,7 +44,7 @@
                     (map (fn [[arglist & _body]] arglist) bodies)
                     (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))]
     `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
-       ~(or doc "")
+       ~@(if doc [doc] [])
        (let [render-mixin# (~render-ctor (fn ~@render-fn))
              class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
              ctor#         (fn [& args#]
@@ -101,7 +104,7 @@
                 (mapcat (fn [[k v]] [(props k) v])))]
     `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
 
-(def derived-atom utils/derived-atom)
+(def derived-atom util/derived-atom)
 
 ;;; Server-side rendering support
 

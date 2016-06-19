@@ -1,11 +1,11 @@
 (ns rum.core
-  (:require-macros rum.core)
+  (:require-macros
+    rum.core)
   (:require
     [cljsjs.react]
     [cljsjs.react.dom]
     [sablono.core]
-
-    [rum.utils :refer [next-id collect call-all]]))
+    [rum.util :as util :refer [next-id collect call-all]]))
 
 (defn state [comp]
   (aget (.-state comp) ":rum/state"))
@@ -238,7 +238,7 @@
 
 ;; derived-atom
 
-(def derived-atom utils/derived-atom)
+(def derived-atom util/derived-atom)
 
 ;; cursors
 

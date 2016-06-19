@@ -1,5 +1,5 @@
 (ns rum.server
-  (:require [rum.utils :refer [next-id collect call-all]]))
+  (:require [rum.util :refer [next-id collect call-all]]))
 
 
 (defn build-class [classes display-name]

@@ -1,4 +1,4 @@
-(ns rum.utils)
+(ns rum.util)
 
 
 (let [last-id (volatile! 0)]
