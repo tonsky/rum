@@ -28,6 +28,7 @@ Rum:
 - [Attendify](https://attendify.com), mobile app builder
 - [PartsBox.io](https://partsbox.io), inventory management
 - [modnaKasta](https://modnaKasta.ua), online shopping
+- [ChildrensHeartSurgery.info](http://childrensheartsurgery.info), heart surgery statistics
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 
 ## Using Rum
