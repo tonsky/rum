@@ -1,9 +1,14 @@
 (ns rum.server-render
   (:require
-    [clojure.string :as str]
-    [rum.server :as server])
+    [clojure.string :as str])
   (:import
     [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
+
+
+(defn nothing? [element]
+  (and (vector? element)
+       (= :rum/nothing (first element))))
+
 
 (def ^:dynamic *select-value*)
 
@@ -387,7 +392,7 @@
 (defn render-element!
   "Render an element vector as a HTML element."
   [element *key sb]
-  (if (server/nothing? element)
+  (if (nothing? element)
     (when *key
       (let [key @*key]
         (vswap! *key inc)
@@ -493,7 +498,7 @@
   ([src opts]
     (let [sb (StringBuilder.)]
       (-render-html src nil (volatile! 1) sb)
-      (when-not (server/nothing? src)
+      (when-not (nothing? src)
         (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\"")))
       (str sb))))
 

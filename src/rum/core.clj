@@ -1,13 +1,14 @@
 (ns rum.core
   (:require
    [sablono.compiler :as s]
-   [rum.server :as server]
    [rum.server-render :as render]
-   [rum.util :as util]))
+   [rum.util :as util :refer [next-id collect call-all]]))
+
 
 (defn- fn-body? [form]
   (and (seq? form)
        (vector? (first form))))
+
 
 (defn- parse-defc
   ":name  :doc?  <? :mixins* :bodies+
@@ -32,8 +33,10 @@
         :else
           (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
+
 (defn- compile-body [[argvec & body]]
   (list argvec (s/compile-html `(do ~@body))))
+
 
 (defn- -defc [render-ctor cljs? body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
@@ -52,6 +55,7 @@
                                (rum.core/element class# state# nil)))]
          (with-meta ctor# {:rum/class class#})))))
 
+
 (defmacro defc
   "Defc does couple of things:
    
@@ -67,6 +71,7 @@
   [& body]
   (-defc 'rum.core/render->mixin (boolean (:ns &env)) body))
 
+
 (defmacro defcs
   "Same as defc, but render will take additional first argument: state
   
@@ -76,6 +81,7 @@
   [& body]
   (-defc 'rum.core/render-state->mixin (:ns &env) body))
 
+
 (defmacro defcc
   "Same as defc, but render will take additional first argument: react component
   
@@ -84,6 +90,7 @@
         (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
   [& body]
   (-defc 'rum.core/render-comp->mixin (:ns &env) body))
+
 
 (defmacro with-props
   "DEPRECATED. Use rum.core/with-key and rum.core/with-ref functions
@@ -104,27 +111,73 @@
                 (mapcat (fn [[k v]] [(props k) v])))]
     `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
 
+
 (def derived-atom util/derived-atom)
+
 
 ;;; Server-side rendering support
 
 (def render-html render/render-html)
 (def render-static-markup render/render-static-markup)
 
-(def build-class server/build-class)
-(def args->state server/args->state)
-(def element server/element)
-(def render->mixin server/render->mixin)
-(def render-state->mixin server/render-state->mixin)
-(def render-comp->mixin server/render-comp->mixin)
-(def with-key server/with-key)
-(def with-ref server/with-ref)
+(defn build-class [classes display-name]
+  (assert (sequential? classes))
+  (let [init             (collect :init classes)                ;; state props -> state
+        will-mount       (collect :will-mount classes)          ;; state -> state
+        render           (first (collect :render classes))      ;; state -> [dom state]
+        wrapped-render   (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
+        props->state     (fn [props]
+                           (call-all (:rum/initial-state props) init props))]
+
+    (fn [props]
+      (let [state       (-> {:rum/id (next-id)}
+                            (merge (props->state props))
+                            (call-all will-mount))
+            [dom state] (wrapped-render state)]
+        (or dom [:rum/nothing])))))
+
+
+(defn args->state [args]
+  {:rum/args args})
+
+
+(defn element [class state & [props]]
+  (class (assoc props :rum/initial-state state)))
+
+
+(defn render->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
+
+
+(defn render-state->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
+
+
+(defn render-comp->mixin [render-fn]
+  { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
+
+
+(defn with-key [element key]
+  (cond
+    (render/nothing? element)
+    element
+    
+    (map? (get element 1))
+    (assoc-in element [1 :key] key)
+
+    :else
+    (into [(first element) {:key key}] (next element))))
+
+
+(defn with-ref [element ref]
+  element)
 
 ;; included mixins
 (def static {})
 
-(defn local [initial & [key]]
-  (let [key (or key :rum/local)]
+(defn local
+  ([initial] (local initial :rum/local))
+  ([initial key]
     {:will-mount (fn [state]
                    (assoc state key (atom initial)))}))
 
