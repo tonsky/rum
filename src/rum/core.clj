@@ -1,8 +1,11 @@
 (ns rum.core
   (:require
-   [sablono.compiler :as s]
-   [rum.server-render :as render]
-   [rum.util :as util :refer [next-id collect call-all]]))
+    [sablono.compiler :as s]
+    [rum.cursor :as cursor]
+    [rum.server-render :as render]
+    [rum.util :as util :refer [next-id collect call-all]])
+  (:import
+    [rum.cursor Cursor]))
 
 
 (defn- fn-body? [form]
@@ -191,8 +194,16 @@
 (def react deref)
 
 
-(defn cursor [ref path]
-  (atom (get-in @ref path)))
+(defn cursor-in ^rum.cursor.Cursor [ref path & { :as options }]
+  (if (instance? Cursor ref)
+    (cursor/Cursor. (.-ref ^Cursor ref) (into (.-path ^Cursor ref) path) (:meta options) (volatile! {}))
+    (cursor/Cursor. ref path (:meta options) (volatile! {}))))
+
+
+(defn cursor ^rum.cursor.Cursor [ref key & options]
+  (apply cursor-in ref [key] options))
+
+
 (def cursored {})
 (def cursored-watch {})
 
