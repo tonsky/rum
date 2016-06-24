@@ -20,6 +20,11 @@
     fns))
 
 
+(defn compare-by [keyfn]
+  (fn [x y]
+    (compare (keyfn x) (keyfn y))))
+
+
 (defn derived-atom
   "Use this to create “chains” and acyclic graphs of dependent atoms.
    `derived-atom` will:

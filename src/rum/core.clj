@@ -120,6 +120,7 @@
 (def render-html render/render-html)
 (def render-static-markup render/render-static-markup)
 
+
 (defn build-class [classes display-name]
   (assert (sequential? classes))
   (let [init             (collect :init classes)                ;; state props -> state
@@ -172,8 +173,12 @@
 (defn with-ref [element ref]
   element)
 
-;; included mixins
+
+;; mixins
+
+
 (def static {})
+
 
 (defn local
   ([initial] (local initial :rum/local))
@@ -181,10 +186,39 @@
     {:will-mount (fn [state]
                    (assoc state key (atom initial)))}))
 
+
 (def reactive {})
 (def react deref)
+
 
 (defn cursor [ref path]
   (atom (get-in @ref path)))
 (def cursored {})
 (def cursored-watch {})
+
+
+;; method parity with CLJS version so you can avoid conditional directive
+;; in e.g. did-mount/will-unmount mixin bodies
+
+(defn dom-node [s]
+  (throw (UnsupportedOperationException. "dom-node is only avaliable from ClojureScript")))
+
+
+(defn mount [c n]
+  (throw (UnsupportedOperationException. "mount is only avaliable from ClojureScript")))
+
+
+(defn unmount [c]
+  (throw (UnsupportedOperationException. "unmount is only avaliable from ClojureScript")))
+
+
+(defn request-render [c]
+  (throw (UnsupportedOperationException. "request-render is only avaliable from ClojureScript")))
+
+
+(defn state [c]
+  (throw (UnsupportedOperationException. "state is only avaliable from ClojureScript")))
+
+
+(defn id [c]
+  (throw (UnsupportedOperationException. "id is only avaliable from ClojureScript")))

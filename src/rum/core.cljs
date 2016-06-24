@@ -7,11 +7,14 @@
     [sablono.core]
     [rum.util :as util :refer [next-id collect call-all]]))
 
+
 (defn state [comp]
   (aget (.-state comp) ":rum/state"))
 
+
 (defn id [comp]
   (:rum/id @(state comp)))
+
 
 (defn build-class [classes display-name]
   (assert (sequential? classes))
@@ -109,11 +112,7 @@
                js/window.msRequestAnimationFrame))
     #(js/setTimeout % 16)))
 
-(defn compare-by [keyfn]
-  (fn [x y]
-    (compare (keyfn x) (keyfn y))))
-
-(def empty-queue (sorted-set-by (compare-by id))) ;; sorted by mount order, top to bottom
+(def empty-queue (sorted-set-by (util/compare-by id))) ;; sorted by mount order, top to bottom
 (def render-queue (volatile! empty-queue))
 
 (defn render []
