@@ -450,7 +450,7 @@ Rum server-side rendering does not use React or Sablono, it runs completely in J
 
 As of `[rum "0.8.3"]` and `[hiccup "1.0.5"]`, Rum is ~3× times faster than Hiccup.
 
-Server-side components do not have full lifecycle support, but `:init`, `:will-mount` and `:did-mount` from mixins would be called at the component's construction time.
+Server-side components do not have full lifecycle support, but `:init` and `:will-mount` from mixins would be called at the component's construction time.
 
 ## Resources
 

@@ -6,7 +6,6 @@
   (assert (sequential? classes))
   (let [init             (collect :init classes)                ;; state props -> state
         will-mount       (collect :will-mount classes)          ;; state -> state
-        did-mount        (collect :did-mount classes)           ;; state -> state
         render           (first (collect :render classes))      ;; state -> [dom state]
         wrapped-render   (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
         props->state     (fn [props]
@@ -15,8 +14,7 @@
     (fn [props]
       (let [state       (-> {:rum/id (next-id)}
                             (merge (props->state props))
-                            (call-all will-mount)
-                            (call-all did-mount))
+                            (call-all will-mount))
             [dom state] (wrapped-render state)]
         (or dom [::nothing])))))
 
