@@ -294,7 +294,7 @@
     (pr-writer (-deref this) writer opts)
     (-write writer ">")))
 
-(defn cursor [ref path]
+(defn cursor-in [ref path]
   (let [getter #(get-in % path)
         setter #(assoc-in %1 path %2)]
     (if (instance? LensCursor ref)
@@ -305,6 +305,11 @@
                        (setter focus what)
                        ((.-setter ref) where focus))))
       (LensCursor. ref getter setter))))
+
+
+(defn cursor [ref key]
+  (cursor-in ref [key]))
+
 
 (defn- deref-args [xs]
   ;; deref is not deep

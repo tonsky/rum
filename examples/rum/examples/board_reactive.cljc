@@ -13,7 +13,7 @@
 
 (rum/defc cell < rum/reactive [x y]
   (swap! *board-renders inc)
-  (let [*cursor (rum/cursor *board [y x])]
+  (let [*cursor (rum/cursor-in *board [y x])]
     ;; each cell subscribes to its own cursor inside a board
     ;; note that subscription to color is conditional:
     ;; only if cell is on (@cursor == true),

@@ -28,10 +28,10 @@
   [*board]
   [:div.artboard
     (for [y (range 0 core/board-height)
-          :let [*y-cursor (rum/cursor *board [y])]]
+          :let [*y-cursor (rum/cursor *board y)]]
       [:div.art-row {:key y}
         (for [x (range 0 core/board-width)
-              :let [*x-cursor (rum/cursor *y-cursor [x])]]
+              :let [*x-cursor (rum/cursor *y-cursor x)]]
           (-> (cell x y *x-cursor)
               (rum/with-key [x y])))])
     (core/board-stats *board *board-renders)])
