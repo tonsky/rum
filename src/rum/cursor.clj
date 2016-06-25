@@ -60,8 +60,8 @@
               (recur))))))
   
   (reset [this newv]
-    (-> (swap! ref assoc-in path newv)
-        (get-in path)))
+    (swap! ref assoc-in path newv)
+    newv)
   
   clojure.lang.IMeta
   
@@ -76,9 +76,3 @@
   (resetMeta [this m]
     (set! meta m)
     m))
-
-
-    
-
-        
-    

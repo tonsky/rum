@@ -5,6 +5,7 @@
     [cljsjs.react]
     [cljsjs.react.dom]
     [sablono.core]
+    [rum.cursor :as cursor]
     [rum.util :as util :refer [next-id collect call-all]]))
 
 
@@ -239,72 +240,14 @@
 
 (def derived-atom util/derived-atom)
 
+
 ;; cursors
 
-(deftype LensCursor [parent getter setter]
-  Object
-  (equiv [this other]
-    (-equiv this other))
 
-  IAtom
-  
-  IEquiv
-  (-equiv [this other]
-    (identical? this other))
-
-  IDeref
-  (-deref [_]
-    (getter (-deref parent)))
-
-  IWatchable
-  (-add-watch [this key f]
-    (add-watch parent (list this key)
-      (fn [_ _ oldp newp]
-        (let [old (getter oldp)
-              new (getter newp)]
-          (when (not= old new)
-            (f key this old new)))))
-    this)
-  
-  (-remove-watch [this key]
-    (remove-watch parent (list this key))
-    this)
-
-  IHash
-  (-hash [this] (goog/getUid this))
-
-  IReset
-  (-reset! [_ new-value]
-    (swap! parent setter new-value)
-    new-value)
-
-  ISwap
-  (-swap! [this f]
-    (-reset! this (f (-deref this))))
-  (-swap! [this f a]
-    (-reset! this (f (-deref this) a)))
-  (-swap! [this f a b]
-    (-reset! this (f (-deref this) a b)))
-  (-swap! [this f a b xs]
-    (-reset! this (apply f (-deref this) a b xs)))
-  
-  IPrintWithWriter
-  (-pr-writer [this writer opts]
-    (-write writer "#<Cursor: ")
-    (pr-writer (-deref this) writer opts)
-    (-write writer ">")))
-
-(defn cursor-in [ref path]
-  (let [getter #(get-in % path)
-        setter #(assoc-in %1 path %2)]
-    (if (instance? LensCursor ref)
-      (LensCursor. (.-parent ref)
-                   (comp getter (.-getter ref))
-                   (fn [where what]
-                     (as-> ((.-getter ref) where) focus 
-                       (setter focus what)
-                       ((.-setter ref) where focus))))
-      (LensCursor. ref getter setter))))
+(defn cursor-in [ref path & {:as options}]
+  (if (instance? cursor/Cursor ref)
+    (cursor/Cursor. (.-ref ref) (into (.-path ref) path) (:meta options))
+    (cursor/Cursor. ref path (:meta options))))
 
 
 (defn cursor [ref key]
