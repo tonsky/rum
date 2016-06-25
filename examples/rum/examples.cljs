@@ -5,7 +5,6 @@
     [rum.examples.core :as core]
     
     [rum.examples.timer-static :as timer-static]
-    [rum.examples.timer-forced :as timer-forced]
     [rum.examples.timer-reactive :as timer-reactive]
     [rum.examples.controls :as controls]
     [rum.examples.binary-clock :as binary-clock]
@@ -25,7 +24,6 @@
 ;; Mount everything
 
 (timer-static/mount!    (core/el "timer-static"))
-(timer-forced/mount!    (core/el "timer-forced"))
 (timer-reactive/mount!  (core/el "timer-reactive"))
 (controls/mount!        (core/el "controls"))
 (binary-clock/mount!    (core/el "binary-clock"))

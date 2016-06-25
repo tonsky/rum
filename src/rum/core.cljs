@@ -17,7 +17,7 @@
   (:rum/id @(state comp)))
 
 
-(defn build-class [classes display-name]
+(defn build-stateful-class [classes display-name]
   (assert (sequential? classes))
   (let [init                (collect :init classes)                ;; state props -> state
         will-mount          (collect :will-mount classes)          ;; state -> state
@@ -103,6 +103,21 @@
       (js/React.createClass))))
 
 
+(defn build-stateless-class [class display-name]
+  (let [render (:render class)
+        class  (fn [props]
+                 (let [[dom _] (render (aget props ":rum/initial-state"))]
+                   dom))]
+    (aset class "displayName" display-name)
+    class))
+
+
+(defn build-class [classes display-name]
+  (case (count classes)
+    1 (build-stateless-class (first classes) display-name)
+    (build-stateful-class classes display-name)))
+
+
 ;; render queue
 
 (def schedule
@@ -113,7 +128,8 @@
                js/window.msRequestAnimationFrame))
     #(js/setTimeout % 16)))
 
-(def empty-queue (sorted-set-by (util/compare-by id))) ;; sorted by mount order, top to bottom
+;; (def empty-queue (sorted-set-by (util/compare-by id))) ;; sorted by mount order, top to bottom
+(def empty-queue [])
 (def render-queue (volatile! empty-queue))
 
 (defn render []
@@ -129,7 +145,8 @@
   (vswap! render-queue conj component))
 
 (defn mount [component node]
-  (js/ReactDOM.render component node))
+  (js/ReactDOM.render component node)
+  nil)
 
 (defn unmount [node]
   (js/ReactDOM.unmountComponentAtNode node))

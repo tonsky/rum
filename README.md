@@ -476,6 +476,16 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 ## Changes
 
+### WIP
+
+- [ BREAKING ] `cursor` got renamed to `cursor-in`. New `cursor` method added that takes single key (as everywhere in Clojure)
+- [ BREAKING ] `rum/mount` returns `nil` (because you [shouldn’t rely on return value of ReactDOM.render](https://github.com/facebook/react/issues/4936))
+- cursors now support metadata, alter-meta! etc
+- cursors can now be used from Clojure
+- Rum now makes use of staless components (nothing for you to do, if your component doesn’t use any mixins, it’ll be automatically compiled to stateless component)
+- [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
+- some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
+
 ### 0.9.1
 
 - Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes. Do:

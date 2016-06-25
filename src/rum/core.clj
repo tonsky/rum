@@ -82,7 +82,7 @@
 
         (defcs name doc-string? [< mixins+]? [state params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-state->mixin (:ns &env) body))
+  (-defc 'rum.core/render-state->mixin (boolean (:ns &env)) body))
 
 
 (defmacro defcc
@@ -92,7 +92,7 @@
 
         (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-comp->mixin (:ns &env) body))
+  (-defc 'rum.core/render-comp->mixin (boolean (:ns &env)) body))
 
 
 (defmacro with-props
