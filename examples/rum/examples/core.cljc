@@ -32,12 +32,7 @@
         (fn [state]
           (let [react-comp (:rum/react-component state)
                 interval   (js/setInterval #(rum/request-render react-comp) period)]
-            (assoc state ::interval interval)))
-        
-        :transfer-state 
-        (fn [old-state state]
-          (merge state (select-keys old-state [::interval])))
-        
+            (assoc state ::interval interval)))        
         :will-unmount
         (fn [state]
           (js/clearInterval (::interval state))) }

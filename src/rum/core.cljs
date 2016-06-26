@@ -22,7 +22,6 @@
   (let [init                (collect :init classes)                ;; state props -> state
         will-mount          (collect :will-mount classes)          ;; state -> state
         did-mount           (collect :did-mount classes)           ;; state -> state
-        transfer-state      (collect :transfer-state classes)      ;; old-state state -> state
         should-update       (collect :should-update classes)       ;; old-state state -> boolean
         will-update         (collect :will-update classes)         ;; state -> state
         render              (first (collect :render classes))      ;; state -> [dom state]
@@ -57,10 +56,8 @@
          (fn [next-props]
            (this-as this
              (let [old-state @(state this)
-                   next-state (-> { :rum/react-component this
-                                    :rum/id (:rum/id old-state) }
-                                  (merge (props->state next-props)))
-                   next-state (reduce #(%2 old-state %1) next-state transfer-state)]
+                   next-state (merge old-state
+                                     (aget next-props ":rum/initial-state"))]
                (.setState this #js {":rum/state" (volatile! next-state)}))))
          :shouldComponentUpdate
          (when-not (empty? should-update)
@@ -198,10 +195,7 @@
    Component will be automatically re-rendered if atom’s value changes"
   [initial & [key]]
   (let [key (or key :rum/local)]
-    { :transfer-state
-      (fn [old new]
-        (assoc new key (old key)))
-      :will-mount
+    { :will-mount
       (fn [state]
         (let [local-state (atom initial)
               component   (:rum/react-component state)]
@@ -219,9 +213,6 @@
   (str ":rum/reactive-" (:rum/id state)))
 
 (def reactive {
-  :transfer-state
-  (fn [old new]
-    (assoc new :rum/refs (:rum/refs old)))
   :wrap-render
   (fn [render-fn]
     (fn [state]
@@ -276,9 +267,6 @@
   (mapv #(if (satisfies? IDeref %) @% %) xs))
 
 (def cursored {
-  :transfer-state
-  (fn [old new]
-    (assoc new :rum/om-args (:rum/om-args old)))
   :should-update
   (fn [old-state new-state]
     (not= (:rum/om-args old-state) (deref-args (:rum/args new-state))))

@@ -485,6 +485,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - Rum now makes use of staless components (nothing for you to do, if your component doesn’t use any mixins, it’ll be automatically compiled to stateless component)
 - [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
 - some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
+- [ BREAKING ] `:transfer-state` is gone. All of component’s state is now transferred by default
 
 ### 0.9.1
 
