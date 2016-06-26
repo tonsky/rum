@@ -13,10 +13,6 @@
   (aget (.-state comp) ":rum/state"))
 
 
-(defn id [comp]
-  (:rum/id @(state comp)))
-
-
 (defn build-stateful-class [classes display-name]
   (assert (sequential? classes))
   (let [init                (collect :init classes)                ;; state props -> state
@@ -38,8 +34,7 @@
          (fn []
            (this-as this
              (let [props (.-props this)
-                   state (-> { :rum/react-component this
-                               :rum/id (next-id) }            ;; assign id on mount?
+                   state (-> { :rum/react-component this }
                              (merge (props->state props)))]
                #js { ":rum/state" (volatile! state) })))
          :componentWillMount
@@ -125,16 +120,18 @@
                js/window.msRequestAnimationFrame))
     #(js/setTimeout % 16)))
 
-;; (def empty-queue (sorted-set-by (util/compare-by id))) ;; sorted by mount order, top to bottom
 (def empty-queue [])
 (def render-queue (volatile! empty-queue))
+
+(defn render-all [queue]
+  (doseq [comp queue
+          :when (.isMounted comp)]
+    (.forceUpdate comp)))
 
 (defn render []
   (let [queue @render-queue]
     (vreset! render-queue empty-queue)
-    (doseq [comp queue
-            :when (.isMounted comp)]
-      (.forceUpdate comp))))
+    (js/ReactDOM.unstable_batchedUpdates render-all queue)))
 
 (defn request-render [component]
   (when (empty? @render-queue)
@@ -209,19 +206,20 @@
 
 (def ^:dynamic *reactions*)
 
-(defn- reactive-key [state]
-  (str ":rum/reactive-" (:rum/id state)))
 
 (def reactive {
+  :init
+  (fn [state props]
+    (assoc state :rum.reactive/key (random-uuid)))
   :wrap-render
   (fn [render-fn]
     (fn [state]
       (binding [*reactions* (volatile! #{})]
         (let [comp             (:rum/react-component state)
-              old-reactions    (:rum/refs state #{})
+              old-reactions    (:rum.reactive/refs state #{})
               [dom next-state] (render-fn state)
               new-reactions    @*reactions*
-              key              (reactive-key state)]
+              key              (:rum.reactive/key state)]
           (doseq [ref old-reactions]
             (when-not (contains? new-reactions ref)
               (remove-watch ref key)))
@@ -230,14 +228,15 @@
               (add-watch ref key
                 (fn [_ _ _ _]
                   (request-render comp)))))
-          [dom (assoc next-state :rum/refs new-reactions)]))))
+          [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
   :will-unmount
   (fn [state]
-    (let [key (reactive-key state)]
-      (doseq [ref (:rum/refs state)]
+    (let [key (:rum.reactive/key state)]
+      (doseq [ref (:rum.reactive/refs state)]
         (remove-watch ref key)))
-    (dissoc state :rum/refs))
+    (dissoc state :rum.reactive/refs :rum.reactive/key))
 })
+
 
 (defn react [ref]
   (vswap! *reactions* conj ref)
@@ -262,9 +261,12 @@
   (cursor-in ref [key]))
 
 
+;; Om-style mixins
+
 (defn- deref-args [xs]
   ;; deref is not deep
   (mapv #(if (satisfies? IDeref %) @% %) xs))
+
 
 (def cursored {
   :should-update
@@ -277,21 +279,22 @@
         [dom (assoc next-state :rum/om-args (deref-args (:rum/args state)))])))
 })
 
-(defn- cursored-key [state]
-  (str ":rum/cursored-" (:rum/id state)))
 
 (def cursored-watch {
-  :did-mount
+  :init
+    (fn [state props]
+      (assoc state :rum.cursored/key (random-uuid)))
+  :will-mount
     (fn [state]
       (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
-        (add-watch arg (cursored-key state)
+        (add-watch arg (:rum.cursored/key state)
           (fn [_ _ _ _] (request-render (:rum/react-component state)))))
       state)
   :will-unmount
     (fn [state]
       (doseq [arg (:rum/args state)
               :when (satisfies? IWatchable arg)]
-        (remove-watch arg (cursored-key state)))
+        (remove-watch arg (:rum.cursored/key state)))
       state)
 })

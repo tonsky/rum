@@ -2,7 +2,6 @@
   (:require
     [rum.core :as rum]
     [rum.examples.core :as core]
-    [rum.examples.timer-forced   :as timer-forced]
     [rum.examples.timer-reactive :as timer-reactive]
     [rum.examples.timer-static   :as timer-static]
     [rum.examples.controls       :as controls]
@@ -28,7 +27,6 @@
     <div class=example>
       <div class=example-title>Timers</div>
       <div id=timer-static>"   (rum/render-html (timer-static/timer-static "Static" @core/*clock)) "</div>
-      <div id=timer-forced>"   (rum/render-html (timer-forced/timer-forced)) "</div>
       <div id=timer-reactive>" (rum/render-html (timer-reactive/timer-reactive)) "</div>
     </div>
 

@@ -486,6 +486,8 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
 - some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
 - [ BREAKING ] `:transfer-state` is gone. All of component’s state is now transferred by default
+- [ BREAKING ] `:rum/id` is gone. If you need an unique id per component, allocate one in `:init` as store it in state under namespaced key
+- Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
 
 ### 0.9.1
 
