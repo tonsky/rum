@@ -6,29 +6,28 @@
     [cljsjs.react.dom]
     [sablono.core]
     [rum.cursor :as cursor]
-    [rum.util :as util :refer [next-id collect call-all]]))
+    [rum.util :as util :refer [collect call-all]]))
 
 
 (defn state [comp]
   (aget (.-state comp) ":rum/state"))
 
 
-(defn build-stateful-class [classes display-name]
-  (assert (sequential? classes))
-  (let [init                (collect :init classes)                ;; state props -> state
-        will-mount          (collect :will-mount classes)          ;; state -> state
-        did-mount           (collect :did-mount classes)           ;; state -> state
-        did-remount         (collect :did-remount classes)         ;; old-state state -> state
-        should-update       (collect :should-update classes)       ;; old-state state -> boolean
-        will-update         (collect :will-update classes)         ;; state -> state
-        render              (first (collect :render classes))      ;; state -> [dom state]
-        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
-        did-update          (collect :did-update classes)          ;; state -> state
-        will-unmount        (collect :will-unmount classes)        ;; state -> state
+(defn build-class [render mixins display-name]
+  (let [init                (collect :init mixins)                ;; state props -> state
+        will-mount          (collect :will-mount mixins)          ;; state -> state
+        did-mount           (collect :did-mount mixins)           ;; state -> state
+        did-remount         (collect :did-remount mixins)         ;; old-state state -> state
+        should-update       (collect :should-update mixins)       ;; old-state state -> boolean
+        will-update         (collect :will-update mixins)         ;; state -> state
+        render              render                                ;; state -> [dom state]
+        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render mixins)) ;; render-fn -> render-fn
+        did-update          (collect :did-update mixins)          ;; state -> state
+        will-unmount        (collect :will-unmount mixins)        ;; state -> state
         props->state        (fn [props]
                               (call-all (aget props ":rum/initial-state") init props))
-        child-context       (collect :child-context classes)       ;; state -> child-context
-        class-properties    (reduce merge (collect :class-properties classes))] ;; custom properties and methods
+        child-context       (collect :child-context mixins)       ;; state -> child-context
+        class-properties    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
 
     (-> {:displayName display-name
          :getInitialState
@@ -98,19 +97,34 @@
       (js/React.createClass))))
 
 
-(defn build-stateless-class [class display-name]
-  (let [render (:render class)
-        class  (fn [props]
-                 (let [[dom _] (render (aget props ":rum/initial-state"))]
-                   dom))]
-    (aset class "displayName" display-name)
-    class))
+(defn build-ctor [render mixins display-name]
+  (let [class (build-class render mixins display-name)
+        ctor  (fn [& args]
+                (let [props #js { ":rum/initial-state" { :rum/args args }}] 
+                  (js/React.createElement class props)))]
+    (with-meta ctor { :rum/class class })))
 
 
-(defn build-class [classes display-name]
-  (case (count classes)
-    1 (build-stateless-class (first classes) display-name)
-    (build-stateful-class classes display-name)))
+(defn build-defc [render-body mixins display-name]
+  (if (empty? mixins)
+    (let [class (fn [props]
+                  (apply render-body (aget props ":rum/args")))
+          _     (aset class "displayName" display-name)
+          ctor  (fn [& args]
+                  (js/React.createElement class #js { ":rum/args" args }))]
+      (with-meta ctor { :rum/class class }))
+    (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
+      (build-ctor render mixins display-name))))
+
+
+(defn build-defcs [render-body mixins display-name]
+  (let [render (fn [state] [(apply render-body state (:rum/args state)) state])]
+    (build-ctor render mixins display-name)))
+
+
+(defn build-defcc [render-body mixins display-name]
+  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])] 
+    (build-ctor render mixins display-name)))
 
 
 ;; render queue
@@ -149,26 +163,6 @@
   (js/ReactDOM.unmountComponentAtNode node))
 
 ;; initialization
-
-(defn render->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
-
-(defn render-state->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
-
-(defn render-comp->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
-
-(defn args->state [args]
-  {:rum/args args})
-
-(defn element [class state & [props]]
-  (let [props (or props #js {})]
-    (aset props ":rum/initial-state" state)
-    (js/React.createElement class props)))
-
-(defn ctor->class [ctor]
-  (:rum/class (meta ctor)))
 
 (defn with-key [element key]
   (js/React.cloneElement element #js { "key" key } nil))

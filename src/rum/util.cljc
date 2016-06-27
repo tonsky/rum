@@ -1,11 +1,6 @@
 (ns rum.util)
 
 
-(let [last-id (volatile! 0)]
-  (defn next-id []
-    (vswap! last-id inc)))
-
-
 (defn collect [fn-key classes]
   (->> classes
        (map fn-key)

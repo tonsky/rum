@@ -3,7 +3,7 @@
     [sablono.compiler :as s]
     [rum.cursor :as cursor]
     [rum.server-render :as render]
-    [rum.util :as util :refer [next-id collect call-all]])
+    [rum.util :as util :refer [collect call-all]])
   (:import
     [rum.cursor Cursor]))
 
@@ -41,22 +41,17 @@
   (list argvec (s/compile-html `(do ~@body))))
 
 
-(defn- -defc [render-ctor cljs? body]
+(defn- -defc [builder cljs? body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
-        render-fn (if cljs?
-                    (map compile-body bodies)
-                    bodies)
-        arglists  (if (= render-ctor 'rum.core/render->mixin)
+        render-body (if cljs?
+                      (map compile-body bodies)
+                      bodies)
+        arglists  (if (= builder 'rum.core/build-defc)
                     (map (fn [[arglist & _body]] arglist) bodies)
                     (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))]
     `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
        ~@(if doc [doc] [])
-       (let [render-mixin# (~render-ctor (fn ~@render-fn))
-             class#        (rum.core/build-class (concat [render-mixin#] ~mixins) ~(str name))
-             ctor#         (fn [& args#]
-                             (let [state# (args->state args#)]
-                               (rum.core/element class# state# nil)))]
-         (with-meta ctor# {:rum/class class#})))))
+       (~builder (fn ~@render-body) ~mixins ~name))))
 
 
 (defmacro defc
@@ -72,7 +67,7 @@
   
        (defc name doc-string? [< mixins+]? [params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render->mixin (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defc (boolean (:ns &env)) body))
 
 
 (defmacro defcs
@@ -82,7 +77,7 @@
 
         (defcs name doc-string? [< mixins+]? [state params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-state->mixin (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defcs (boolean (:ns &env)) body))
 
 
 (defmacro defcc
@@ -92,73 +87,41 @@
 
         (defcc name doc-string? [< mixins+]? [comp params*] render-body+)"
   [& body]
-  (-defc 'rum.core/render-comp->mixin (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defcc (boolean (:ns &env)) body))
 
 
-(defmacro with-props
-  "DEPRECATED. Use rum.core/with-key and rum.core/with-ref functions
-  
-   Calling function returned by defc will get you component. To specify
-   special React properties, create component using with-props:
-   
-       (rum.core/with-props <ctor> <arg1> <arg2> :rum/key <key>)
-  
-   Special properties goes at the end of arguments list and should be namespaced.
-   For now only :rum/key and :rum/ref are supported"
-  [ctor & args]
-  (let [props {:rum/key "key"
-               :rum/ref "ref"}
-        as (take-while #(not (props %)) args)
-        ps (->> (drop-while #(not (props %)) args)
-                (partition 2)
-                (mapcat (fn [[k v]] [(props k) v])))]
-    `(rum.core/element (ctor->class ~ctor) (args->state [~@as]) (cljs.core/js-obj ~@ps))))
-
-
-(def derived-atom util/derived-atom)
-
-
-;;; Server-side rendering support
-
-(def render-html render/render-html)
-(def render-static-markup render/render-static-markup)
-
-
-(defn build-class [classes display-name]
-  (assert (sequential? classes))
-  (let [init             (collect :init classes)                ;; state props -> state
-        will-mount       (collect :will-mount classes)          ;; state -> state
-        render           (first (collect :render classes))      ;; state -> [dom state]
-        wrapped-render   (reduce #(%2 %1) render (collect :wrap-render classes)) ;; render-fn -> render-fn
-        props->state     (fn [props]
-                           (call-all (:rum/initial-state props) init props))]
-
-    (fn [props]
-      (let [state       (-> {:rum/id (next-id)}
-                            (merge (props->state props))
-                            (call-all will-mount))
-            [dom state] (wrapped-render state)]
+(defn build-ctor [render mixins display-name]
+  (let [init           (collect :init mixins)                ;; state props -> state
+        will-mount     (collect :will-mount mixins)          ;; state -> state
+        render         render                                ;; state -> [dom state]
+        wrapped-render (reduce #(%2 %1) render (collect :wrap-render mixins))] ;; render-fn -> render-fn
+    (fn [& args]
+      (let [props   nil
+            state   (-> { :rum/args args }
+                        (call-all init props)
+                        (call-all will-mount))
+            [dom _] (wrapped-render state)]
         (or dom [:rum/nothing])))))
 
 
-(defn args->state [args]
-  {:rum/args args})
+(defn build-defc [render-body mixins display-name]
+  (if (empty? mixins)
+    (fn [& args] (or (apply render-body args) [:rum/nothing]))
+    (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
+      (build-ctor render mixins display-name))))
 
 
-(defn element [class state & [props]]
-  (class (assoc props :rum/initial-state state)))
+(defn build-defcs [render-body mixins display-name]
+  (let [render (fn [state] [(apply render-body state (:rum/args state)) state])]
+    (build-ctor render mixins display-name)))
 
 
-(defn render->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (:rum/args state)) state]) })
+(defn build-defcc [render-body mixins display-name]
+  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
+    (build-ctor render mixins display-name)))
 
 
-(defn render-state->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn state (:rum/args state)) state]) })
-
-
-(defn render-comp->mixin [render-fn]
-  { :render (fn [state] [(apply render-fn (:rum/react-component state) (:rum/args state)) state]) })
+;; rum.core APIs
 
 
 (defn with-key [element key]
@@ -206,6 +169,16 @@
 
 (def cursored {})
 (def cursored-watch {})
+
+
+(def derived-atom util/derived-atom)
+
+
+;;; Server-side rendering
+
+
+(def render-html render/render-html)
+(def render-static-markup render/render-static-markup)
 
 
 ;; method parity with CLJS version so you can avoid conditional directive

@@ -480,14 +480,16 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 - [ BREAKING ] `cursor` got renamed to `cursor-in`. New `cursor` method added that takes single key (as everywhere in Clojure)
 - [ BREAKING ] `rum/mount` returns `nil` (because you [shouldn’t rely on return value of ReactDOM.render](https://github.com/facebook/react/issues/4936))
-- cursors now support metadata, alter-meta! etc
+- cursors now support metadata, `alter-meta!` etc
 - cursors can now be used from Clojure
-- Rum now makes use of staless components (nothing for you to do, if your component doesn’t use any mixins, it’ll be automatically compiled to stateless component)
+- Rum now makes use of staless components (nothing for you to do, if your component is defined via `defc` with no mixins, it’ll be automatically compiled to stateless component)
 - [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
 - some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
 - [ BREAKING ] `:transfer-state` is gone. All of component’s state is now transferred by default. If you still need to do something fancy on `componentWillReceiveProps`, there’s new `:did-remount` callback
 - [ BREAKING ] `:rum/id` is gone. If you need an unique id per component, allocate one in `:init` as store it in state under namespaced key
 - Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
+- [ BREAKING ] removed `rum/with-props` (deprecated since 0.3.0). Use `rum/with-key` and `rum/with-ref` instead
+- streamlined internals of component construction, removed `render->mixin`, `args->state`, `element` and `ctor->class`
 
 ### 0.9.1
 
