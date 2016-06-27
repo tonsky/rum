@@ -18,6 +18,7 @@
   (let [init                (collect :init classes)                ;; state props -> state
         will-mount          (collect :will-mount classes)          ;; state -> state
         did-mount           (collect :did-mount classes)           ;; state -> state
+        did-remount         (collect :did-remount classes)         ;; old-state state -> state
         should-update       (collect :should-update classes)       ;; old-state state -> boolean
         will-update         (collect :will-update classes)         ;; state -> state
         render              (first (collect :render classes))      ;; state -> [dom state]
@@ -50,9 +51,11 @@
          :componentWillReceiveProps
          (fn [next-props]
            (this-as this
-             (let [old-state @(state this)
-                   next-state (merge old-state
-                                     (aget next-props ":rum/initial-state"))]
+             (let [old-state  @(state this)
+                   state      (merge old-state
+                                     (aget next-props ":rum/initial-state"))
+                   next-state (reduce #(%2 old-state %1) state did-remount)]
+               ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
                (.setState this #js {":rum/state" (volatile! next-state)}))))
          :shouldComponentUpdate
          (when-not (empty? should-update)
