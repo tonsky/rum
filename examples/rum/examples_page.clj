@@ -10,6 +10,7 @@
     [rum.examples.board-cursored :as board-cursored]
     [rum.examples.bmi-calculator :as bmi-calculator]
     [rum.examples.local-state    :as local-state]
+    [rum.examples.keys           :as keys]
     [rum.examples.self-reference :as self-reference]))
 
 (def page (str
@@ -64,6 +65,11 @@
     <div class=example>
       <div class=example-title>Local state</div>
       <div id=local-state>" (rum/render-html (local-state/local-state "Clicks count")) "</div>
+    </div>
+            
+    <div class=example>
+      <div class=example-title>Keys</div>
+      <div id=keys>" (rum/render-html (keys/keys)) "</div>
     </div>
     
     <div class=example>

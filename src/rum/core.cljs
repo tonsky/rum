@@ -98,10 +98,16 @@
 
 
 (defn build-ctor [render mixins display-name]
-  (let [class (build-class render mixins display-name)
-        ctor  (fn [& args]
-                (let [props #js { ":rum/initial-state" { :rum/args args }}] 
-                  (js/React.createElement class props)))]
+  (let [class  (build-class render mixins display-name)
+        key-fn (first (collect :key-fn mixins))
+        ctor   (if (some? key-fn)
+                 (fn [& args]
+                   (let [props #js { ":rum/initial-state" { :rum/args args }
+                                     "key" (apply key-fn args) }]
+                     (js/React.createElement class props)))
+                 (fn [& args]
+                   (let [props #js { ":rum/initial-state" { :rum/args args }}] 
+                     (js/React.createElement class props))))]
     (with-meta ctor { :rum/class class })))
 
 
