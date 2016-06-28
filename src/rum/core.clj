@@ -186,32 +186,32 @@
 ;; in e.g. did-mount/will-unmount mixin bodies
 
 (defn dom-node [s]
-  (throw (UnsupportedOperationException. "dom-node is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "dom-node is only available from ClojureScript")))
 
 
 (defn ref [s k]
-  (throw (UnsupportedOperationException. "ref is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "ref is only available from ClojureScript")))
 
 
 (defn ref-node [s k]
-  (throw (UnsupportedOperationException. "ref is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "ref is only available from ClojureScript")))
 
 
 (defn mount [c n]
-  (throw (UnsupportedOperationException. "mount is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "mount is only available from ClojureScript")))
 
 
 (defn unmount [c]
-  (throw (UnsupportedOperationException. "unmount is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "unmount is only available from ClojureScript")))
 
 
 (defn request-render [c]
-  (throw (UnsupportedOperationException. "request-render is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "request-render is only available from ClojureScript")))
 
 
 (defn state [c]
-  (throw (UnsupportedOperationException. "state is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "state is only available from ClojureScript")))
 
 
 (defn id [c]
-  (throw (UnsupportedOperationException. "id is only avaliable from ClojureScript")))
+  (throw (UnsupportedOperationException. "id is only available from ClojureScript")))
