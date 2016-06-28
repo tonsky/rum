@@ -336,6 +336,7 @@
       (= "type" attr)  :nop ;; rendered manually in render-element! before id
       (= "style" attr) (render-style! value sb)
       (= "key" attr)   :nop
+      (= "ref" attr)   :nop
       (= "class" attr) :nop
       (and (= "value" attr)
            (or (= "select" tag)

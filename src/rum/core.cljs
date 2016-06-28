@@ -1,6 +1,6 @@
 (ns rum.core
-  (:require-macros
-    rum.core)
+  (:refer-clojure :exclude [ref])
+  (:require-macros rum.core)
   (:require
     [cljsjs.react]
     [cljsjs.react.dom]
@@ -178,6 +178,12 @@
 
 (defn dom-node [state]
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
+
+(defn ref [state key]
+  (-> state :rum/react-component (aget "refs") (aget key)))
+
+(defn ref-node [state key]
+  (js/ReactDOM.findDOMNode (ref state key)))
 
 ;; static mixin
 

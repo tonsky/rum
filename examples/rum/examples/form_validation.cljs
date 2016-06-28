@@ -4,35 +4,35 @@
     [rum.examples.core :as core]))
 
 
-(rum/defc validating-input < rum/reactive [ref fn]
+(rum/defc validating-input < rum/reactive [ref f]
   [:input {:type "text"
            :style {:width 170
-                   :background-color (when-not (fn (rum/react ref))
+                   :background-color (when-not (f (rum/react ref))
                                        (rum/react core/*color))}
            :value (rum/react ref)
            :on-change #(reset! ref (.. % -target -value))}])
 
 
-(rum/defcc restricting-input < rum/reactive [comp ref fn]
+(rum/defcc restricting-input < rum/reactive [comp ref f]
   [:input {:type "text"
            :style {:width 170}
            :value (rum/react ref)
            :on-change #(let [new-val (.. % -target -value)]
-                         (if (fn new-val)
+                         (if (f new-val)
                            (reset! ref new-val)
                            ;; request-render is mandatory because sablono :input
                            ;; keeps current value in input’s state and always applies changes to it
                            (rum/request-render comp)))}])
 
 
-(rum/defcs restricting-input-native < rum/reactive [state ref fn]
+(rum/defcs restricting-input-native < rum/reactive [state ref f]
   (let [comp (:rum/react-component state)]
-    (js/React.DOM.input
+    (js/React.createElement "input"
       #js {:type "text"
            :style #js {:width 170}
            :value (rum/react ref)
            :onChange #(let [new-val (.. % -target -value)]
-                        (when (fn new-val)
+                        (when (f new-val)
                           (reset! ref new-val))
                         ;; need forceUpdate here because otherwise rendering will be delayed until requestAnimationFrame 
                         ;; and that breaks cursor position inside input

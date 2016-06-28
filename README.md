@@ -500,6 +500,8 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 (comp 1 2) <=> (rum/with-key (comp 1 2) "1-2")
 ```
 
+- Added `rum/ref` and `rum/ref-node` helpers, returning backing component and DOM node
+
 ### 0.9.1
 
 - Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes. Do:

@@ -1,4 +1,5 @@
 (ns rum.core
+  (:refer-clojure :exclude [ref])
   (:require
     [sablono.compiler :as s]
     [rum.cursor :as cursor]
@@ -186,6 +187,14 @@
 
 (defn dom-node [s]
   (throw (UnsupportedOperationException. "dom-node is only avaliable from ClojureScript")))
+
+
+(defn ref [s k]
+  (throw (UnsupportedOperationException. "ref is only avaliable from ClojureScript")))
+
+
+(defn ref-node [s k]
+  (throw (UnsupportedOperationException. "ref is only avaliable from ClojureScript")))
 
 
 (defn mount [c n]

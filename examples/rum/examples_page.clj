@@ -9,6 +9,7 @@
     [rum.examples.board-reactive :as board-reactive]
     [rum.examples.board-cursored :as board-cursored]
     [rum.examples.bmi-calculator :as bmi-calculator]
+    [rum.examples.refs           :as refs]
     [rum.examples.local-state    :as local-state]
     [rum.examples.keys           :as keys]
     [rum.examples.self-reference :as self-reference]))
@@ -60,6 +61,11 @@
     <div class=example>
       <div class=example-title>Form validation</div>
       <div id=form-validation></div>
+    </div>
+
+    <div class=example>
+      <div class=example-title>Refs</div>
+      <div id=refs>" (rum/render-html (refs/refs)) "</div>
     </div>
 
     <div class=example>
