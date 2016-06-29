@@ -6,7 +6,7 @@
     [cljsjs.react.dom]
     [sablono.core]
     [rum.cursor :as cursor]
-    [rum.util :as util :refer [collect call-all]]
+    [rum.util :as util :refer [collect collect* call-all]]
     [rum.derived-atom :as derived-atom]))
 
 
@@ -15,28 +15,32 @@
 
 
 (defn build-class [render mixins display-name]
-  (let [init                (collect :init mixins)                ;; state props -> state
-        will-mount          (collect :will-mount mixins)          ;; state -> state
-        did-mount           (collect :did-mount mixins)           ;; state -> state
-        did-remount         (collect :did-remount mixins)         ;; old-state state -> state
-        should-update       (collect :should-update mixins)       ;; old-state state -> boolean
-        will-update         (collect :will-update mixins)         ;; state -> state
-        render              render                                ;; state -> [dom state]
-        wrapped-render      (reduce #(%2 %1) render (collect :wrap-render mixins)) ;; render-fn -> render-fn
-        did-update          (collect :did-update mixins)          ;; state -> state
-        will-unmount        (collect :will-unmount mixins)        ;; state -> state
-        props->state        (fn [props]
-                              (call-all (aget props ":rum/initial-state") init props))
-        child-context       (collect :child-context mixins)       ;; state -> child-context
-        class-properties    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
+  (let [init           (collect   :init mixins)             ;; state props -> state
+        will-mount     (collect* [:will-mount               ;; state -> state
+                                  :before-render] mixins)   ;; state -> state
+        render         render                               ;; state -> [dom state]
+        wrap-render    (collect   :wrap-render mixins)      ;; render-fn -> render-fn
+        wrapped-render (reduce #(%2 %1) render wrap-render)
+        did-mount      (collect* [:did-mount                ;; state -> state
+                                  :after-render] mixins)    ;; state -> state
+        did-remount    (collect   :did-remount mixins)      ;; old-state state -> state
+        should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
+        will-update    (collect  [:will-update              ;; state -> state
+                                  :before-render] mixins)   ;; state -> state
+        did-update     (collect* [:did-update               ;; state -> state
+                                  :after-render] mixins)    ;; state -> state
+        will-unmount   (collect   :will-unmount mixins)     ;; state -> state
+        child-context  (collect   :child-context mixins)    ;; state -> child-context
+        class-props    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
 
     (-> {:displayName display-name
          :getInitialState
          (fn []
            (this-as this
              (let [props (.-props this)
-                   state (-> { :rum/react-component this }
-                             (merge (props->state props)))]
+                   state (-> (aget props ":rum/initial-state")
+                             (call-all init props)
+                             (assoc :rum/react-component this))]
                #js { ":rum/state" (volatile! state) })))
          :componentWillMount
          (when-not (empty? will-mount)
@@ -93,7 +97,7 @@
              (this-as this
                (let [state @(state this)]
                  (clj->js (transduce (map #(% state)) merge {} child-context))))))}
-      (merge class-properties)
+      (merge class-props)
       (clj->js)
       (js/React.createClass))))
 

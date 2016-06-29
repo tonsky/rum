@@ -4,7 +4,7 @@
     [rum.examples.core :as core]))
 
 
-(rum/defcc ta < { :did-update
+(rum/defcc ta < { :after-render
                   (fn [state]
                     (let [ta (rum/ref-node state "ta")]
                       (set! (.-height (.-style ta)) "0")
@@ -17,8 +17,8 @@
                :padding "10px"
                :font    "inherit"
                :outline "none"
-               :height  "50px"
                :resize  "none"}
+      :default-value "Auto-resizing\ntextarea"
       :placeholder "Auto-resizing textarea"
       :on-change (fn [_] (rum/request-render comp)) }])
 

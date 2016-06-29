@@ -502,6 +502,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 - Added `rum/ref` and `rum/ref-node` helpers, returning backing component and DOM node
 - [ BREAKING ] removed `cursored` and `cursored-watch` mixins. They felt too unnatural to use
+- Mixins can now specify `:before-render` (triggered at `componentWillMount` and `componentWillUpdate`) and `:after-render` (`componentDidMount` and `componentDidUpdate`) callback
 
 ### 0.9.1
 
