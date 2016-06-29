@@ -4,7 +4,8 @@
     [sablono.compiler :as s]
     [rum.cursor :as cursor]
     [rum.server-render :as render]
-    [rum.util :as util :refer [collect call-all]])
+    [rum.util :as util :refer [collect call-all]]
+    [rum.derived-atom :as derived-atom])
   (:import
     [rum.cursor Cursor]))
 
@@ -168,11 +169,7 @@
   (apply cursor-in ref [key] options))
 
 
-(def cursored {})
-(def cursored-watch {})
-
-
-(def derived-atom util/derived-atom)
+(def derived-atom derived-atom/derived-atom)
 
 
 ;;; Server-side rendering

@@ -9,7 +9,6 @@
     [rum.examples.controls :as controls]
     [rum.examples.binary-clock :as binary-clock]
     [rum.examples.board-reactive :as board-reactive]
-    [rum.examples.board-cursored :as board-cursored]
     [rum.examples.bmi-calculator :as bmi-calculator]
     [rum.examples.form-validation :as form-validation]
     [rum.examples.refs :as refs]
@@ -30,7 +29,6 @@
 (controls/mount!        (core/el "controls"))
 (binary-clock/mount!    (core/el "binary-clock"))
 (board-reactive/mount!  (core/el "board-reactive"))
-(board-cursored/mount!  (core/el "board-cursored"))
 (bmi-calculator/mount!  (core/el "bmi-calculator"))
 (form-validation/mount! (core/el "form-validation"))
 (refs/mount!            (core/el "refs"))

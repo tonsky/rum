@@ -7,7 +7,6 @@
     [rum.examples.controls       :as controls]
     [rum.examples.binary-clock   :as binary-clock]
     [rum.examples.board-reactive :as board-reactive]
-    [rum.examples.board-cursored :as board-cursored]
     [rum.examples.bmi-calculator :as bmi-calculator]
     [rum.examples.refs           :as refs]
     [rum.examples.local-state    :as local-state]
@@ -45,12 +44,6 @@
     <div class=example>
       <div class=example-title>Reactive artboard</div>
       <div id=board-reactive>" (rum/render-html (board-reactive/board-reactive)) "</div>
-    </div>
-
-
-    <div class=example>
-      <div class=example-title>Cursor artboard</div>
-      <div id=board-cursored>" (rum/render-html (board-cursored/board-cursored board-cursored/*board)) "</div>
     </div>
 
     <div class=example>

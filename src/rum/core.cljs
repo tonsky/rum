@@ -6,7 +6,8 @@
     [cljsjs.react.dom]
     [sablono.core]
     [rum.cursor :as cursor]
-    [rum.util :as util :refer [collect call-all]]))
+    [rum.util :as util :refer [collect call-all]]
+    [rum.derived-atom :as derived-atom]))
 
 
 (defn state [comp]
@@ -180,10 +181,10 @@
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
 
 (defn ref [state key]
-  (-> state :rum/react-component (aget "refs") (aget key)))
+  (-> state :rum/react-component (aget "refs") (aget (name key))))
 
 (defn ref-node [state key]
-  (js/ReactDOM.findDOMNode (ref state key)))
+  (js/ReactDOM.findDOMNode (ref state (name key))))
 
 ;; static mixin
 
@@ -254,11 +255,10 @@
 
 ;; derived-atom
 
-(def derived-atom util/derived-atom)
+(def derived-atom derived-atom/derived-atom)
 
 
 ;; cursors
-
 
 (defn cursor-in [ref path & {:as options}]
   (if (instance? cursor/Cursor ref)
@@ -268,42 +268,3 @@
 
 (defn cursor [ref key]
   (cursor-in ref [key]))
-
-
-;; Om-style mixins
-
-(defn- deref-args [xs]
-  ;; deref is not deep
-  (mapv #(if (satisfies? IDeref %) @% %) xs))
-
-
-(def cursored {
-  :should-update
-  (fn [old-state new-state]
-    (not= (:rum/om-args old-state) (deref-args (:rum/args new-state))))
-  :wrap-render
-  (fn [render-fn]
-    (fn [state]
-      (let [[dom next-state] (render-fn state)]
-        [dom (assoc next-state :rum/om-args (deref-args (:rum/args state)))])))
-})
-
-
-(def cursored-watch {
-  :init
-    (fn [state props]
-      (assoc state :rum.cursored/key (random-uuid)))
-  :will-mount
-    (fn [state]
-      (doseq [arg (:rum/args state)
-              :when (satisfies? IWatchable arg)]
-        (add-watch arg (:rum.cursored/key state)
-          (fn [_ _ _ _] (request-render (:rum/react-component state)))))
-      state)
-  :will-unmount
-    (fn [state]
-      (doseq [arg (:rum/args state)
-              :when (satisfies? IWatchable arg)]
-        (remove-watch arg (:rum.cursored/key state)))
-      state)
-})

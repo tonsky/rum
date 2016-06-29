@@ -12,14 +12,14 @@
                     state) }
   [comp]
   [:textarea
-    { :ref "ta"
+    { :ref :ta
       :style { :width   "100%"
                :padding "10px"
                :font    "inherit"
                :outline "none"
                :height  "50px"
                :resize  "none"}
-      :placeholder "Auto-resizeable textarea"
+      :placeholder "Auto-resizing textarea"
       :on-change (fn [_] (rum/request-render comp)) }])
 
 
