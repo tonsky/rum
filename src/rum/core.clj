@@ -62,8 +62,16 @@
      1. Wraps body into sablono/compile-html
      2. Generates render function from that
      3. Takes render function and mixins, builds React class from them
-     4. Using that class, generates constructor fn [params]->ReactElement
+     4. Using that class, generates constructor fn [args]->ReactElement
      5. Defines top-level var with provided name and assigns ctor to it
+  
+  (rum/defc label [t]
+    [:div t])
+  
+  ;; creates React class
+  ;; defines ctor fn (defn label [t] ...) => element
+  
+  (label \"text\") ;; => returns React element built with label class
   
    Usage:
   
@@ -92,7 +100,7 @@
   (-defc 'rum.core/build-defcc (boolean (:ns &env)) body))
 
 
-(defn build-ctor [render mixins display-name]
+(defn- build-ctor [render mixins display-name]
   (let [init           (collect :init mixins)                ;; state props -> state
         will-mount     (collect :will-mount mixins)          ;; state -> state
         render         render                                ;; state -> [dom state]
@@ -156,16 +164,34 @@
 
 
 (def reactive {})
+
+
 (def react deref)
 
 
-(defn cursor-in ^rum.cursor.Cursor [ref path & { :as options }]
+(defn cursor-in
+  "Given atom with deep nested value and path inside it, creates an atom-like structure
+   that can be used separately from main atom, but will sync changes both ways:
+  
+     (def db (atom { :users { \"Ivan\" { :age 30 }}}))
+     (def ivan (rum/cursor db [:users \"Ivan\"]))
+     \\@ivan ;; => { :age 30 }
+     (swap! ivan update :age inc) ;; => { :age 31 }
+     \\@db ;; => { :users { \"Ivan\" { :age 31 }}}
+     (swap! db update-in [:users \"Ivan\" :age] inc) ;; => { :users { \"Ivan\" { :age 32 }}}
+     \\@ivan ;; => { :age 32 }
+  
+  Returned value supports deref, swap!, reset!, watches and metadata.
+  The only supported option is `:meta`"
+  ^rum.cursor.Cursor [ref path & { :as options }]
   (if (instance? Cursor ref)
     (cursor/Cursor. (.-ref ^Cursor ref) (into (.-path ^Cursor ref) path) (:meta options) (volatile! {}))
     (cursor/Cursor. ref path (:meta options) (volatile! {}))))
 
 
-(defn cursor ^rum.cursor.Cursor [ref key & options]
+(defn cursor
+  "Same as `rum.core/cursor-in` but accepts single key instead of path vector"
+  ^rum.cursor.Cursor [ref key & options]
   (apply cursor-in ref [key] options))
 
 
@@ -175,8 +201,17 @@
 ;;; Server-side rendering
 
 
-(def render-html render/render-html)
-(def render-static-markup render/render-static-markup)
+(def render-html
+  "Main server-side rendering method. Given component, returns HTML string with
+   static markup of that component. Serve that string to the browser and
+   `rum.core/mount` same Rum component over it. React will be able to reuse already
+   existing DOM and will initialize much faster"
+  render/render-html)
+
+(def render-static-markup
+  "Same as `rum.core/render-html` but returned string has nothing React-specific.
+   This allows Rum to be used as traditional server-side template engine"
+  render/render-static-markup)
 
 
 ;; method parity with CLJS version so you can avoid conditional directive
@@ -204,11 +239,3 @@
 
 (defn request-render [c]
   (throw (UnsupportedOperationException. "request-render is only available from ClojureScript")))
-
-
-(defn state [c]
-  (throw (UnsupportedOperationException. "state is only available from ClojureScript")))
-
-
-(defn id [c]
-  (throw (UnsupportedOperationException. "id is only available from ClojureScript")))

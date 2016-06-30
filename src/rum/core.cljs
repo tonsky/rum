@@ -10,11 +10,11 @@
     [rum.derived-atom :as derived-atom]))
 
 
-(defn state [comp]
+(defn- state [comp]
   (aget (.-state comp) ":rum/state"))
 
 
-(defn build-class [render mixins display-name]
+(defn- build-class [render mixins display-name]
   (let [init           (collect   :init mixins)             ;; state props -> state
         will-mount     (collect* [:will-mount               ;; state -> state
                                   :before-render] mixins)   ;; state -> state
@@ -103,7 +103,7 @@
       (js/React.createClass))))
 
 
-(defn build-ctor [render mixins display-name]
+(defn- build-ctor [render mixins display-name]
   (let [class  (build-class render mixins display-name)
         key-fn (first (collect :key-fn mixins))
         ctor   (if (some? key-fn)
@@ -141,7 +141,7 @@
 
 ;; render queue
 
-(def schedule
+(def ^:private schedule
   (or (and (exists? js/window)
            (or js/window.requestAnimationFrame
                js/window.webkitRequestAnimationFrame
@@ -149,68 +149,100 @@
                js/window.msRequestAnimationFrame))
     #(js/setTimeout % 16)))
 
-(def empty-queue [])
-(def render-queue (volatile! empty-queue))
+
 (def ^:private batch
   (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
       (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
       (fn [f a] (f a))))
 
-(defn render-all [queue]
+
+(def ^:private empty-queue [])
+(def ^:private render-queue (volatile! empty-queue))
+
+
+(defn- render-all [queue]
   (doseq [comp queue
           :when (.isMounted comp)]
     (.forceUpdate comp)))
 
-(defn render []
+
+(defn- render []
   (let [queue @render-queue]
     (vreset! render-queue empty-queue)
     (batch render-all queue)))
 
-(defn request-render [component]
+
+(defn request-render
+  "Schedules react component to be rendered on next animation frame"
+  [component]
   (when (empty? @render-queue)
     (schedule render))
   (vswap! render-queue conj component))
 
-(defn mount [component node]
+
+(defn mount
+  "Add component to the DOM tree. Idempotent. Subsequent mounts will just update component"
+  [component node]
   (js/ReactDOM.render component node)
   nil)
 
-(defn unmount [node]
+
+(defn unmount
+  "Removes component from the DOM tree"
+  [node]
   (js/ReactDOM.unmountComponentAtNode node))
+
 
 ;; initialization
 
-(defn with-key [element key]
-  (js/React.cloneElement element #js { "key" key } nil))
+(defn with-key
+  "Adds React key to component"
+  [component key]
+  (js/React.cloneElement component #js { "key" key } nil))
 
-(defn with-ref [element ref]
-  (js/React.cloneElement element #js { "ref" ref } nil))
 
-(defn dom-node [state]
+(defn with-ref
+  "Adds React ref (string or callback) to component"
+  [component ref]
+  (js/React.cloneElement component #js { "ref" ref } nil))
+
+
+(defn dom-node
+  "Given state, returns top-level DOM node. Can’t be called during render"
+  [state]
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
 
-(defn ref [state key]
+
+(defn ref
+  "Given state and ref handle, returns React component"
+  [state key]
   (-> state :rum/react-component (aget "refs") (aget (name key))))
 
-(defn ref-node [state key]
+
+(defn ref-node
+  "Given state and ref handle, returns DOM node associated with ref"
+  [state key]
   (js/ReactDOM.findDOMNode (ref state (name key))))
+
 
 ;; static mixin
 
-(def static {
-  :should-update
-  (fn [old-state new-state]
-    (not= (:rum/args old-state) (:rum/args new-state)))
-})
+(def static
+  "Mixin. Will avoid re-render if none of component’s arguments have changed.
+   Does equality check (=) on all arguments"
+  { :should-update
+    (fn [old-state new-state]
+      (not= (:rum/args old-state) (:rum/args new-state))) })
+
 
 ;; local mixin
 
 (defn local
-  "Adds an atom to component’s state that can be used as local state.
-   Atom is stored under key `:rum/local`.
-   Component will be automatically re-rendered if atom’s value changes"
-  [initial & [key]]
-  (let [key (or key :rum/local)]
+  "Mixin constructor. Adds an atom to component’s state that can be used to keep stuff
+   during component’s lifecycle. Component will be re-rendered if atom’s value changes.
+   Atom is stored under user-provided key or under `:rum/local` by default"
+  ([initial] (local initial :rum/local))
+  ([initial key]
     { :will-mount
       (fn [state]
         (let [local-state (atom initial)
@@ -223,41 +255,45 @@
 
 ;; reactive mixin
 
-(def ^:dynamic *reactions*)
+(def ^:private ^:dynamic *reactions*)
 
 
-(def reactive {
-  :init
-  (fn [state props]
-    (assoc state :rum.reactive/key (random-uuid)))
-  :wrap-render
-  (fn [render-fn]
+(def reactive
+  "Mixin. Works in conjunction with `rum.core/react`"
+  { :init
+    (fn [state props]
+      (assoc state :rum.reactive/key (random-uuid)))
+    :wrap-render
+    (fn [render-fn]
+      (fn [state]
+        (binding [*reactions* (volatile! #{})]
+          (let [comp             (:rum/react-component state)
+                old-reactions    (:rum.reactive/refs state #{})
+                [dom next-state] (render-fn state)
+                new-reactions    @*reactions*
+                key              (:rum.reactive/key state)]
+            (doseq [ref old-reactions]
+              (when-not (contains? new-reactions ref)
+                (remove-watch ref key)))
+            (doseq [ref new-reactions]
+              (when-not (contains? old-reactions ref)
+                (add-watch ref key
+                  (fn [_ _ _ _]
+                    (request-render comp)))))
+            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
+    :will-unmount
     (fn [state]
-      (binding [*reactions* (volatile! #{})]
-        (let [comp             (:rum/react-component state)
-              old-reactions    (:rum.reactive/refs state #{})
-              [dom next-state] (render-fn state)
-              new-reactions    @*reactions*
-              key              (:rum.reactive/key state)]
-          (doseq [ref old-reactions]
-            (when-not (contains? new-reactions ref)
-              (remove-watch ref key)))
-          (doseq [ref new-reactions]
-            (when-not (contains? old-reactions ref)
-              (add-watch ref key
-                (fn [_ _ _ _]
-                  (request-render comp)))))
-          [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
-  :will-unmount
-  (fn [state]
-    (let [key (:rum.reactive/key state)]
-      (doseq [ref (:rum.reactive/refs state)]
-        (remove-watch ref key)))
-    (dissoc state :rum.reactive/refs :rum.reactive/key))
-})
+      (let [key (:rum.reactive/key state)]
+        (doseq [ref (:rum.reactive/refs state)]
+          (remove-watch ref key)))
+      (dissoc state :rum.reactive/refs :rum.reactive/key)) })
 
 
-(defn react [ref]
+(defn react
+  "Works in conjunction with `rum.core/reactive` mixin. Use this function instead of
+   `deref` inside render, and your component will subscribe to changes happening
+   to the derefed atom."
+  [ref]
   (vswap! *reactions* conj ref)
   @ref)
 
@@ -269,11 +305,27 @@
 
 ;; cursors
 
-(defn cursor-in [ref path & {:as options}]
+(defn cursor-in
+  "Given atom with deep nested value and path inside it, creates an atom-like structure
+   that can be used separately from main atom, but will sync changes both ways:
+  
+     (def db (atom { :users { \"Ivan\" { :age 30 }}}))
+     (def ivan (rum/cursor db [:users \"Ivan\"]))
+     \\@ivan ;; => { :age 30 }
+     (swap! ivan update :age inc) ;; => { :age 31 }
+     \\@db ;; => { :users { \"Ivan\" { :age 31 }}}
+     (swap! db update-in [:users \"Ivan\" :age] inc) ;; => { :users { \"Ivan\" { :age 32 }}}
+     \\@ivan ;; => { :age 32 }
+  
+  Returned value supports deref, swap!, reset!, watches and metadata.
+  The only supported option is `:meta`"
+  [ref path & {:as options}]
   (if (instance? cursor/Cursor ref)
     (cursor/Cursor. (.-ref ref) (into (.-path ref) path) (:meta options))
     (cursor/Cursor. ref path (:meta options))))
 
 
-(defn cursor [ref key]
-  (cursor-in ref [key]))
+(defn cursor
+  "Same as `rum.core/cursor-in` but accepts single key instead of path vector"
+  [ref key & options]
+  (apply cursor-in ref [key] options))
