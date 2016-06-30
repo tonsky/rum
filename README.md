@@ -12,7 +12,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
 
 **Extensible**: the API is stable and explicitly defined, including the API between Rum internals. It lets you build custom behaviours that change components in significant ways.
 
-**Minimal codebase**: You can become a Rum expert just by reading its source code (~700 lines).
+**Minimal codebase**: You can become a Rum expert just by reading its source code (~900 lines).
 
 ### Comparison to other frameworks
 
@@ -33,7 +33,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.9.1"]`
+Add to project.clj: `[rum "0.10.0"]`
 
 ### Defining a component
 
@@ -153,45 +153,19 @@ Usually, `mount` is used just once in an app lifecycle to mount the top of your 
 The simplest way to update your app is to mount it again:
 
 ```clojure
-(rum/mount (repeat-label 5 "abc") js/document.body)
+(rum/defc timer []
+  [:div (.toISOString (js/Date.))])
 
-(js/setTimeout
-  #(rum/mount (repeat-label 3 "xyz") js/document.body)
+(rum/mount (timer) js/document.body)
+
+(js/setInterval
+  #(rum/mount (timer) js/document.body)
   1000)
-```
-
-A better way is to use `(rum.core/request-render react-component)` which will schedule an update at the next animation frame. It will also throttle duplicate update calls if you happen to call `request-render` more than once:
-
-```clojure
-(rum/defc my-app []
-  [:div (rand)])
-
-(let [react-comp (rum/mount (my-app) js/document.body)]
-  (js/setTimeout #(rum/request-render react-comp) 1000))
-```
-
-Note that `request-render` accepts a React component, not a Rum component. One way to get it is to save the return value of `mount`, but we’ll look at other ways to do this in the “Writing your own mixin” section.
-
-Also note that `request-render` does not let you change component arguments. It expects the component to be responsible for getting its own state when the render function is called.
-
-This is already enough to build a simple click counter:
-
-```clojure
-(def count (atom 0))
-
-(rum/defc counter []
-  [:div { :on-click (fn [_] (swap! count inc)) }
-    "Clicks: " @count])
-    
-(let [react-comp (rum/mount (counter) js/document.body)]
-  (add-watch count ::render
-    (fn [_ _ _ _]
-      (rum/request-render react-comp))))
 ```
 
 ### Reactive components
 
-Rum offers mixins as a way to hook into a component's lifecycle and extend its capabilities or change its behaviour.
+Rum offers mixins as a way to hook into a component’s lifecycle and extend its capabilities or change its behaviour.
 
 One very common use-case is for a component to update when some reference changes. Rum has a `rum.core/reactive` mixin just for that:
 
@@ -207,28 +181,11 @@ One very common use-case is for a component to update when some reference change
 
 Two things are happening here:
 
-1. We’ve added the `rum.core/reactive` mixin to the component.
-2. We’ve used `rum.core/react` instead of `deref` in the component body.
+1. We’re adding the `rum.core/reactive` mixin to the component.
+2. We’re using `rum.core/react` instead of `deref` in the component body.
 
 This will set up a watch on the `count` atom and will automatically call `rum.core/request-render` on the component each time the atom changes.
 
-If you have a complex state and need a component to interact with only some part of it, create a _derived cursor_ using `(rum.core/cursor ref path)`:
-
-```clojure
-(def state (atom { :color "#cc3333"
-                   :user { :name "Ivan" } }))
-
-(def user-name (rum/cursor state [:user :name]))
-
-@user-name ;; => "Ivan"
-
-(reset! user-name "Oleg") ;; => "Oleg"
-
-@state ;; => { :color "#cc3333"
-       ;;      :user  { :name "Oleg" } }
-```
-
-Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They work well with `rum/reactive` and `rum/react` too.
 
 ### Component’s local state
 
@@ -237,30 +194,19 @@ Sometimes you need to keep track of some mutable data just inside a component an
 1. Each component in Rum has internal state associated with it, normally used by mixins and Rum internals.
 2. `rum.core/local` creates a mixin that will put an atom into the component’s state.
 3. `rum.core/defcs` is used instead of `rum.core/defc`. It allows you to get hold of the components’s state in the render function (it will be passed as a first argument).
-4. You can then extract that atom from the component's state and `deref`/`swap!`/`reset!` it as usual.
+4. You can then extract that atom from the component’s state and `deref`/`swap!`/`reset!` it as usual.
 5. Any change to the atom will force the component to update.
 
 In practice, it’s quite convenient to use:
 
 ```clojure
-(rum/defcs stateful < (rum/local 0) [state label]
-  (let [local-atom (:rum/local state)]
+(rum/defcs stateful < (rum/local 0 ::key)
+  [state label]
+  (let [local-atom (::key state)]
     [:div { :on-click (fn [_] (swap! local-atom inc)) }
       label ": " @local-atom]))
       
 (rum/mount (stateful "Click count") js/document.body)
-```
-
-By default the atom will be associated to the `:rum/local` key in the component's state. You can change this by specifying a second argument to `rum.core/local`, e.g.
-
-```clojure
-(rum/defcs input < (rum/local "" ::text)
-  [state]
-  (let [text-atom (::text state)]
-    [:input { :type  "text"
-              :value @text-atom
-              :on-change (fn [e]
-                           (reset! text-atom (.. e -target -value))) }]))
 ```
 
 ### Optimizing with shouldComponentUpdate
@@ -272,12 +218,13 @@ If your component accepts only immutable data structures as arguments, it may be
   [:.label (repeat n text)])
 ```
 
-`rum.core/static` will check if the arguments of a component's constructor have changed (using Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
+`rum.core/static` will check if the arguments of a component’s constructor have changed (using Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
 
 ```clojure
 (rum/mount (label 1 "abc") body)
 (rum/mount (label 1 "abc") body) ;; render won’t be called
 (rum/mount (label 1 "xyz") body) ;; this will cause a re-render
+(rum/mount (label 1 "xyz") body) ;; this won’t
 ```
 
 Note that this is not enabled by default because a) comparisons can be expensive, and b) things will go wrong if you pass a mutable reference as an argument.
@@ -306,12 +253,11 @@ For example, if we have this component defined:
 It will have the following state:
 
 ```clojure
-{ :rum/id   <int>
-  :rum/args ["Your name" ""]
+{ :rum/args ["Your name" ""]
   :rum/react-component <react-component> }
 ```
 
-You can read the internal state by using the `rum.core/defcs` (short for “define component [and pass] state”) macro instead of `rum.core/defc`. It will pass `state` as the first argument:
+You can read the internal state by using the `rum.core/defcs` (short for “define component [and pass] state”) macro instead of `rum.core/defc`. It will pass `state` to the render function as the first argument:
 
 ```clojure
 (rum/defcs label [state label value]
@@ -320,33 +266,33 @@ You can read the internal state by using the `rum.core/defcs` (short for “defi
 (label "A" 3) ;; => <div>My args: ["A" 3]</div>
 ```
 
-The internal state cannot be directly manipulated, except at certain stages of a component's lifecycle. Mixins are functions that are invoked at these stages to modify the state and/or do side effects to the world.
+The internal state cannot be directly manipulated, except at certain stages of a component’s lifecycle. Mixins are functions that are invoked at these stages to give you and opportunity to modify the state and/or do side effects to the world.
 
 The following mixin will record the component’s mount time:
 
 ```clojure
 (rum/defcs time-label < { :did-mount (fn [state]
-                                       (assoc state ::time (Date.))) }
+                                       (assoc state ::time (js/Date.))) }
   [state label]
   [:div label ": " (::time state)])
 ```
 
-As you can see, `:did-mount` is a function from `state` to `state` and can populate, clean or modify it only after the component has been mounted.
+As you can see, `:did-mount` is a function from `state` to `state`. It gives you a chance to populate, clean or modify state map after the component has been mounted.
+
+Another useful thing you can do in a mixin is to decide when to update a component. If you can get ahold of React component (notice that that’s different from Rum component, unfortunately; sorry), you can call `rum.core/request-render` to schedule this component’s update at next frame (Rum uses `requestAnimationFrame` to batch and debounce component update calls). To get React component, just look up `:rum/react-component` key in a state.
 
 This mixin will update a component each second:
 
 ```clojure
 (def periodic-update-mixin
-  { :did-mount      (fn [state]
-                      (let [comp      (:rum/react-component state)
-                            callback #(rum/request-render comp)
-                            interval  (js/setInterval callback 1000)]
-                         (assoc state ::interval interval)))
-    :transfer-state (fn [old-state state]
-                      (assoc state ::interval (::interval old-state)))
-    :will-unmount   (fn [state]
-                      (js/clearInterval (::interval state))
-                      (dissoc state ::interval)) })
+  { :did-mount    (fn [state]
+                    (let [comp      (:rum/react-component state)
+                          callback #(rum/request-render comp)
+                          interval  (js/setInterval callback 1000)]
+                       (assoc state ::interval interval)))
+    :will-unmount (fn [state]
+                    (js/clearInterval (::interval state))
+                    (dissoc state ::interval)) })
 
 (rum/defc timer < periodic-update-mixin []
   [:div (.toISOString (js/Date.))])
@@ -354,25 +300,21 @@ This mixin will update a component each second:
 (rum/mount (timer) js/document.body)
 ```
 
-Two gotchas:
-
-- Don’t forget to return `state` from the mixin functions. If you’re using them for side-effects only, just return an unmodified `state`.
-- If you add something to the state through `:did-mount`/`:will-mount`, you must write a `:transfer-state` function to move that attribute from the old component instance to the new one.
-
 Here’s a full list of callbacks you can define in a mixin:
 
 ```clojure
 { :init                 ;; state, props     ⇒ state
   :will-mount           ;; state            ⇒ state
+  :before-render        ;; state            ⇒ state
+  :wrap-render          ;; render-fn        ⇒ render-fn
+  :render               ;; state            ⇒ [pseudo-dom state]
   :did-mount            ;; state            ⇒ state
-  :transfer-state       ;; old-state, state ⇒ state
+  :after-render         ;; state            ⇒ state
+  :did-remount          ;; old-state, state ⇒ state
   :should-update        ;; old-state, state ⇒ boolean
   :will-update          ;; state            ⇒ state
-  :render               ;; state            ⇒ [pseudo-dom state]
-  :wrap-render          ;; render-fn        ⇒ render-fn
   :did-update           ;; state            ⇒ state
-  :will-unmount         ;; state            ⇒ state 
-  :child-context        ;; state            ⇒ child-context }
+  :will-unmount }       ;; state            ⇒ state
 ```
 
 Each component can have any number of mixins:
@@ -388,9 +330,67 @@ Each component can have any number of mixins:
     [:div])
 ```
 
+One gotcha: don’t forget to return `state` from the mixin functions. If you’re using them for side-effects only, just return an unmodified `state`.
+
+
+### Working with atoms
+
+Since Rum relies a lot at components being able to efficiently update themselves in reaction to events, it includes two facilities to build architectures around Atoms and watchers.
+
+**Cursors**
+
+If you have a complex state and need a component to interact with only a part of it, create a cursor using `(rum.core/cursor-in ref path)`. Given atom with deep nested value and path inside it, `cursor-in` will create an atom-like structure that can be used separately from main atom, but will sync changes both ways:
+
+```clojure
+(def state (atom { :color "#cc3333"
+                   :user { :name "Ivan" } }))
+
+(def user-name (rum/cursor-in state [:user :name]))
+
+@user-name ;; => "Ivan"
+
+(reset! user-name "Oleg") ;; => "Oleg"
+
+@state ;; => { :color "#cc3333"
+       ;;      :user  { :name "Oleg" } }
+```
+
+Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They work well with `rum/reactive` and `rum/react` too.
+
+**Derived atoms**
+
+Use derived atoms to create “chains” and acyclic graphs of dependent atoms. `derived-atom` will:
+
+- Take N “source” refs
+- Set up a watch on each of them
+- Create “sink” atom
+- When any of source refs changes:
+  - re-run function `f`, passing N dereferenced values of source refs
+  - `reset!` result of `f` to the sink atom
+- return sink atom
+
+```clojure
+  (def *a (atom 0))
+  (def *b (atom 1))
+  (def *x (derived-atom [*a *b] ::key
+            (fn [a b]
+              (str a \":\" b))))
+  (type *x) ;; => clojure.lang.Atom
+  @*x     ;; => 0:1
+  (swap! *a inc)
+  @*x     ;; => 1:1
+  (reset! *b 7)
+  @*x     ;; => 1:7
+```
+
+Derived atoms are like cursors, but can “depend on” multiple references and won’t sync changes back to the source if you try to update derived atom (don’t).
+
+
 ### Interop with React
 
-You can access the raw React component by reading the state's `:rum/react-component` attribute:
+**Native React component**
+
+You can access the raw React component by reading the state’s `:rum/react-component` attribute:
 
 ```clojure
 { :did-mount (fn [state]
@@ -400,20 +400,70 @@ You can access the raw React component by reading the state's `:rum/react-compon
                state) }
 ```
 
-You can’t specify a React key from inside component, but you can do so when you create it:
+**React keys and refs**
+
+There’re three ways to specify React keys:
+
+1. If you need a key on Sablono tag, put it into attributes: `[:div { :key "x" }]`
+2. If you need a key on Rum component, use `with-key`:
+
+  ```clojure
+  (rum/defc my-component [str]
+    ...)
+
+  (rum/with-key (my-component "args") "x")
+  ```
+3. or, you can specify `:key-fn` in a mixin to calculate key based on args at component creation time:
+
+  ```clojure
+  (rum/defc my-component < { :key-fn (fn [x y z]
+                                       (str x "-" y "-" z)) }
+    [x y z]
+    ...)
+
+  (my-component 1 2 3) ;; => key == "1-2-3"
+  ```
+
+`:key-fn` must accept same arguments your render function does.
+
+Refs work the same way as options 1 and 2 for keys work:
+
+1. `[:div { :ref "x" }]`
+2. `(rum/with-ref (my-component) "x")`
+
+
+**Accessing DOM**
+
+There’re couple of helpers that will, given state map, find stuff in it for you:
 
 ```clojure
-(rum/defc my-component [str]
-  ...)
-  
-(rum/with-key (my-component "args") 77)
+(rum/dom-node state)     ;; => top-level DOM node
+(rum/ref      state "x") ;; => ref-ed React component
+(rum/ref-node state "x") ;; => top-level DOM node of ref-ed React component
 ```
+
+**Custom class properties**
 
 To define arbitrary properties and methods on a component class, specify a `:class-properties` map in a mixin:
 
 ```clojure
 (rum/defc comp < { :class-properties { ... } }
   [:div]))
+```
+
+**React context**
+
+To define child context, specify a `:child-context` function taking state and returning context map in a mixin:
+
+```clojure
+(rum/defc theme < { :child-context
+                    (fn [state]
+                      (let [[color] (:rum/args state)]
+                        { :color color }))
+                    :class-properties
+                    { :childContextTypes {:color js/React.PropTypes.string} } }
+  [color child]
+  child)
 ```
 
 ### Server-side rendering
@@ -437,7 +487,7 @@ If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 ;; => "<div data-reactroot=\"\" data-reactid=\"1\" data-react-checksum=\"-857140882\">hello</div>"
 
 ;; on a client
-(rum/mount (my-comp "hello") (js/document.querySelector "[data-reactroot]))
+(rum/mount (my-comp "hello") (js/document.querySelector "[data-reactroot]"))
 ```
 
 Use `rum/render-static-markup` if you’re not planning to connect your page with React later:
@@ -450,12 +500,18 @@ Rum server-side rendering does not use React or Sablono, it runs completely in J
 
 As of `[rum "0.8.3"]` and `[hiccup "1.0.5"]`, Rum is ~3× times faster than Hiccup.
 
-Server-side components do not have full lifecycle support, but `:init` and `:will-mount` from mixins would be called at the component's construction time.
+Server-side components do not have full lifecycle support, but `:init` and `:will-mount` from mixins would be called at the component’s construction time.
 
 ## Resources
 
 - Ask for help on [Gitter chat](https://gitter.im/tonsky/rum)
 - Check out [our wiki](https://github.com/tonsky/rum/wiki)
+
+### Talks
+
+- [Rum workshop](https://www.youtube.com/watch?v=RqHnxkU9TZE) at Cognician, by me
+- [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
+- [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
 
 ### Libraries
 
@@ -469,40 +525,45 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [DataScript ToDo app](https://github.com/tonsky/datascript-todo)
 - [DataScript Menu app](https://github.com/tonsky/datascript-menu)
 
-### Talks
-
-- [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
-- [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
-
 ## Changes
 
-### WIP
+### 0.10.0
+
+A big cleanup/optmization/goodies release with a lot breaking changes. Read carefully!
 
 - [ BREAKING ] `cursor` got renamed to `cursor-in`. New `cursor` method added that takes single key (as everywhere in Clojure)
 - [ BREAKING ] `rum/mount` returns `nil` (because you [shouldn’t rely on return value of ReactDOM.render](https://github.com/facebook/react/issues/4936))
-- Cursors now support metadata, `alter-meta!` etc
-- Cursors can now be used from Clojure
-- Rum now makes use of staless components (nothing for you to do, if your component is defined via `defc` with no mixins, it’ll be automatically compiled to stateless component)
-- [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
-- Some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
-- [ BREAKING ] `:transfer-state` is gone. All of component’s state is now transferred by default. If you still need to do something fancy on `componentWillReceiveProps`, there’s new `:did-remount` callback
-- [ BREAKING ] `:rum/id` is gone. If you need an unique id per component, allocate one in `:init` as store it in state under namespaced key
-- Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
-- [ BREAKING ] removed `rum/with-props` (deprecated since 0.3.0). Use `rum/with-key` and `rum/with-ref` instead
-- Streamlined internals of component construction, removed `render->mixin`, `args->state`, `element` and `ctor->class`
-- Added `:key-fn` to mixins. That function will be called before element creation, with same arguments passed to the render fn, and return value will be used as a key on that element:
-
-```clj
-(rum/defc comp < { :key-fn (fn [a b] (str a "-" b)) }
-  [a b]
-  ...)
-
-(comp 1 2) <=> (rum/with-key (comp 1 2) "1-2")
-```
-
-- Added `rum/ref` and `rum/ref-node` helpers, returning backing component and DOM node
+- [ BREAKING ] `:transfer-state` is gone. All of component’s state is now transferred by default. If you still need to do something fancy on `componentWillReceiveProps`, new callback is called `:did-remount` callback
 - [ BREAKING ] removed `cursored` and `cursored-watch` mixins. They felt too unnatural to use
-- Mixins can now specify `:before-render` (triggered at `componentWillMount` and `componentWillUpdate`) and `:after-render` (`componentDidMount` and `componentDidUpdate`) callback
+- [ BREAKING ] removed `rum/with-props` (deprecated since 0.3.0). Use `rum/with-key` and `rum/with-ref` instead
+- [ BREAKING ] server-side rendering no longer calls `:did-mount` (obviously, that was a mistake)
+- [ BREAKING ] `:rum/id` is gone. If you need an unique id per component, allocate one in `:init` as store it in state under namespaced key
+
+When upgrading to 0.10.0, check this migration checklist:
+
+- Change all `rum/cursor` calls to `rum/cursor-in`
+- Find all `:transfer-state` mixins.
+  - If the only thing they were doing is something like `(fn [old new] (assoc new ::key (::key old)))`, just delete them.
+  - If not, rename to `:did-remount`
+- Check if you were using `rum/mount` return value. If yes, find another way to obtain component (e.g. via `ref`, `defcc` etc)
+- Replace `rum/with-props` with `rum/with-key`, `rum/with-ref` or `:key-fn`
+- Check that you weren’t relying on `:did-mount` in server-side rendering
+
+Now for the good stuff:
+
+- Cursors now support metadata, `alter-meta!` etc
+- Cursors can be used from Clojure
+- Added `:key-fn` to mixins. That function will be called before element creation, with same arguments as render fn, and its return value will be used as a key on that element
+- Mixins can specify `:before-render` (triggered at `componentWillMount` and `componentWillUpdate`) and `:after-render` (`componentDidMount` and `componentDidUpdate`) callback
+- Added `rum/ref` and `rum/ref-node` helpers, returning backing component and DOM node
+- Some client-side API functions added to server version (`dom-node`, `unmount`, `request-render` etc). Their implementation just throws an exception. This is to help you write less conditional directives in e.g. `:did-mount` or `:will-unmount` mixins. They will never be called, but won’t stop code from compiling either.
+
+And couple of optimizations:
+
+- Rum now makes use of staless components (nothing for you to do, if your component is defined via `defc` with no mixins, it’ll be automatically compiled to stateless component)
+- Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
+- Streamlined internals of component construction, removed `render->mixin`, `args->state`, `element` and `ctor->class`
+
 
 ### 0.9.1
 
@@ -530,7 +591,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
   - how do I ensure consistency accross my team and our codebase?
   - find & replace become harder
 
-Starting with 0.9.0, Rum will adopt “There's Only One Way To Do It” policy. All attributes MUST be specified as kebab-cased keywords:
+Starting with 0.9.0, Rum will adopt “There’s Only One Way To Do It” policy. All attributes MUST be specified as kebab-cased keywords:
 
 | Attribute | What to use | What not to use |
 | --------- | ----------- | --------------- |
