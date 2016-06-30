@@ -98,6 +98,7 @@
                (let [state @(state this)]
                  (clj->js (transduce (map #(% state)) merge {} child-context))))))}
       (merge class-props)
+      (->> (util/filter-vals some?))
       (clj->js)
       (js/React.createClass))))
 
