@@ -151,6 +151,10 @@
 
 (def empty-queue [])
 (def render-queue (volatile! empty-queue))
+(def ^:private batch
+  (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
+      (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
+      (fn [f a] (f a))))
 
 (defn render-all [queue]
   (doseq [comp queue
@@ -160,7 +164,7 @@
 (defn render []
   (let [queue @render-queue]
     (vreset! render-queue empty-queue)
-    (js/ReactDOM.unstable_batchedUpdates render-all queue)))
+    (batch render-all queue)))
 
 (defn request-render [component]
   (when (empty? @render-queue)
