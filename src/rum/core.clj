@@ -4,7 +4,7 @@
     [sablono.compiler :as s]
     [rum.cursor :as cursor]
     [rum.server-render :as render]
-    [rum.util :as util :refer [collect call-all]]
+    [rum.util :as util :refer [collect collect* call-all]]
     [rum.derived-atom :as derived-atom])
   (:import
     [rum.cursor Cursor]))
@@ -102,7 +102,8 @@
 
 (defn- build-ctor [render mixins display-name]
   (let [init           (collect :init mixins)                ;; state props -> state
-        will-mount     (collect :will-mount mixins)          ;; state -> state
+        will-mount     (collect* [:will-mount                ;; state -> state
+                                  :before-render] mixins)    ;; state -> state
         render         render                                ;; state -> [dom state]
         wrapped-render (reduce #(%2 %1) render (collect :wrap-render mixins))] ;; render-fn -> render-fn
     (fn [& args]
