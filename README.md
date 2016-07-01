@@ -33,7 +33,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.0"]`
+Add to project.clj: `[rum "0.10.1"]`
 
 ### Defining a component
 
@@ -527,6 +527,11 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 ## Changes
 
+### 0.10.1
+
+- Made `rum.core/state` public again
+- `:before-render` should be called on server-side rendering too (thx [Alexander Solovyov](https://github.com/piranha), PR #79)
+
 ### 0.10.0
 
 A big cleanup/optmization/goodies release with a lot breaking changes. Read carefully!
@@ -567,19 +572,7 @@ And couple of optimizations:
 
 ### 0.9.1
 
-- Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes. Do:
-
-```clj
-(def *a (atom 2))
-(def *b (atom 3))
-(def *c (rum.core/derived-atom [*a *b] ::c-sum (fn [a b] (+ a b))))
-@*c ;; => 5
-(swap! *a inc)
-@*c ;; => 6
-(swap! *b + 10)
-@*c ;; => 16
-```
-
+- Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes
 - Added `rum.core/dom-node` helper that takes state and finds corresponding top DOM node of a component. Can be called in mixins after initial render only
 - Fixed compatibility of `with-key` on nil-returning component in server rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #73)
 
