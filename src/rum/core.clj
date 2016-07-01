@@ -218,6 +218,11 @@
 ;; method parity with CLJS version so you can avoid conditional directive
 ;; in e.g. did-mount/will-unmount mixin bodies
 
+
+(defn state [c]
+  (throw (UnsupportedOperationException. "state is only available from ClojureScript")))
+
+
 (defn dom-node [s]
   (throw (UnsupportedOperationException. "dom-node is only available from ClojureScript")))
 

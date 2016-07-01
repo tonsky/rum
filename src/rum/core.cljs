@@ -10,7 +10,9 @@
     [rum.derived-atom :as derived-atom]))
 
 
-(defn- state [comp]
+(defn state
+  "Given React component, returns Rum state associated with it"
+  [comp]
   (aget (.-state comp) ":rum/state"))
 
 
@@ -39,8 +41,8 @@
            (this-as this
              (let [props (.-props this)
                    state (-> (aget props ":rum/initial-state")
-                             (call-all init props)
-                             (assoc :rum/react-component this))]
+                             (assoc :rum/react-component this)
+                             (call-all init props))]
                #js { ":rum/state" (volatile! state) })))
          :componentWillMount
          (when-not (empty? will-mount)
