@@ -27,7 +27,7 @@
                                   :after-render] mixins)    ;; state -> state
         did-remount    (collect   :did-remount mixins)      ;; old-state state -> state
         should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
-        will-update    (collect  [:will-update              ;; state -> state
+        will-update    (collect* [:will-update              ;; state -> state
                                   :before-render] mixins)   ;; state -> state
         did-update     (collect* [:did-update               ;; state -> state
                                   :after-render] mixins)    ;; state -> state

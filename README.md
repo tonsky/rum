@@ -33,7 +33,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.1"]`
+Add to project.clj: `[rum "0.10.2"]`
 
 ### Defining a component
 
@@ -526,6 +526,10 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [DataScript Menu app](https://github.com/tonsky/datascript-menu)
 
 ## Changes
+
+### 0.10.2
+
+- Fixed a bug when `:before-render` and `:will-update` weren’t called on subsequent renders
 
 ### 0.10.1
 
