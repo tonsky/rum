@@ -33,7 +33,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.2"]`
+Add to project.clj: `[rum "0.10.3"]`
 
 ### Defining a component
 
@@ -526,6 +526,11 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [DataScript Menu app](https://github.com/tonsky/datascript-menu)
 
 ## Changes
+
+### 0.10.3
+
+- Fixed regression of `displayName` in 0.10.0
+- Bumped React to 15.2.0
 
 ### 0.10.2
 
