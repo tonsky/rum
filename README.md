@@ -517,6 +517,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 - [Reforms](http://bilus.github.io/reforms/), Bootstrap 3 forms
 - [rum-mdl](http://ajchemist.github.io/rum-mdl/), Material design lite components
+- [derivatives](https://github.com/martinklepsch/derivatives), creates chains of derived values from an atom
 
 ### Examples
 
