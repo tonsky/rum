@@ -20,3 +20,29 @@
           IllegalArgumentException
           #"First argument to defc must be a symbol"
           (eval-in-temp-ns (defc "bad docstring" testname [arg1 arg2]))))))
+
+(deftest defc-conditions
+  (testing "no conditions supplied"
+    (is (= '(def pre-post-test
+              (rum.core/build-defc
+               (clojure.core/fn
+                 ([y] (do {:x 1}))
+                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
+               nil
+               "pre-post-test"))
+           (#'rum.core/-defc 'rum.core/build-defc
+                             true ; cljs?
+                             '(pre-post-test ([y] {:x 1})
+                                             ([y z] (+ y z 1)))))))
+  (testing "some conditions supplied"
+    (is (= '(def pre-post-test
+              (rum.core/build-defc
+               (clojure.core/fn
+                 ([y] {:pre [(pos? y)]} (do {:x 1}))
+                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
+               nil
+               "pre-post-test"))
+           (#'rum.core/-defc 'rum.core/build-defc
+                             true ; cljs?
+                             '(pre-post-test ([y] {:pre [(pos? y)]} {:x 1})
+                                             ([y z] (+ y z 1))))))))
