@@ -39,8 +39,10 @@
           (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
 
-(defn- compile-body [[argvec & body]]
-  (list argvec (s/compile-html `(do ~@body))))
+(defn- compile-body [[argvec conditions & body]]
+  (if (and (map? conditions) (seq body))
+    (list argvec conditions (s/compile-html `(do ~@body)))
+    (list argvec (s/compile-html `(do ~@(cons conditions body))))))
 
 
 (defn- -defc [builder cljs? body]
