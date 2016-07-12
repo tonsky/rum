@@ -197,7 +197,7 @@
   ^rum.cursor.Cursor [ref key & options]
   (apply cursor-in ref [key] options))
 
-(def derived-atom
+(def ^{:style/indent 2} derived-atom
   "Use this to create “chains” and acyclic graphs of dependent atoms.
    `derived-atom` will:
     - Take N “source” refs
