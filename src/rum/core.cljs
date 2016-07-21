@@ -296,6 +296,7 @@
    `deref` inside render, and your component will subscribe to changes happening
    to the derefed atom."
   [ref]
+  (assert *reactions* "rum.core/react is only supported in conjunction with rum.core/reactive")
   (vswap! *reactions* conj ref)
   @ref)
 
