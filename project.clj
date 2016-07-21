@@ -1,4 +1,4 @@
-(defproject rum "0.10.4"
+(defproject rum "0.10.5"
   :description  "ClojureScript wrapper for React"
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -14,7 +14,7 @@
   :global-vars
   { *warn-on-reflection* true }
   
-  :plugins [ [lein-cljsbuild "1.1.2"] ]
+  :plugins [ [lein-cljsbuild "1.1.3"] ]
 
   :profiles {
     :dev  { :source-paths ["examples"]

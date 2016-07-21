@@ -33,7 +33,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.4"]`
+Add to project.clj: `[rum "0.10.5"]`
 
 ### Defining a component
 
@@ -531,6 +531,12 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [DataScript Menu app](https://github.com/tonsky/datascript-menu)
 
 ## Changes
+
+### 0.10.5
+
+- Sablono 0.7.3 fixes the issue when IE lost keystrokes in controlled inputs/textarea (#86)
+- React 15.2.1-1
+- Warn when `rum.core/react` is used without `rum.core/reactive` (thx [Martin Klepsch](https://github.com/martinklepsch), issue #82, PR #87)
 
 ### 0.10.4
 
