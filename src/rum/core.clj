@@ -11,8 +11,11 @@
 
 
 (defn- fn-body? [form]
-  (and (seq? form)
-       (vector? (first form))))
+  (when (and (seq? form)
+             (vector? (first form)))
+    (if (= '< (second form))
+      (throw (IllegalArgumentException. "Mixins must be given before argument list"))
+      true)))
 
 
 (defn- parse-defc
