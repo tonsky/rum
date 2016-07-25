@@ -19,7 +19,24 @@
     (is (thrown-with-msg?
           IllegalArgumentException
           #"First argument to defc must be a symbol"
-          (eval-in-temp-ns (defc "bad docstring" testname [arg1 arg2]))))))
+          (eval-in-temp-ns (defc "bad docstring" testname [arg1 arg2])))))
+  (testing "mixins after argvec"
+    (is (thrown-with-msg?
+         IllegalArgumentException
+         #"Mixins must be given before argument list"
+         (eval-in-temp-ns (defc testname "docstring" [arg1 arg2] < misplaced-mixin))))
+    (is (thrown-with-msg?
+         IllegalArgumentException
+         #"Mixins must be given before argument list"
+         (eval-in-temp-ns (defc testname "docstring"
+                            ([arg1] < misplaced-mixin)
+                            ([arg1 arg2] < misplaced-mixin)))))
+    (is (thrown-with-msg?
+         IllegalArgumentException
+         #"Mixins must be given before argument list"
+         (eval-in-temp-ns (defc testname
+                            ([arg1] < misplaced-mixin)
+                            ([arg1 arg2] < misplaced-mixin)))))))
 
 (deftest defc-conditions
   (testing "no conditions supplied"
