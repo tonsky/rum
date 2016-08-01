@@ -4,6 +4,7 @@
     [clojure.string :as str]
   #?@(:clj  [[clojure.test :refer [deftest is are testing]]
              [clojure.java.shell :as shell]
+             [clojure.java.io :as io]
              [clj-diffmatchpatch :as diff]]
       :cljs [[cljs.test :refer-macros [deftest is are testing]]
              [cljsjs.react.dom.server]])))
@@ -277,8 +278,9 @@
 (deftest test-server-render
   ;; run cljsbuid to get target/test.js
   (exec "lein" "with-profile" "dev" "cljsbuild" "once" "test")
-  (exec "rm" "-rf" render-dir)
-  (exec "mkdir" render-dir)
+  (doseq [f (reverse (file-seq (io/file render-dir)))]
+    (.delete ^java.io.File f))
+  (.mkdir (io/file render-dir))
   ;; run react_render_html using node
   (exec "node" "test/rum/test/react_render_html.js")
   (doseq [[name ctor] components]

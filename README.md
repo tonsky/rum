@@ -488,7 +488,7 @@ If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 ;; => "<div data-reactroot=\"\" data-reactid=\"1\" data-react-checksum=\"-857140882\">hello</div>"
 
 ;; on a client
-(rum/mount (my-comp "hello") (js/document.querySelector "[data-reactroot]"))
+(rum/mount (my-comp "hello") js/document.body)
 ```
 
 Use `rum/render-static-markup` if you’re not planning to connect your page with React later:
