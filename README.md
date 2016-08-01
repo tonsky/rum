@@ -29,6 +29,7 @@ Rum:
 - [PartsBox.io](https://partsbox.io), inventory management
 - [modnaKasta](https://modnaKasta.ua), online shopping
 - [ChildrensHeartSurgery.info](http://childrensheartsurgery.info), heart surgery statistics
+- [Mighty Hype](http://mightyhype.com/), cinema platform (server-side rendering)
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 
 ## Using Rum
