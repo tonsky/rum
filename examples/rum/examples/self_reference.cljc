@@ -1,7 +1,6 @@
 (ns rum.examples.self-reference
   (:require
-    [rum.core :as rum]
-    [rum.examples.core :as core]))
+    [rum.core :as rum]))
 
 
 ;; Self-referencing component

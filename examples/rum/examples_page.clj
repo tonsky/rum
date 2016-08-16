@@ -8,6 +8,7 @@
     [rum.examples.binary-clock   :as binary-clock]
     [rum.examples.board-reactive :as board-reactive]
     [rum.examples.bmi-calculator :as bmi-calculator]
+    [rum.examples.inputs         :as inputs]
     [rum.examples.refs           :as refs]
     [rum.examples.local-state    :as local-state]
     [rum.examples.keys           :as keys]
@@ -79,6 +80,11 @@
       <div id=form-validation></div>
     </div>
 
+    <div class=example>
+      <div class=example-title>Inputs</div>
+      <div id=inputs>" (rum/render-html (inputs/inputs)) "</div>
+    </div>
+            
     <div class=example>
       <div class=example-title>Refs</div>
       <div id=refs>" (rum/render-html (refs/refs)) "</div>

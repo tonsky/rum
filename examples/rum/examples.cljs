@@ -11,6 +11,7 @@
     [rum.examples.board-reactive :as board-reactive]
     [rum.examples.bmi-calculator :as bmi-calculator]
     [rum.examples.form-validation :as form-validation]
+    [rum.examples.inputs :as inputs]
     [rum.examples.refs :as refs]
     [rum.examples.local-state :as local-state]
     [rum.examples.keys :as keys]
@@ -31,6 +32,7 @@
 (board-reactive/mount!  (core/el "board-reactive"))
 (bmi-calculator/mount!  (core/el "bmi-calculator"))
 (form-validation/mount! (core/el "form-validation"))
+(inputs/mount!          (core/el "inputs"))
 (refs/mount!            (core/el "refs"))
 (local-state/mount!     (core/el "local-state"))
 (keys/mount!            (core/el "keys"))
