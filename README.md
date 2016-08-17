@@ -533,6 +533,12 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 ## Changes
 
+### 0.10.6
+
+- Sablono 0.7.4 [fixes the issue](https://github.com/r0man/sablono/pull/129) with controlling components refusing to change value if non-string value was used
+- React 15.3.0-0
+- Throw error when `<` is misplaced in `defc` (thx [Martin Klepsch](https://github.com/martinklepsch), issue #88, PR #90)
+
 ### 0.10.5
 
 - Sablono 0.7.3 fixes the issue when IE lost keystrokes in controlled inputs/textarea (#86)
