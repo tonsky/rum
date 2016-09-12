@@ -48,7 +48,7 @@
         (get-in path)))
   
   (swap [this f a b rest]
-    (-> (apply swap! ref update-in path f rest)
+    (-> (apply swap! ref update-in path f a b rest)
         (get-in path)))
   
   (compareAndSet [this oldv newv]
