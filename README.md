@@ -34,7 +34,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.6"]`
+Add to project.clj: `[rum "0.10.7"]`
 
 ### Defining a component
 
@@ -532,6 +532,11 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [DataScript Menu app](https://github.com/tonsky/datascript-menu)
 
 ## Changes
+
+### 0.10.7
+
+- Fixed server-side rendering discrepancy (issue #99)
+- Sablono 0.7.5, React 15.3.1-0
 
 ### 0.10.6
 
