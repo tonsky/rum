@@ -310,26 +310,28 @@
       (append! sb "\""))))
 
 
-(defn render-class! [sb empty? class]
+(defn render-class! [sb first? class]
   (cond
+    (nil? class)
+      first?
     (string? class)
       (do
-        (if empty?
-          (append! sb " class=\"" class)
-          (append! sb " " class))
+        (when-not first?
+          (append! sb " "))
+        (append! sb class)
         false)
     (or (sequential? class)
         (set? class))
-      (reduce (partial render-class! sb) empty? class)
+      (reduce #(render-class! sb %1 %2) first? class)
     :else
-      (render-class! sb empty? (to-str class))))
+      (render-class! sb first? (to-str class))))
 
 
 (defn render-classes! [classes sb]
   (when classes
-    (let [empty? (render-class! sb true classes)]
-      (when-not empty?
-        (append! sb "\"")))))
+    (append! sb " class=\"")
+    (render-class! sb true classes)
+    (append! sb "\"")))
 
 
 (defn render-attr! [tag key value sb]

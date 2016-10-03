@@ -167,6 +167,8 @@
     [:div { :class [" c3  " "  c4 "]}] ;; trimming
     [:div { :class [:c3 nil :c4] }]    ;; nils are not removed
     [:div { :class [:c2 :c3]}]         ;; removing duplicates
+    [:.c1 { :class nil }]
+    [:.c1 { :class (when false "...") }] ;; see #99
     [:.c1.c2 { :class :c3 }]
     [:.c1.c2 { :class [:c3 :c4] }]        ;; list form
     [:.c1.c2 { :class "c3" }]             ;; string form
