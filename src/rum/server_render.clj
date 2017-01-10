@@ -333,23 +333,49 @@
     (render-class! sb true classes)
     (append! sb "\"")))
 
+(defn- render-attr-kv! [sb attr value]
+  (append! sb " " attr "=\"" (to-str value) "\""))
 
 (defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
     (cond
-      (= "type" attr)  :nop ;; rendered manually in render-element! before id
-      (= "style" attr) (render-style! value sb)
-      (= "key" attr)   :nop
-      (= "ref" attr)   :nop
-      (= "class" attr) :nop
+      (= "type" attr)
+      :nop ;; rendered manually in render-element! before id
+
+      (= "style" attr)
+      (render-style! value sb)
+
+      (= "key" attr)
+      :nop
+
+      (= "ref" attr)
+      :nop
+
+      (= "class" attr)
+      :nop
+
       (and (= "value" attr)
            (or (= "select" tag)
-               (= "textarea" tag))) :nop
-      (not value)      :nop
-      (true? value)    (append! sb " " attr "=\"\"")
-      (.startsWith attr "on")            :nop
-      (= "dangerouslySetInnerHTML" attr) :nop
-      :else            (append! sb " " attr "=\"" (to-str value) "\""))))
+               (= "textarea" tag)))
+      :nop
+
+      (not value)
+      :nop
+
+      (.startsWith attr "aria-")
+      (render-attr-kv! sb attr value)
+
+      (true? value)
+      (append! sb " " attr "=\"\"")
+
+      (.startsWith attr "on")
+      :nop
+
+      (= "dangerouslySetInnerHTML" attr)
+      :nop
+
+      :else
+      (render-attr-kv! sb attr value))))
 
 
 (defn render-attrs! [tag attrs sb]

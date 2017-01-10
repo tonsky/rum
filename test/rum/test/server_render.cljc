@@ -212,28 +212,35 @@
       :vector-effect "effect"         ;; should be rendered as vector-effect
       :version "1.1"
       :dangerouslySetInnerHTML {:__html "[...tons of raw SVG removed...]"} }])
-                
-                
+
+(rum/defc comp-aria-hidden []
+  [:div { :aria-hidden true}])
+
+(rum/defc comp-aria-readonly []
+  [:div { :aria-readonly true}])
+
 (def components
-  { "simple"      comp-simple
-    "tag"         comp-tag
-    "list"        comp-list
-    "lists"       comp-lists
-    "header"      comp-header
-    "nil1"        comp-nil1
-    "nil2"        comp-nil2
-    "nothing"     comp-nothing
-    "nothing2"    comp-nothing2
-    "span"        comp-span
-    "campaign"    comp-campaign
-    "styles"      comp-styles
-    "attrs"       comp-attrs
-    "attrs-order" comp-attrs-order
-    "classes"     comp-classes
-    "reactid"     comp-reactid
-    "html"        comp-html
-    "inputs"      comp-inputs
-    "svg"         comp-svg })
+  { "simple"        comp-simple
+    "tag"           comp-tag
+    "list"          comp-list
+    "lists"         comp-lists
+    "header"        comp-header
+    "nil1"          comp-nil1
+    "nil2"          comp-nil2
+    "nothing"       comp-nothing
+    "nothing2"      comp-nothing2
+    "span"          comp-span
+    "campaign"      comp-campaign
+    "styles"        comp-styles
+    "attrs"         comp-attrs
+    "attrs-order"   comp-attrs-order
+    "classes"       comp-classes
+    "reactid"       comp-reactid
+    "html"          comp-html
+    "inputs"        comp-inputs
+    "svg"           comp-svg
+    "aria-hidden"   comp-aria-hidden
+    "aria-readonly" comp-aria-readonly})
 
 
 (def render-dir "target/server_render_test")
