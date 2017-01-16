@@ -533,6 +533,10 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 ## Changes
 
+### WIP
+
+- React 15.4.2-0, Sablono 0.7.7
+
 ### 0.10.7
 
 - Fixed server-side rendering discrepancy (issue #99)
