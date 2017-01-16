@@ -34,7 +34,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.7"]`
+Add to project.clj: `[rum "0.10.8"]`
 
 ### Defining a component
 
@@ -533,7 +533,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 ## Changes
 
-### WIP
+### 0.10.8
 
 - React 15.4.2-0, Sablono 0.7.7
 - Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114) 
