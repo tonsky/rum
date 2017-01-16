@@ -212,8 +212,16 @@
       :vector-effect "effect"         ;; should be rendered as vector-effect
       :version "1.1"
       :dangerouslySetInnerHTML {:__html "[...tons of raw SVG removed...]"} }])
-                
-                
+
+
+(rum/defc comp-aria []
+  [:div
+   { :aria-hidden   true
+     :aria-readonly false
+     :aria-disabled "true" 
+     :aria-checked  "false" }])
+
+
 (def components
   { "simple"      comp-simple
     "tag"         comp-tag
@@ -233,7 +241,8 @@
     "reactid"     comp-reactid
     "html"        comp-html
     "inputs"      comp-inputs
-    "svg"         comp-svg })
+    "svg"         comp-svg
+    "aria"        comp-aria})
 
 
 (def render-dir "target/server_render_test")

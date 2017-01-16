@@ -334,6 +334,10 @@
     (append! sb "\"")))
 
 
+(defn- render-attr-str! [sb attr value]
+  (append! sb " " attr "=\"" (to-str value) "\""))
+
+
 (defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
     (cond
@@ -345,11 +349,12 @@
       (and (= "value" attr)
            (or (= "select" tag)
                (= "textarea" tag))) :nop
+      (.startsWith attr "aria-") (render-attr-str! sb attr value)
       (not value)      :nop
       (true? value)    (append! sb " " attr "=\"\"")
       (.startsWith attr "on")            :nop
       (= "dangerouslySetInnerHTML" attr) :nop
-      :else            (append! sb " " attr "=\"" (to-str value) "\""))))
+      :else (render-attr-str! sb attr value))))
 
 
 (defn render-attrs! [tag attrs sb]

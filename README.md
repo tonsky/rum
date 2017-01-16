@@ -536,6 +536,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 ### WIP
 
 - React 15.4.2-0, Sablono 0.7.7
+- Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114) 
 
 ### 0.10.7
 
