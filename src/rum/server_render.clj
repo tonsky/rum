@@ -335,7 +335,7 @@
 
 
 (defn- render-attr-str! [sb attr value]
-  (append! sb " " attr "=\"" (to-str value) "\""))
+  (append! sb " " attr "=\"" (escape-html (to-str value)) "\""))
 
 
 (defn render-attr! [tag key value sb]

@@ -132,7 +132,8 @@
             :aria-checked      "c"
             :form-enc-type     "text/plain" ;; should normalize (remove dashes)
             :checked           false        ;; nil and false attrs not printed
-            :allow-full-screen true } ]])   ;; true printed as attr=""
+            :allow-full-screen true         ;; true printed as attr=""
+            :href              "/a=b&c=d" } ]]) ;; & should be properly escaped
 
 
 (rum/defc comp-attrs-order []

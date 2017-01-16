@@ -537,6 +537,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 - React 15.4.2-0, Sablono 0.7.7
 - Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114) 
+- Escape attributes during server-side rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #115)
 
 ### 0.10.7
 
