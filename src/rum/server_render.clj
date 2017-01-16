@@ -349,7 +349,7 @@
       (true? value)    (append! sb " " attr "=\"\"")
       (.startsWith attr "on")            :nop
       (= "dangerouslySetInnerHTML" attr) :nop
-      :else            (append! sb " " attr "=\"" (to-str value) "\""))))
+      :else            (append! sb " " attr "=\"" (escape-html (to-str value)) "\""))))
 
 
 (defn render-attrs! [tag attrs sb]
