@@ -30,6 +30,7 @@ Rum:
 - [modnaKasta](https://modnaKasta.ua), online shopping
 - [ChildrensHeartSurgery.info](http://childrensheartsurgery.info), heart surgery statistics
 - [Mighty Hype](http://mightyhype.com/), cinema platform (server-side rendering)
+- [БезопасныеДороги.рф](https://xn--80abhddbmm5bieahtk5n.xn--p1ai/), road data aggregator
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 
 ## Using Rum
