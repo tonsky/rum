@@ -4,6 +4,8 @@
   (:require
     [cljsjs.react]
     [cljsjs.react.dom]
+    [goog :as goog]
+    [goog.object :as gobj]
     [sablono.core]
     [rum.cursor :as cursor]
     [rum.util :as util :refer [collect collect* call-all]]
@@ -33,18 +35,22 @@
                                   :after-render] mixins)    ;; state -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
-        class-props    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
+        class-props    (reduce merge (collect :class-properties mixins)) ;; custom properties and methods
 
-    (-> {:displayName display-name
-         :getInitialState
-         (fn []
-           (this-as this
-             (let [props (.-props this)
-                   state (-> (aget props ":rum/initial-state")
-                             (assoc :rum/react-component this)
-                             (call-all init props))]
-               #js { ":rum/state" (volatile! state) })))
-         :componentWillMount
+        ctor (fn [props]
+               (this-as this
+                 (set! (.-state this)
+                       #js {":rum/state"
+                            (-> (gobj/get props ":rum/initial-state")
+                                (assoc :rum/react-component this)
+                                (call-all init props)
+                                volatile!)})
+                 (.call js/React.Component this props)))]
+
+    (gobj/set ctor "displayName" display-name)
+    (goog/inherits ctor js/React.Component)
+
+    (-> {:componentWillMount
          (when-not (empty? will-mount)
            (fn []
              (this-as this
@@ -59,7 +65,7 @@
            (this-as this
              (let [old-state  @(state this)
                    state      (merge old-state
-                                     (aget next-props ":rum/initial-state"))
+                                     (gobj/get next-props ":rum/initial-state"))
                    next-state (reduce #(%2 old-state %1) state did-remount)]
                ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
                (.setState this #js {":rum/state" (volatile! next-state)}))))
@@ -68,13 +74,13 @@
            (fn [next-props next-state]
              (this-as this
                (let [old-state @(state this)
-                     new-state @(aget next-state ":rum/state")]
+                     new-state @(gobj/get next-state ":rum/state")]
                  (or (some #(% old-state new-state) should-update) false)))))
          :componentWillUpdate
          (when-not (empty? will-update)
            (fn [_ next-state]
              (this-as this
-               (let [new-state (aget next-state ":rum/state")]
+               (let [new-state (gobj/get next-state ":rum/state")]
                  (vswap! new-state call-all will-update)))))
          :render
          (fn []
@@ -102,8 +108,8 @@
       (merge class-props)
       (->> (util/filter-vals some?))
       (clj->js)
-      (js/React.createClass))))
-
+      (->> (gobj/extend (gobj/get ctor "prototype"))))
+    ctor))
 
 (defn- build-ctor [render mixins display-name]
   (let [class  (build-class render mixins display-name)
@@ -163,8 +169,7 @@
 
 
 (defn- render-all [queue]
-  (doseq [comp queue
-          :when (.isMounted comp)]
+  (doseq [comp queue]
     (.forceUpdate comp)))
 
 
