@@ -39,12 +39,12 @@
 
         ctor (fn [props]
                (this-as this
-                 (set! (.-state this)
-                       #js {":rum/state"
-                            (-> (gobj/get props ":rum/initial-state")
-                                (assoc :rum/react-component this)
-                                (call-all init props)
-                                volatile!)})
+                 (gobj/set this "state"
+                           #js {":rum/state"
+                                (-> (gobj/get props ":rum/initial-state")
+                                    (assoc :rum/react-component this)
+                                    (call-all init props)
+                                    volatile!)})
                  (.call js/React.Component this props)))]
 
     (gobj/set ctor "displayName" display-name)
@@ -56,9 +56,10 @@
              (this-as this
                (vswap! (state this) call-all will-mount))))
          :componentDidMount
-         (when-not (empty? did-mount)
-           (fn []
-             (this-as this
+         (fn []
+           (this-as this
+             (gobj/set this ":rum/mounted?" true)
+             (when-not (empty? did-mount)
                (vswap! (state this) call-all did-mount))))
          :componentWillReceiveProps
          (fn [next-props]
@@ -95,10 +96,11 @@
              (this-as this
                (vswap! (state this) call-all did-update))))
          :componentWillUnmount
-         (when-not (empty? will-unmount)
-           (fn []
-             (this-as this
-               (vswap! (state this) call-all will-unmount))))
+         (fn []
+           (this-as this
+             (when-not (empty? will-unmount)
+               (vswap! (state this) call-all will-unmount))
+             (gobj/set this ":rum/mounted?" false)))
          :getChildContext
          (when-not (empty? child-context)
            (fn []
@@ -169,7 +171,8 @@
 
 
 (defn- render-all [queue]
-  (doseq [comp queue]
+  (doseq [comp queue
+          :when (gobj/get comp ":rum/mounted?")]
     (.forceUpdate comp)))
 
 
