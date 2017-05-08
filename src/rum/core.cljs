@@ -33,6 +33,11 @@
                                   :after-render] mixins)    ;; state -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
+
+        ;; Maps of keys to React.PropTypes
+        child-context-types (collect :child-context-types mixins) ;; when injecting context
+        context-types       (collect :context-types mixins) ;; when consuming context
+
         class-props    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
 
     (-> {:displayName display-name
@@ -98,7 +103,14 @@
            (fn []
              (this-as this
                (let [state @(state this)]
-                 (clj->js (transduce (map #(% state)) merge {} child-context))))))}
+                 (clj->js (transduce (map #(% state)) merge {} child-context))))))
+         :contextTypes
+         (when-not (empty? context-types)
+           (clj->js (apply merge context-types)))
+         :childContextTypes
+         (when-not (empty? child-context-types)
+           (clj->js (apply merge child-context-types)))}
+
       (merge class-props)
       (->> (util/filter-vals some?))
       (clj->js)
