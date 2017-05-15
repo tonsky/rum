@@ -7,7 +7,11 @@
 
 
 (defn collect* [keys mixins]
-  (->> (mapcat (fn [m] (map (fn [k] (get m k)) keys)) mixins)
+  (->> (mapcat (fn [m]
+                 (if-not (map? m)
+                   (let [m (assoc {} (first m) (second m))]
+                     (map (fn [k] (get m k)) keys))
+                   (map (fn [k] (get m k)) keys))) mixins)
        (remove nil?)))
 
 
