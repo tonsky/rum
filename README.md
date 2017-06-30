@@ -526,7 +526,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [rum-mdl](http://ajchemist.github.io/rum-mdl/), Material design lite components
 - [derivatives](https://github.com/martinklepsch/derivatives), creates chains of derived values from an atom
 - [scrum](https://github.com/roman01la/scrum), state coordination framework
-
+- [Antizer](https://github.com/priornix/antizer) Ant Design component library
 
 ### Examples
 
