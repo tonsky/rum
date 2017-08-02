@@ -274,13 +274,13 @@ The internal state cannot be directly manipulated, except at certain stages of a
 The following mixin will record the component’s mount time:
 
 ```clojure
-(rum/defcs time-label < { :did-mount (fn [state]
+(rum/defcs time-label < { :will-mount (fn [state]
                                        (assoc state ::time (js/Date.))) }
   [state label]
-  [:div label ": " (::time state)])
+  [:div label ": " (str (::time state))])
 ```
 
-As you can see, `:did-mount` is a function from `state` to `state`. It gives you a chance to populate, clean or modify state map after the component has been mounted.
+As you can see, `:will-mount` is a function from `state` to `state`. It gives you a chance to populate, clean or modify state map after the component has been mounted.
 
 Another useful thing you can do in a mixin is to decide when to update a component. If you can get ahold of React component (notice that that’s different from Rum component, unfortunately; sorry), you can call `rum.core/request-render` to schedule this component’s update at next frame (Rum uses `requestAnimationFrame` to batch and debounce component update calls). To get React component, just look up `:rum/react-component` key in a state.
 
