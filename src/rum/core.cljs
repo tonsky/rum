@@ -15,6 +15,13 @@
   [comp]
   (aget (.-state comp) ":rum/state"))
 
+(defn- assert-no-overrides [maps name]
+  (let [conflicting-keys (->> (mapcat keys maps)
+                              frequencies
+                              (filter (fn [[k v]] (> v 1)))
+                              (map (fn [[k _]] k)))]
+    (when-not (empty? conflicting-keys)
+      (throw (js/Error. (str "Conflicting " name " in mixins for keys: " conflicting-keys))))))
 
 (defn- build-class [render mixins display-name]
   (let [init           (collect   :init mixins)             ;; state props -> state
@@ -33,6 +40,11 @@
                                   :after-render] mixins)    ;; state -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
+
+        ;; Maps of keys to React.PropTypes
+        child-context-types (collect :child-context-types mixins) ;; when injecting context
+        context-types       (collect :context-types mixins) ;; when consuming context
+
         class-props    (reduce merge (collect :class-properties mixins))] ;; custom properties and methods
 
     (-> {:displayName display-name
@@ -98,7 +110,16 @@
            (fn []
              (this-as this
                (let [state @(state this)]
-                 (clj->js (transduce (map #(% state)) merge {} child-context))))))}
+                 (clj->js (transduce (map #(% state)) merge {} child-context))))))
+         :contextTypes
+         (when-not (empty? context-types)
+           (assert-no-overrides context-types "context-types")
+           (clj->js (apply merge context-types)))
+         :childContextTypes
+         (when-not (empty? child-context-types)
+           (assert-no-overrides child-context-types "child-context-types")
+           (clj->js (apply merge child-context-types)))}
+
       (merge class-props)
       (->> (util/filter-vals some?))
       (clj->js)
