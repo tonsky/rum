@@ -7,7 +7,7 @@
              [clojure.java.io :as io]
              [clj-diffmatchpatch :as diff]]
       :cljs [[cljs.test :refer-macros [deftest is are testing]]
-             [cljsjs.react.dom.server]])))
+             ["react-dom/server" :as react-dom-server]])))
 
 (rum/defc comp-simple []
   [:div
@@ -256,7 +256,7 @@
   [write-fn]
   (enable-console-print!)
   (doseq [[name ctor] components
-          :let [html (js/ReactDOMServer.renderToString (ctor))
+          :let [html (react-dom-server/renderToString (ctor))
                 path (str render-dir "/" name ".html")]]
     (println "  writing" path)
     (write-fn path html))))

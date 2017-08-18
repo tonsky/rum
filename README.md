@@ -398,7 +398,7 @@ You can access the raw React component by reading the state’s `:rum/react-comp
 ```clojure
 { :did-mount (fn [state]
                (let [comp     (:rum/react-component state)
-                     dom-node (js/ReactDOM.findDOMNode comp)]
+                     dom-node (react-dom/findDOMNode comp)]
                  (set! (.-width (.-style dom-node)) "100px"))
                state) }
 ```
@@ -464,7 +464,7 @@ To define child context, specify a `:child-context` function taking state and re
                       (let [[color] (:rum/args state)]
                         { :color color }))
                     :class-properties
-                    { :childContextTypes {:color js/React.PropTypes.string} } }
+                    { :childContextTypes {:color prop-types/string} } }
   [color child]
   child)
 ```
