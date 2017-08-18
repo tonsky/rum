@@ -2,8 +2,9 @@
   (:refer-clojure :exclude [ref])
   (:require-macros rum.core)
   (:require
-    [cljsjs.react]
-    [cljsjs.react.dom]
+    [react :as react]
+    [react-dom :as react-dom]
+    [create-react-class :as create-react-class]
     [sablono.core]
     [rum.cursor :as cursor]
     [rum.util :as util :refer [collect collect* call-all]]
@@ -102,7 +103,7 @@
       (merge class-props)
       (->> (util/filter-vals some?))
       (clj->js)
-      (js/React.createClass))))
+      (create-react-class))))
 
 
 (defn- build-ctor [render mixins display-name]
@@ -112,10 +113,10 @@
                  (fn [& args]
                    (let [props #js { ":rum/initial-state" { :rum/args args }
                                      "key" (apply key-fn args) }]
-                     (js/React.createElement class props)))
+                     (react/createElement class props)))
                  (fn [& args]
                    (let [props #js { ":rum/initial-state" { :rum/args args }}] 
-                     (js/React.createElement class props))))]
+                     (react/createElement class props))))]
     (with-meta ctor { :rum/class class })))
 
 
@@ -125,7 +126,7 @@
                   (apply render-body (aget props ":rum/args")))
           _     (aset class "displayName" display-name)
           ctor  (fn [& args]
-                  (js/React.createElement class #js { ":rum/args" args }))]
+                  (react/createElement class #js { ":rum/args" args }))]
       (with-meta ctor { :rum/class class }))
     (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
       (build-ctor render mixins display-name))))
@@ -153,9 +154,11 @@
 
 
 (def ^:private batch
-  (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
-      (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
-      (fn [f a] (f a))))
+  (or 
+    ; FIXME:
+    ; (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
+    (when (exists? react-dom) react-dom/unstable_batchedUpdates)
+    (fn [f a] (f a))))
 
 
 (def ^:private empty-queue [])
@@ -185,14 +188,14 @@
 (defn mount
   "Add component to the DOM tree. Idempotent. Subsequent mounts will just update component"
   [component node]
-  (js/ReactDOM.render component node)
+  (react-dom/render component node)
   nil)
 
 
 (defn unmount
   "Removes component from the DOM tree"
   [node]
-  (js/ReactDOM.unmountComponentAtNode node))
+  (react-dom/unmountComponentAtNode node))
 
 
 ;; initialization
@@ -200,19 +203,19 @@
 (defn with-key
   "Adds React key to component"
   [component key]
-  (js/React.cloneElement component #js { "key" key } nil))
+  (react/cloneElement component #js { "key" key } nil))
 
 
 (defn with-ref
   "Adds React ref (string or callback) to component"
   [component ref]
-  (js/React.cloneElement component #js { "ref" ref } nil))
+  (react/cloneElement component #js { "ref" ref } nil))
 
 
 (defn dom-node
   "Given state, returns top-level DOM node. Can’t be called during render"
   [state]
-  (js/ReactDOM.findDOMNode (:rum/react-component state)))
+  (react-dom/findDOMNode (:rum/react-component state)))
 
 
 (defn ref
@@ -224,7 +227,7 @@
 (defn ref-node
   "Given state and ref handle, returns DOM node associated with ref"
   [state key]
-  (js/ReactDOM.findDOMNode (ref state (name key))))
+  (react-dom/findDOMNode (ref state (name key))))
 
 
 ;; static mixin

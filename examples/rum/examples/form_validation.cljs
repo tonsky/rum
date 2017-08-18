@@ -1,5 +1,6 @@
 (ns rum.examples.form-validation
   (:require
+    [react :as react]
     [rum.core :as rum]
     [rum.examples.core :as core]))
 
@@ -27,7 +28,7 @@
 
 (rum/defcs restricting-input-native < rum/reactive [state ref f]
   (let [comp (:rum/react-component state)]
-    (js/React.createElement "input"
+    (react/createElement "input"
       #js {:type "text"
            :style #js {:width 170}
            :value (rum/react ref)

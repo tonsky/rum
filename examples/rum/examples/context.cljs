@@ -1,5 +1,6 @@
 (ns rum.examples.context
   (:require
+    [prop-types :as prop-types]
     [rum.core :as rum]
     [rum.examples.core :as core]))
 
@@ -10,7 +11,7 @@
 ;; value being set by an ancestor component.
 
 
-(rum/defcc rum-context-comp < { :class-properties { :contextTypes {:color js/React.PropTypes.string}}}
+(rum/defcc rum-context-comp < { :class-properties { :contextTypes {:color prop-types/string}}}
   [comp]
   [:span
     { :style { :color (.. comp -context -color) }}
@@ -20,7 +21,7 @@
 ;; Assume the following component is from our source code.
 (def color-theme
   { :child-context (fn [state] {:color @core/*color}) 
-    :class-properties { :childContextTypes {:color js/React.PropTypes.string} } })
+    :class-properties { :childContextTypes {:color prop-types/string} } })
 
 
 (rum/defc context < color-theme []
