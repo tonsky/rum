@@ -16,6 +16,7 @@
   :profiles {
     :dev  { :source-paths ["examples"]
             :dependencies [[cljsjs/react-dom-server "15.6.2-0"]
+                           [cljsjs/prop-types "15.5.10-1"]
                            [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
             :dependencies 

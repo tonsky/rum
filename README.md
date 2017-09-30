@@ -463,7 +463,11 @@ To define static properties on a component class, specify a `:static-properties`
 
 **React context**
 
-To define child context, specify a `:child-context` function taking state and returning context map in a mixin:
+To define child context
+
+1. Add dependency `[cljsjs/prop-types "15.5.10-1"]`
+2. `(require [cljsjs.prop-types])`
+3. Specify a `:child-context` function taking state and returning context map in a mixin:
 
 ```clojure
 (rum/defc theme < { :child-context
@@ -471,7 +475,7 @@ To define child context, specify a `:child-context` function taking state and re
                       (let [[color] (:rum/args state)]
                         { :color color }))
                     :static-properties
-                    { :childContextTypes {:color js/React.PropTypes.string} } }
+                    { :childContextTypes {:color js/PropTypes.string} } }
   [color child]
   child)
 ```
