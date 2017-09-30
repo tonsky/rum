@@ -17,7 +17,3 @@
       (apply fn state args))
     state
     fns))
-
-
-(defn filter-vals [pred m]
-  (reduce-kv (fn [m k v] (if (pred v) (assoc m k v) m)) {} m))

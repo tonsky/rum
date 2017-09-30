@@ -10,7 +10,7 @@
 ;; value being set by an ancestor component.
 
 
-(rum/defcc rum-context-comp < { :class-properties { :contextTypes {:color js/React.PropTypes.string}}}
+(rum/defcc rum-context-comp < { :static-properties { :contextTypes {:color js/React.PropTypes.string}}}
   [comp]
   [:span
     { :style { :color (.. comp -context -color) }}
@@ -20,7 +20,7 @@
 ;; Assume the following component is from our source code.
 (def color-theme
   { :child-context (fn [state] {:color @core/*color}) 
-    :class-properties { :childContextTypes {:color js/React.PropTypes.string} } })
+    :static-properties { :childContextTypes {:color js/React.PropTypes.string} } })
 
 
 (rum/defc context < color-theme []

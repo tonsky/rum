@@ -1,5 +1,6 @@
 (ns rum.examples.custom-props
   (:require
+    [goog.object :as gobj]
     [rum.core :as rum]
     [rum.examples.core :as core]))
 
@@ -19,18 +20,18 @@
                         :on-mouse-move
                         (fn [_]
                           (reset! core/*color (rand-color))
-                          (aset this "msgData" 
-                                [:div {:style {:color @core/*color}}
-                                  (:msgData props)])
+                          (gobj/set this "msgData" 
+                            [:div {:style {:color @core/*color}}
+                              (:msgData props)])
                           (rum/request-render this))}
-                  "Custom methods too. Hover me!"])})
+                  "Custom methods too. Hover over me!"])})
 
 
-(rum/defcc custom-props < {:class-properties props} [this]
+(rum/defcc custom-props < {:class-properties props} [comp]
   [:div
    ;; using aget to avoid writing externs
-   [:div (aget this "msgData")]
-   [:div ((aget this "msgMethod"))]])
+   [:div (gobj/get comp "msgData")]
+   [:div (.call (gobj/get comp "msgMethod") comp)]])
 
 
 (defn mount! [mount-el]

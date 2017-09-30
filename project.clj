@@ -7,18 +7,15 @@
   :dependencies
   [[org.clojure/clojure        "1.7.0"   :scope "provided"]
    [org.clojure/clojurescript  "1.7.228" :scope "provided"]
-   [cljsjs/react               "15.4.2-0"]
-   [cljsjs/react-dom           "15.4.2-0"]
+   [cljsjs/react               "15.6.2-0"]
+   [cljsjs/react-dom           "15.6.2-0"]
    [sablono                    "0.7.7"]]
-
-  :global-vars
-  { *warn-on-reflection* true }
   
-  :plugins [ [lein-cljsbuild "1.1.3"] ]
+  :plugins [ [lein-cljsbuild "1.1.7"] ]
 
   :profiles {
     :dev  { :source-paths ["examples"]
-            :dependencies [[cljsjs/react-dom-server "15.4.2-0"]
+            :dependencies [[cljsjs/react-dom-server "15.6.2-0"]
                            [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
             :dependencies 
