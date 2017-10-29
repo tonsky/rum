@@ -15,9 +15,9 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (timer-static "Static" @core/*clock) mount-el)
+     (rum/hydrate (timer-static "Static" @core/*clock) mount-el)
   ;; Setting up watch manually,
   ;; force top-down re-render via mount
   (add-watch core/*clock :timer-static
              (fn [_ _ _ new-val]
-               (rum/mount (timer-static "Static" new-val) mount-el)))))
+                  (rum/hydrate (timer-static "Static" new-val) mount-el)))))

@@ -46,4 +46,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (binary-clock) mount-el)))
+     (rum/hydrate (binary-clock) mount-el)))

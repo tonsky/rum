@@ -11,4 +11,4 @@
 
 
 (defn mount! [mount-el]
-  (rum/mount (ulist (multiple-return)) mount-el))
+  (rum/hydrate (ulist (multiple-return)) mount-el))

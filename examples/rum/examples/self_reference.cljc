@@ -17,4 +17,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (self-reference [:a [:b [:c :d [:e] :g]]]) mount-el)))
+     (rum/hydrate (self-reference [:a [:b [:c :d [:e] :g]]]) mount-el)))

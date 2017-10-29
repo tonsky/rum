@@ -30,4 +30,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (refs) mount-el)))
+     (rum/hydrate (refs) mount-el)))

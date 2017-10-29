@@ -22,4 +22,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (keys) mount-el)))
+     (rum/hydrate (keys) mount-el)))

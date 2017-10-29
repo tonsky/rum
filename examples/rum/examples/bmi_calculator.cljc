@@ -57,4 +57,4 @@
 ;; After initial mount, all changes will be re-rendered automatically
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (bmi-calculator) mount-el)))
+     (rum/hydrate (bmi-calculator) mount-el)))

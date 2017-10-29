@@ -19,4 +19,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (local-state "Clicks count") mount-el)))
+     (rum/hydrate (local-state "Clicks count") mount-el)))
