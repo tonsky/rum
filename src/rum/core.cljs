@@ -38,6 +38,7 @@
                                   :before-render] mixins)   ;; state -> state
         did-update     (collect* [:did-update               ;; state -> state
                                   :after-render] mixins)    ;; state -> state
+        did-catch      (collect   :did-catch mixins)        ;; state error info -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
         class-props    (reduce merge (collect :class-properties mixins))  ;; custom prototype properties and methods
@@ -106,7 +107,13 @@
           (this-as this
             (vswap! (state this) call-all did-update)))))
 
-    (gobj/set prototype "componentWillUnmount"            
+    (when-not (empty? did-catch)
+      (gobj/set prototype "componentDidCatch"
+        (fn [error info]
+          (this-as this
+            (vswap! (state this) #(call-all %1 %2 error info) did-update)))))
+
+    (gobj/set prototype "componentWillUnmount"
       (fn []
         (this-as this
           (when-not (empty? will-unmount)
