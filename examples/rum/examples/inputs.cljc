@@ -21,7 +21,8 @@
   (let [value (rum/react *ref)]
     [:div
       (for [v values]
-        [:input { :type "checkbox"
+        [:input { :key v
+                  :type "checkbox"
                   :checked (= v value)
                   :value   v
                   :on-click (fn [_] (reset! *ref v)) }])]))
@@ -32,7 +33,8 @@
   (let [value (rum/react *ref)]
     [:div
       (for [v values]
-        [:input { :type "radio"
+        [:input { :key v
+                  :type "radio"
                   :name "inputs_radio"
                   :checked (= v value)
                   :value   v
@@ -46,7 +48,9 @@
       { :on-change (fn [e] (reset! *ref (long (.. e -target -value))))
         :value value }
       (for [v values]
-        [:option { :value v } v])]))
+        [:option { :key v
+                   :value v}
+         v])]))
 
 
 (defn next-value [v]
@@ -70,7 +74,7 @@
 
 
 (rum/defc inputs []
-  (let [*ref (atom nil)]
+  (let [*ref (atom "")]
     [:dl
       [:dt "Input"]  [:dd (reactive-input *ref)]
       [:dt "Checks"] [:dd (checkboxes *ref)]

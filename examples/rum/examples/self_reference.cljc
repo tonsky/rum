@@ -11,8 +11,8 @@
   ([form depth]
     (let [offset {:style {:margin-left (* 10 depth)}}]
       (if (sequential? form)
-        [:.branch offset (map #(self-reference % (inc depth)) form)]
         [:.leaf   offset (str form)]))))
+       [:.branch offset (map #(rum/with-key (self-reference % (inc depth)) (str %)) form)]
 
 
 #?(:cljs
