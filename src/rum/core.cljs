@@ -222,6 +222,11 @@
   [node]
   (js/ReactDOM.unmountComponentAtNode node))
 
+(defn create-portal
+  "Add component to the DOM tree."
+  [component node]
+  (js/ReactDOM.createPortal component node))
+
 
 ;; initialization
 
