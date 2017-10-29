@@ -5,17 +5,16 @@
   :url          "https://github.com/tonsky/rum"
 
   :dependencies
-  [[org.clojure/clojure        "1.7.0"   :scope "provided"]
-   [org.clojure/clojurescript  "1.7.228" :scope "provided"]
-   [cljsjs/react               "15.6.2-0"]
-   [cljsjs/react-dom           "15.6.2-0"]
-   [sablono                    "0.7.7"]]
+  [[org.clojure/clojure        "1.8.0"   :scope "provided"]
+   [org.clojure/clojurescript  "1.9.946" :scope "provided"]
+   [cljsjs/react               "16.0.0-0"]
+   [cljsjs/react-dom           "16.0.0-0"]
+   [sablono                    "0.8.1"]]
   
   :plugins [ [lein-cljsbuild "1.1.7"] ]
 
   :profiles {
     :dev  { :source-paths ["examples"]
-            :dependencies [[cljsjs/react-dom-server "15.6.2-0"]
                            [cljsjs/prop-types "15.5.10-1"]
                            [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
@@ -23,6 +22,7 @@
             [[enlive    "1.1.6"]
              [criterium "0.4.4"]
              [hiccup    "1.0.5"]] } }
+                     :dependencies [[cljsjs/react-dom-server "16.0.0-0"]
   
   :aliases {"package" ["do" ["clean"] ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]
             "perf"    ["with-profile" "perf" "run" "-m" "rum.perf"]}
