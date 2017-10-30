@@ -10,5 +10,6 @@
    child])
 
 
+#?(:cljs
 (defn mount! [mount-el]
-  (rum/hydrate (ulist (multiple-return)) mount-el))
+  (rum/hydrate (ulist (multiple-return)) mount-el)))

@@ -1,4 +1,4 @@
-(defproject rum "0.10.8"
+(defproject ua.modnakasta/rum "0.11.0-0"
   :description  "ClojureScript wrapper for React"
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -15,6 +15,7 @@
 
   :profiles {
     :dev  { :source-paths ["examples"]
+            :dependencies [[cljsjs/react-dom-server "16.0.0-0"]
                            [cljsjs/prop-types "15.5.10-1"]
                            [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
@@ -22,7 +23,6 @@
             [[enlive    "1.1.6"]
              [criterium "0.4.4"]
              [hiccup    "1.0.5"]] } }
-                     :dependencies [[cljsjs/react-dom-server "16.0.0-0"]
   
   :aliases {"package" ["do" ["clean"] ["test"] ["clean"] ["cljsbuild" "once" "advanced"] ["run" "-m" "rum.examples-page"]]
             "perf"    ["with-profile" "perf" "run" "-m" "rum.perf"]}
