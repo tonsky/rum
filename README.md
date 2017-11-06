@@ -33,6 +33,7 @@ Rum:
 - [БезопасныеДороги.рф](https://xn--80abhddbmm5bieahtk5n.xn--p1ai/), road data aggregator
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 - [PurposeFly](https://www.purposefly.com/), HR 2.0 platform
+- [Simply](https://www.simply.co.za), Simple direct life insurance
 
 ## Using Rum
 
