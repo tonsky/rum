@@ -64,7 +64,7 @@
     :access-key "accesskey"
     :allow-full-screen "allowfullscreen"
     :allow-transparency "allowtransparency"
-    :auto-complete "autocomplete"
+    :auto-complete "autoComplete"
     :auto-play "autoplay"
     :cell-padding "cellpadding"
     :cell-spacing "cellspacing"
@@ -77,7 +77,7 @@
     :date-time "datetime"
     :enc-type "enctype"
     :form-action "formaction"
-    :form-enc-type "formenctype"
+    :form-enc-type "formEncType"
     :form-method "formmethod"
     :form-no-validate "formnovalidate"
     :form-target "formtarget"
@@ -279,27 +279,22 @@
 (defn normalize-css-value [key value]
   (cond
     (contains? unitless-css-props key)
-      (escape-html (to-str value))
+      (escape-html (str/trim (to-str value)))
     (number? value)
       (str value (when (not= 0 value) "px"))
-    (and (string? value)
-         (re-matches #"\s*\d+\s*" value))
-      (recur key (-> value str/trim Long/parseLong))
-    (and (string? value)
-         (re-matches #"\s*\d+\.\d+\s*" value))
-      (recur key (-> value str/trim Double/parseDouble))
     :else
-      (escape-html (to-str value))))
+      (escape-html (str/trim (to-str value)))))
 
 
 (defn render-style-kv! [sb empty? k v]
   (if v
     (do
-      (when empty?
-        (append! sb " style=\""))
+      (if empty?
+        (append! sb " style=\"")
+        (append! sb ";"))
       (let [key (normalize-css-key k)
             val (normalize-css-value key v)]
-        (append! sb key ":" val ";"))
+        (append! sb key ":" val))
       false)
     empty?))
 
@@ -365,7 +360,7 @@
 
 
 (defprotocol HtmlRenderer
-  (-render-html [this parent *key sb]
+  (-render-html [this parent *mode sb]
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
@@ -386,7 +381,7 @@
       true)))
 
 
-(defn render-content! [tag attrs children *key sb]
+(defn render-content! [tag attrs children *mode sb]
   (if (and (nil? children)
            (contains? void-tags tag))
     (append! sb "/>")
@@ -395,18 +390,14 @@
       (or (render-textarea-value! tag attrs sb)
           (render-inner-html! attrs children sb)
           (doseq [element children]
-            (-render-html element children *key sb)))
+            (-render-html element children *mode sb)))
       (append! sb "</" tag ">"))))
 
 
 (defn render-element!
   "Render an element vector as a HTML element."
-  [element *key sb]
-  (if (nothing? element)
-    (when *key
-      (let [key @*key]
-        (vswap! *key inc)
-        (append! sb "<!-- react-empty: " key " -->")))
+  [element *mode sb]
+  (when-not (nothing? element)
     (let [[tag id classes attrs children] (normalize-element element)]
       (append! sb "<" tag)
 
@@ -424,96 +415,58 @@
 
       (render-classes! classes sb)
 
-      (when *key
-        (when (== @*key 1)
-          (append! sb " data-reactroot=\"\""))
+      (when (= @*mode nil)
+        (append! sb " data-reactroot=\"\""))
 
-        (append! sb " data-reactid=\"" @*key "\"")
-        (vswap! *key inc))
+      (vreset! *mode tag)
 
       (if (= "select" tag)
         (binding [*select-value* (get-value attrs)]
-          (render-content! tag attrs children *key sb))
-        (render-content! tag attrs children *key sb)))))
+          (render-content! tag attrs children *mode sb))
+        (render-content! tag attrs children *mode sb)))))
 
-        
+
 (extend-protocol HtmlRenderer
   IPersistentVector
-  (-render-html [this parent *key sb]
-    (render-element! this *key sb))
+  (-render-html [this parent *mode sb]
+    (render-element! this *mode sb))
 
   ISeq
-  (-render-html [this parent *key sb]
+  (-render-html [this parent *mode sb]
     (doseq [element this]
-      (-render-html element parent *key sb)))
+      (-render-html element parent *mode sb))
+    (vreset! *mode :seq))
 
   Named
-  (-render-html [this parent *key sb]
-    (append! sb (name this)))
+  (-render-html [this parent *mode sb]
+    (append! sb (name this))
+    (vreset! *mode :named))
 
   String
-  (-render-html [this parent *key sb]
-    (if (and *key
-             (> (count parent) 1))
-      (let [key @*key]
-        (vswap! *key inc)
-        (append! sb "<!-- react-text: " key " -->" (escape-html this) "<!-- /react-text -->"))
-      (append! sb (escape-html this))))
+  (-render-html [this parent *mode sb]
+    (if (= @*mode :string)
+      (append! sb "<!-- -->"))
+    (append! sb (escape-html this))
+    (vreset! *mode :string))
 
   Object
-  (-render-html [this parent *key sb]
-    (-render-html (str this) parent *key sb))
+  (-render-html [this parent *mode sb]
+    (-render-html (str this) parent *mode sb))
 
   nil
-  (-render-html [this parent *key sb]
+  (-render-html [this parent *mode sb]
     :nop))
-
-
-;; https://github.com/facebook/react/blob/master/src/shared/utils/adler32.js
-(defn adler32 [^StringBuilder sb]
-  (let [l (.length sb)
-        m (bit-and l -4)]
-    (loop [a (int 1)
-           b (int 0)
-           i 0
-           n (min (+ i 4096) m)]
-     (cond
-       (< i n)
-       (let [c0 (int (.charAt sb i))
-             c1 (int (.charAt sb (+ i 1)))
-             c2 (int (.charAt sb (+ i 2)))
-             c3 (int (.charAt sb (+ i 3)))
-             b  (+ b a c0 
-                     a c0 c1
-                     a c0 c1 c2
-                     a c0 c1 c2 c3)
-             a  (+ a c0 c1 c2 c3)]
-         (recur (rem a 65521) (rem b 65521) (+ i 4) n))
-      
-       (< i m)
-       (recur a b i (min (+ i 4096) m))
-      
-       (< i l)
-       (let [c0 (int (.charAt sb i))]
-         (recur (+ a c0) (+ b a c0) (+ i 1) n))
-      
-       :else
-       (let [a (rem a 65521)
-             b (rem b 65521)]
-         (bit-or (int a) (Numbers/shiftLeftInt b 16)))))))
 
 
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
     (let [sb (StringBuilder.)]
-      (-render-html src nil (volatile! 1) sb)
-      (when-not (nothing? src)
-        (.insert sb (.indexOf sb ">") (str " data-react-checksum=\"" (adler32 sb) "\"")))
+      (-render-html src nil (volatile! nil) sb)
       (str sb))))
 
 
 (defn render-static-markup [src]
   (let [sb (StringBuilder.)]
-    (-render-html src nil nil sb)
+    (-render-html src nil (volatile! nil) sb)
     (str sb)))

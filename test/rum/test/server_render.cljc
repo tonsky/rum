@@ -71,7 +71,7 @@
     [:div (comp-nothing)]
     [:div "a" (comp-nothing)]
     [:div (comp-nothing) "b"]
-    [:div "a" (comp-nothing) "b"]
+    [:div "a" (comp-nothing) "b" [:span "x"]]
     [:div [:.a] (comp-nothing) [:.b]]
     [:div (rum/with-key (comp-nothing) "K")]])
 
@@ -116,8 +116,8 @@
               { :border-width     " 1  "     ;; trim  numeric & append 'px'
                 :padding-right    " 1.2 "    
                 :padding-bottom   "1em"      ;; do not add 'px' if unit already specified
-                :text-align       " left  "  ;; don’t trim non-numeric values
-                :flex-grow        " 1  " }}] ;; do not trim unitless values
+                :text-align       " left  "  ;; trim non-numeric values
+                :flex-grow        " 1  " }}] ;; trim unitless values
     [:div.f { :style
               { :background-image "url('123')" ;; should escape quotes
                 :fontWeight       10      ;; should convert from react-style properties to CSS
