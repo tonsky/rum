@@ -517,9 +517,9 @@ As of `[rum "0.8.3"]` and `[hiccup "1.0.5"]`, Rum is ~3× times faster than Hicc
 
 Server-side components do not have full lifecycle support, but `:init` and `:will-mount` from mixins would be called at the component’s construction time.
 
-## Resources
+## Support
 
-- Ask for help on [Gitter chat](https://gitter.im/tonsky/rum)
+- Join [#rum on Clojurians Slack](https://clojurians.slack.com/messages/C08H80CUR/) (grab invite [here](http://clojurians.net/))
 - Check out [our wiki](https://github.com/tonsky/rum/wiki)
 
 ### Talks
