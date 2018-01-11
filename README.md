@@ -511,7 +511,7 @@ Use `rum/render-static-markup` if you’re not planning to connect your page wit
 (rum/render-static-markup (my-comp "hello")) ;; => <div>hello</div>
 ```
 
-Rum server-side rendering does not use React or Sablono, it runs completely in JVM, without involving JavaScript at any stage.
+Rum server-side rendering does not use React or Sablono, it runs completely in JVM, without involving JavaScript at any stage. (See [this](https://github.com/tonsky/rum/issues/83) pending issue)
 
 As of `[rum "0.8.3"]` and `[hiccup "1.0.5"]`, Rum is ~3× times faster than Hiccup.
 
