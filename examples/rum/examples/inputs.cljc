@@ -11,7 +11,7 @@
   [*ref]
   (let [value (rum/react *ref)]
     [:input { :type "text"
-              :value value
+              :value (str value)
               :style { :width 170 }
               :on-change (fn [e] (reset! *ref (long (.. e -currentTarget -value)))) }]))
 
@@ -46,10 +46,10 @@
   (let [value (rum/react *ref)]
     [:select
       { :on-change (fn [e] (reset! *ref (long (.. e -target -value))))
-        :value value }
+        :value (str value) }
       (for [v values]
         [:option { :key v
-                   :value v}
+                   :value (str v)}
          v])]))
 
 

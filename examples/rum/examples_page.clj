@@ -12,7 +12,8 @@
     [rum.examples.refs           :as refs]
     [rum.examples.local-state    :as local-state]
     [rum.examples.keys           :as keys]
-    [rum.examples.self-reference :as self-reference]))
+    [rum.examples.self-reference :as self-reference]
+    [rum.examples.multiple-return :as multiple-return]))
 
 (def page (str
 "<!doctype html>
@@ -115,7 +116,11 @@
       <div id=custom-props></div>
     </div>
 
-    
+    <div class=example> 
+      <div class=example-title>Multiple Return</div> 
+      <div id=multiple-return>" (rum/render-html (multiple-return/ulist (multiple-return/multiple-return))) "</div>
+    </div> 
+
     <script src='target/main.js' type='text/javascript'></script>
   </body>
 </html>"))
