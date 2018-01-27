@@ -222,13 +222,15 @@
   [node]
   (js/ReactDOM.unmountComponentAtNode node))
 
+
 (defn hydrate
   "Hydrates server rendered DOM tree with provided component."
   [component node]
   (js/ReactDOM.hydrate component node))
 
-(defn create-portal
-  "Add component to the DOM tree."
+
+(defn portal
+  "Render `component` in a DOM `node` that might be ouside of current DOM hierarchy"
   [component node]
   (js/ReactDOM.createPortal component node))
 

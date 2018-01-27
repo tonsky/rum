@@ -121,6 +121,12 @@
       <div id=multiple-return>" (rum/render-html (multiple-return/ulist (multiple-return/multiple-return))) "</div>
     </div> 
 
+    <div class=example> 
+      <div class=example-title>Portals</div> 
+      <div id=portal-off-root></div>
+      <div id=portal-root></div>
+    </div> 
+
     <script src='target/main.js' type='text/javascript'></script>
   </body>
 </html>"))

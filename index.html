@@ -65,7 +65,7 @@
 
     <div class=example>
       <div class=example-title>Inputs</div>
-      <div id=inputs><dl data-reactroot=""><dt>Input</dt><dd><input type="text" value="" style="width:170px"/></dd><dt>Checks</dt><dd><div><input type="checkbox" value="1"/><input type="checkbox" value="2"/><input type="checkbox" value="3"/><input type="checkbox" value="4"/></div></dd><dt>Radio</dt><dd><div><input type="radio" name="inputs_radio" value="1"/><input type="radio" name="inputs_radio" value="2"/><input type="radio" name="inputs_radio" value="3"/><input type="radio" name="inputs_radio" value="4"/></div></dd><dt>Select</dt><dd><select><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></dd><dt><code>&quot;&quot;</code></dt><dd><button>Next value</button></dd></dl></div>
+      <div id=inputs><dl data-reactroot=""><dt>Input</dt><dd><input type="text" value="1" style="width:170px"/></dd><dt>Checks</dt><dd><div><input type="checkbox" checked="" value="1"/><input type="checkbox" value="2"/><input type="checkbox" value="3"/><input type="checkbox" value="4"/></div></dd><dt>Radio</dt><dd><div><input type="radio" name="inputs_radio" checked="" value="1"/><input type="radio" name="inputs_radio" value="2"/><input type="radio" name="inputs_radio" value="3"/><input type="radio" name="inputs_radio" value="4"/></div></dd><dt>Select</dt><dd><select><option selected="" value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></dd><dt><code>1</code></dt><dd><button>Next value</button></dd></dl></div>
     </div>
             
     <div class=example>
@@ -102,6 +102,12 @@ textarea</textarea></div></div>
     <div class=example> 
       <div class=example-title>Multiple Return</div> 
       <div id=multiple-return><ul data-reactroot=""><li>Item #0</li><li>Item #1</li><li>Item #2</li><li>Item #3</li><li>Item #4</li></ul></div>
+    </div> 
+
+    <div class=example> 
+      <div class=example-title>Portals</div> 
+      <div id=portal-off-root></div>
+      <div id=portal-root></div>
     </div> 
 
     <script src='target/main.js' type='text/javascript'></script>

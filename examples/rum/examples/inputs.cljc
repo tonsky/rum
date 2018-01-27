@@ -74,7 +74,7 @@
 
 
 (rum/defc inputs []
-  (let [*ref (atom "")]
+  (let [*ref (atom 1)]
     [:dl
       [:dt "Input"]  [:dd (reactive-input *ref)]
       [:dt "Checks"] [:dd (checkboxes *ref)]

@@ -18,7 +18,8 @@
     [rum.examples.self-reference :as self-reference]
     [rum.examples.context :as context]
     [rum.examples.custom-props :as custom-props]
-    [rum.examples.multiple-return :as multiple-return]))
+    [rum.examples.multiple-return :as multiple-return]
+    [rum.examples.portals :as portals]))
 
 
 (enable-console-print!)
@@ -41,6 +42,7 @@
 (context/mount!         (core/el "context"))
 (custom-props/mount!    (core/el "custom-props"))
 (multiple-return/mount! (core/el "multiple-return"))
+(portals/mount!         (core/el "portal-root"))
 
 
 ;; Start clock ticking
