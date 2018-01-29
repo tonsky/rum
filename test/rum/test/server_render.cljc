@@ -128,12 +128,30 @@
 
 (rum/defc comp-attrs []
   [:div
-    [:div { :data-attr-ibute   "b"   ;; should not touch data-* and aria* attr names
-            :aria-checked      "c"
-            :form-enc-type     "text/plain" ;; should normalize (remove dashes)
-            :checked           false        ;; nil and false attrs not printed
-            :allow-full-screen true         ;; true printed as attr=""
-            :href              "/a=b&c=d" } ]]) ;; & should be properly escaped
+    (for [[a v] [[:data-attr-ibute   "b"]   ;; should not touch data-* and aria* attr names
+                 [:aria-checked      "c"]
+                 [:form-enc-type     "text/plain"] ;; should normalize (remove dashes)
+                 [:checked           false]        ;; nil and false attrs not printed
+                 [:allow-full-screen true]         ;; true printed as attr=""
+                 [:href              "/a=b&c=d"]]]
+      [:div { a v }])])
+
+
+(rum/defc comp-attrs-capitalization []
+  [:div
+    (for [a [:accept-charset :access-key :allow-transparency :auto-complete :cell-padding :cell-spacing :char-set :class-id :content-editable :context-menu :cross-origin :date-time :enc-type :form-action :form-enc-type :form-method :form-target :frame-border :href-lang :http-equiv :input-mode :key-params :key-type :margin-height :margin-width :max-length :media-group :min-length :radio-group :referrer-policy :spell-check :src-doc :src-lang :src-set :tab-index :use-map :auto-capitalize :auto-correct :auto-save :item-prop :item-type :item-id :item-ref]]
+      [:div { a "_" }])
+
+    [:table
+      [:td { :col-span 1
+             :row-span 1 }]]
+
+    [:svg
+      (for [a [:allow-reorder :attribute-name :attribute-type :auto-reverse :base-frequency :base-profile :calc-mode :clip-path-units :content-script-type :content-style-type :diffuse-constant :edge-mode :external-resources-required :filter-res :filter-units :glyph-ref :gradient-transform :gradient-units :kernel-matrix :kernel-unit-length :key-points :key-splines :key-times :length-adjust :limiting-cone-angle :marker-height :marker-units :marker-width :mask-content-units :mask-units :num-octaves :path-length :pattern-content-units :pattern-transform :pattern-units :points-at-x :points-at-y :points-at-z :preserve-alpha :preserve-aspect-ratio :primitive-units :ref-x :ref-y :repeat-count :repeat-dur :required-extensions :required-features :specular-constant :specular-exponent :spread-method :start-offset :std-deviation :stitch-tiles :surface-scale :system-language :table-values :target-x :target-y :view-box :view-target :x-channel-selector :xlink-actuate :xlink-arcrole :xlink-href :xlink-role :xlink-show :xlink-title :xlink-type :xml-base :xmlns-xlink :xml-lang :xml-space :y-channel-selector :zoom-and-pan]]
+        [:path { a "_" }])]
+    
+    (for [a [:allow-full-screen :auto-play :form-no-validate :no-validate :read-only :item-scope]]
+      [:div { a true }])])
 
 
 (rum/defc comp-attrs-order []
@@ -237,6 +255,7 @@
     "campaign"    comp-campaign
     "styles"      comp-styles
     "attrs"       comp-attrs
+    "attrs-cap"   comp-attrs-capitalization
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
     "reactid"     comp-reactid
