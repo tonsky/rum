@@ -360,7 +360,7 @@
 
 
 (defprotocol HtmlRenderer
-  (-render-html [this parent *mode sb]
+  (-render-html [this *state sb]
     "Turn a Clojure data type into a string of HTML with react ids."))
 
 
@@ -381,7 +381,7 @@
       true)))
 
 
-(defn render-content! [tag attrs children *mode sb]
+(defn render-content! [tag attrs children *state sb]
   (if (and (nil? children)
            (contains? void-tags tag))
     (append! sb "/>")
@@ -389,14 +389,16 @@
       (append! sb ">")
       (or (render-textarea-value! tag attrs sb)
           (render-inner-html! attrs children sb)
-          (doseq [element children]
-            (-render-html element children *mode sb)))
-      (append! sb "</" tag ">"))))
+          (doseq [child children]
+            (-render-html child *state sb)))
+      (append! sb "</" tag ">")))
+  (when (not= :state/static @*state)
+    (vreset! *state :state/tag-close)))
 
 
 (defn render-element!
   "Render an element vector as a HTML element."
-  [element *mode sb]
+  [element *state sb]
   (when-not (nothing? element)
     (let [[tag id classes attrs children] (normalize-element element)]
       (append! sb "<" tag)
@@ -415,46 +417,44 @@
 
       (render-classes! classes sb)
 
-      (when (= @*mode nil)
+      (when (= :state/root @*state)
         (append! sb " data-reactroot=\"\""))
 
-      (vreset! *mode tag)
+      (when (not= :state/static @*state)
+        (vreset! *state :state/tag-open))
 
       (if (= "select" tag)
         (binding [*select-value* (get-value attrs)]
-          (render-content! tag attrs children *mode sb))
-        (render-content! tag attrs children *mode sb)))))
+          (render-content! tag attrs children *state sb))
+        (render-content! tag attrs children *state sb)))))
 
 
 (extend-protocol HtmlRenderer
   IPersistentVector
-  (-render-html [this parent *mode sb]
-    (render-element! this *mode sb))
+  (-render-html [this *state sb]
+    (render-element! this *state sb))
 
   ISeq
-  (-render-html [this parent *mode sb]
+  (-render-html [this *state sb]
+    (when (= :state/root @*state)
+      (vreset! *state :state/root-seq))
     (doseq [element this]
-      (-render-html element parent *mode sb))
-    (vreset! *mode :seq))
-
-  Named
-  (-render-html [this parent *mode sb]
-    (append! sb (name this))
-    (vreset! *mode :named))
+      (-render-html element *state sb)))
 
   String
-  (-render-html [this parent *mode sb]
-    (if (= @*mode :string)
+  (-render-html [this *state sb]
+    (when (= @*state :state/text)
       (append! sb "<!-- -->"))
     (append! sb (escape-html this))
-    (vreset! *mode :string))
+    (when (not= :state/static @*state)
+      (vreset! *state :state/text)))
 
   Object
-  (-render-html [this parent *mode sb]
-    (-render-html (str this) parent *mode sb))
+  (-render-html [this *state sb]
+    (-render-html (str this) *state sb))
 
   nil
-  (-render-html [this parent *mode sb]
+  (-render-html [this *state sb]
     :nop))
 
 
@@ -462,11 +462,11 @@
   ([src] (render-html src nil))
   ([src opts]
     (let [sb (StringBuilder.)]
-      (-render-html src nil (volatile! nil) sb)
+      (-render-html src (volatile! :state/root) sb)
       (str sb))))
 
 
 (defn render-static-markup [src]
   (let [sb (StringBuilder.)]
-    (-render-html src nil (volatile! nil) sb)
+    (-render-html src (volatile! :state/static) sb)
     (str sb)))

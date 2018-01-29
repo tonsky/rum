@@ -38,6 +38,13 @@
     [:.f "g" (list [:.h]) "i"]])
 
 
+(rum/defc comp-root-array []
+  (list
+    [:.a "A"]
+    [:.b "B"]
+    [:.c "C"]))
+
+
 (rum/defc comp-header []
   [:ul.nav__content
     (list [:li.menu-item {:key "F"} "Женщинам"]
@@ -77,9 +84,15 @@
 
 
 (rum/defc comp-span []
-  [:div
-   "test"
-   "passed"])
+  [:span 
+    "a" "b"
+    "a" [:tag "b"] "c"
+    "a" (list "b" "c") "d"
+    "a" (list "b" "c") (list "d" "e") "f"
+    (list "a" "b") [:tag "c"] (list "d" "e")
+    "a" nil "b"
+    "a" (comp-nothing) "b"
+    "a" (list nil) "b"])
 
 
 (rum/defc comp-campaign []
@@ -197,11 +210,6 @@
     [:.c1.c2 { :class [:c2 :c3]}]])       ;; not removing duplicates
 
 
-(rum/defc comp-reactid [] ;; check for proper reactid allocation
-  [:div
-    (map (fn [i] [:div (str i)]) (range 100))])
-
-
 (rum/defc comp-html []
   [:div {:dangerouslySetInnerHTML {:__html "<span>test</span>"}}])
 
@@ -246,6 +254,7 @@
     "tag"         comp-tag
     "list"        comp-list
     "lists"       comp-lists
+    "root-array"  comp-root-array
     "header"      comp-header
     "nil1"        comp-nil1
     "nil2"        comp-nil2
@@ -258,7 +267,6 @@
     "attrs-cap"   comp-attrs-capitalization
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
-    "reactid"     comp-reactid
     "html"        comp-html
     "inputs"      comp-inputs
     "svg"         comp-svg
@@ -274,11 +282,15 @@
    and saves them to render-dir"
   [write-fn]
   (enable-console-print!)
-  (doseq [[name ctor] components
-          :let [html (js/ReactDOMServer.renderToString (ctor))
-                path (str render-dir "/" name ".html")]]
-    (println "  writing" path)
-    (write-fn path html))))
+  (doseq [[name ctor] components]
+    (let [html (js/ReactDOMServer.renderToString (ctor))
+          path (str render-dir "/html/" name ".html")]
+      (println "  writing" path)
+      (write-fn path html))
+    (let [html (js/ReactDOMServer.renderToStaticMarkup (ctor))
+          path (str render-dir "/markup/" name ".html")]
+      (println "  writing" path)
+      (write-fn path html)))))
 
 
 #?(:clj
@@ -292,6 +304,7 @@
           (println err)))
       (when-not (str/blank? out)
         (println out))))))
+
 
 #?(:clj
 (defn diff [s1 s2]
@@ -312,12 +325,17 @@
   (doseq [f (reverse (file-seq (io/file render-dir)))]
     (.delete ^java.io.File f))
   (.mkdir (io/file render-dir))
+  (.mkdir (io/file render-dir "html"))
+  (.mkdir (io/file render-dir "markup"))
   ;; run react_render_html using node
   (exec "node" "test/rum/test/react_render_html.js")
   (doseq [[name ctor] components]
     (testing name
       ;; compare html rendered with react 
       ;;      to html rendered with rum/render-html
-      (let [react-html (slurp (str render-dir "/" name ".html"))
+      (let [react-html (slurp (str render-dir "/html/" name ".html"))
             rum-html   (rum/render-html (ctor))]
+        (is (= react-html rum-html) (diff react-html rum-html)))
+      (let [react-html (slurp (str render-dir "/markup/" name ".html"))
+            rum-html   (rum/render-static-markup (ctor))]
         (is (= react-html rum-html) (diff react-html rum-html)))))))
