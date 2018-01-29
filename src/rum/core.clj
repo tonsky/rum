@@ -109,6 +109,7 @@
   (let [init           (collect :init mixins)                ;; state props -> state
         will-mount     (collect* [:will-mount                ;; state -> state
                                   :before-render] mixins)    ;; state -> state
+        did-catch      (collect :did-catch mixins)           ;; state error info -> state
         render         render                                ;; state -> [dom state]
         wrapped-render (reduce #(%2 %1) render (collect :wrap-render mixins))] ;; render-fn -> render-fn
     (fn [& args]
@@ -116,7 +117,12 @@
             state   (-> { :rum/args args }
                         (call-all init props)
                         (call-all will-mount))
-            [dom _] (wrapped-render state)]
+            [dom _] (if (empty? did-catch)
+                      (wrapped-render state)
+                      (try
+                        (wrapped-render state)
+                        (catch Exception e
+                          (wrapped-render (call-all state did-catch e nil)))))]
         (or dom [:rum/nothing])))))
 
 

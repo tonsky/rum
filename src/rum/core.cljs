@@ -111,7 +111,8 @@
       (gobj/set prototype "componentDidCatch"
         (fn [error info]
           (this-as this
-            (vswap! (state this) call-all did-catch error info)))))
+            (vswap! (state this) call-all did-catch error info)
+            (.forceUpdate this)))))
 
     (gobj/set prototype "componentWillUnmount"
       (fn []
