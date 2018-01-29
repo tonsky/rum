@@ -11,7 +11,7 @@
   [*ref]
   (let [value (rum/react *ref)]
     [:input { :type "text"
-              :value value
+              :value (str value)
               :style { :width 170 }
               :on-change (fn [e] (reset! *ref (long (.. e -currentTarget -value)))) }]))
 
@@ -21,7 +21,8 @@
   (let [value (rum/react *ref)]
     [:div
       (for [v values]
-        [:input { :type "checkbox"
+        [:input { :key v
+                  :type "checkbox"
                   :checked (= v value)
                   :value   v
                   :on-click (fn [_] (reset! *ref v)) }])]))
@@ -32,7 +33,8 @@
   (let [value (rum/react *ref)]
     [:div
       (for [v values]
-        [:input { :type "radio"
+        [:input { :key v
+                  :type "radio"
                   :name "inputs_radio"
                   :checked (= v value)
                   :value   v
@@ -44,9 +46,11 @@
   (let [value (rum/react *ref)]
     [:select
       { :on-change (fn [e] (reset! *ref (long (.. e -target -value))))
-        :value value }
+        :value (str value) }
       (for [v values]
-        [:option { :value v } v])]))
+        [:option { :key v
+                   :value (str v)}
+         v])]))
 
 
 (defn next-value [v]
@@ -70,7 +74,7 @@
 
 
 (rum/defc inputs []
-  (let [*ref (atom nil)]
+  (let [*ref (atom 1)]
     [:dl
       [:dt "Input"]  [:dd (reactive-input *ref)]
       [:dt "Checks"] [:dd (checkboxes *ref)]
@@ -81,6 +85,6 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (inputs) mount-el)))
+     (rum/hydrate (inputs) mount-el)))
 
 

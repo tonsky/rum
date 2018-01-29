@@ -35,4 +35,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (board-reactive) mount-el)))
+     (rum/hydrate (board-reactive) mount-el)))

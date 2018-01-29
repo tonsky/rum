@@ -38,6 +38,7 @@
                                   :before-render] mixins)   ;; state -> state
         did-update     (collect* [:did-update               ;; state -> state
                                   :after-render] mixins)    ;; state -> state
+        did-catch      (collect   :did-catch mixins)        ;; state error info -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
         class-props    (reduce merge (collect :class-properties mixins))  ;; custom prototype properties and methods
@@ -106,7 +107,14 @@
           (this-as this
             (vswap! (state this) call-all did-update)))))
 
-    (gobj/set prototype "componentWillUnmount"            
+    (when-not (empty? did-catch)
+      (gobj/set prototype "componentDidCatch"
+        (fn [error info]
+          (this-as this
+            (vswap! (state this) call-all did-catch error {:rum/component-stack (gobj/get info "componentStack")})
+            (.forceUpdate this)))))
+
+    (gobj/set prototype "componentWillUnmount"
       (fn []
         (this-as this
           (when-not (empty? will-unmount)
@@ -214,6 +222,18 @@
   "Removes component from the DOM tree"
   [node]
   (js/ReactDOM.unmountComponentAtNode node))
+
+
+(defn hydrate
+  "Hydrates server rendered DOM tree with provided component."
+  [component node]
+  (js/ReactDOM.hydrate component node))
+
+
+(defn portal
+  "Render `component` in a DOM `node` that might be ouside of current DOM hierarchy"
+  [component node]
+  (js/ReactDOM.createPortal component node))
 
 
 ;; initialization

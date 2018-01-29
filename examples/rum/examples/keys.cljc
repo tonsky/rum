@@ -5,8 +5,9 @@
     [rum.examples.core :as core]))
 
 
-(rum/defc keyed < { :key-fn (fn [label number]
-                              (str label "-" number)) }
+(rum/defc keyed
+  < { :key-fn (fn [label number]
+                (str label "-" number)) }
   [label number]
   [:div (str label "-" number)])
 
@@ -22,4 +23,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (keys) mount-el)))
+     (rum/hydrate (keys) mount-el)))

@@ -38,6 +38,13 @@
     [:.f "g" (list [:.h]) "i"]])
 
 
+(rum/defc comp-root-array []
+  (list
+    [:.a "A"]
+    [:.b "B"]
+    [:.c "C"]))
+
+
 (rum/defc comp-header []
   [:ul.nav__content
     (list [:li.menu-item {:key "F"} "Женщинам"]
@@ -71,15 +78,21 @@
     [:div (comp-nothing)]
     [:div "a" (comp-nothing)]
     [:div (comp-nothing) "b"]
-    [:div "a" (comp-nothing) "b"]
+    [:div "a" (comp-nothing) "b" [:span "x"]]
     [:div [:.a] (comp-nothing) [:.b]]
     [:div (rum/with-key (comp-nothing) "K")]])
 
 
 (rum/defc comp-span []
-  [:div
-   "test"
-   "passed"])
+  [:span 
+    "a" "b"
+    "a" [:tag "b"] "c"
+    "a" (list "b" "c") "d"
+    "a" (list "b" "c") (list "d" "e") "f"
+    (list "a" "b") [:tag "c"] (list "d" "e")
+    "a" nil "b"
+    "a" (comp-nothing) "b"
+    "a" (list nil) "b"])
 
 
 (rum/defc comp-campaign []
@@ -116,8 +129,8 @@
               { :border-width     " 1  "     ;; trim  numeric & append 'px'
                 :padding-right    " 1.2 "    
                 :padding-bottom   "1em"      ;; do not add 'px' if unit already specified
-                :text-align       " left  "  ;; don’t trim non-numeric values
-                :flex-grow        " 1  " }}] ;; do not trim unitless values
+                :text-align       " left  "  ;; trim non-numeric values
+                :flex-grow        " 1  " }}] ;; trim unitless values
     [:div.f { :style
               { :background-image "url('123')" ;; should escape quotes
                 :fontWeight       10      ;; should convert from react-style properties to CSS
@@ -128,12 +141,30 @@
 
 (rum/defc comp-attrs []
   [:div
-    [:div { :data-attr-ibute   "b"   ;; should not touch data-* and aria* attr names
-            :aria-checked      "c"
-            :form-enc-type     "text/plain" ;; should normalize (remove dashes)
-            :checked           false        ;; nil and false attrs not printed
-            :allow-full-screen true         ;; true printed as attr=""
-            :href              "/a=b&c=d" } ]]) ;; & should be properly escaped
+    (for [[a v] [[:data-attr-ibute   "b"]   ;; should not touch data-* and aria* attr names
+                 [:aria-checked      "c"]
+                 [:form-enc-type     "text/plain"] ;; should normalize (remove dashes)
+                 [:checked           false]        ;; nil and false attrs not printed
+                 [:allow-full-screen true]         ;; true printed as attr=""
+                 [:href              "/a=b&c=d"]]]
+      [:div { a v }])])
+
+
+(rum/defc comp-attrs-capitalization []
+  [:div
+    (for [a [:accept-charset :access-key :allow-transparency :auto-complete :cell-padding :cell-spacing :char-set :class-id :content-editable :context-menu :cross-origin :date-time :enc-type :form-action :form-enc-type :form-method :form-target :frame-border :href-lang :http-equiv :input-mode :key-params :key-type :margin-height :margin-width :max-length :media-group :min-length :radio-group :referrer-policy :spell-check :src-doc :src-lang :src-set :tab-index :use-map :auto-capitalize :auto-correct :auto-save :item-prop :item-type :item-id :item-ref]]
+      [:div { a "_" }])
+
+    [:table
+      [:td { :col-span 1
+             :row-span 1 }]]
+
+    [:svg
+      (for [a [:allow-reorder :attribute-name :attribute-type :auto-reverse :base-frequency :base-profile :calc-mode :clip-path-units :content-script-type :content-style-type :diffuse-constant :edge-mode :external-resources-required :filter-res :filter-units :glyph-ref :gradient-transform :gradient-units :kernel-matrix :kernel-unit-length :key-points :key-splines :key-times :length-adjust :limiting-cone-angle :marker-height :marker-units :marker-width :mask-content-units :mask-units :num-octaves :path-length :pattern-content-units :pattern-transform :pattern-units :points-at-x :points-at-y :points-at-z :preserve-alpha :preserve-aspect-ratio :primitive-units :ref-x :ref-y :repeat-count :repeat-dur :required-extensions :required-features :specular-constant :specular-exponent :spread-method :start-offset :std-deviation :stitch-tiles :surface-scale :system-language :table-values :target-x :target-y :view-box :view-target :x-channel-selector :xlink-actuate :xlink-arcrole :xlink-href :xlink-role :xlink-show :xlink-title :xlink-type :xml-base :xmlns-xlink :xml-lang :xml-space :y-channel-selector :zoom-and-pan]]
+        [:path { a "_" }])]
+    
+    (for [a [:allow-full-screen :auto-play :form-no-validate :no-validate :read-only :item-scope]]
+      [:div { a true }])])
 
 
 (rum/defc comp-attrs-order []
@@ -177,11 +208,6 @@
     [:.c1.c2 { :class [" c3  " "  c4 "]}] ;; trimming
     [:.c1.c2 { :class [:c3 nil :c4] }]    ;; nils are not removed
     [:.c1.c2 { :class [:c2 :c3]}]])       ;; not removing duplicates
-
-
-(rum/defc comp-reactid [] ;; check for proper reactid allocation
-  [:div
-    (map (fn [i] [:div (str i)]) (range 100))])
 
 
 (rum/defc comp-html []
@@ -228,6 +254,7 @@
     "tag"         comp-tag
     "list"        comp-list
     "lists"       comp-lists
+    "root-array"  comp-root-array
     "header"      comp-header
     "nil1"        comp-nil1
     "nil2"        comp-nil2
@@ -237,9 +264,9 @@
     "campaign"    comp-campaign
     "styles"      comp-styles
     "attrs"       comp-attrs
+    "attrs-cap"   comp-attrs-capitalization
     "attrs-order" comp-attrs-order
     "classes"     comp-classes
-    "reactid"     comp-reactid
     "html"        comp-html
     "inputs"      comp-inputs
     "svg"         comp-svg
@@ -255,11 +282,15 @@
    and saves them to render-dir"
   [write-fn]
   (enable-console-print!)
-  (doseq [[name ctor] components
-          :let [html (js/ReactDOMServer.renderToString (ctor))
-                path (str render-dir "/" name ".html")]]
-    (println "  writing" path)
-    (write-fn path html))))
+  (doseq [[name ctor] components]
+    (let [html (js/ReactDOMServer.renderToString (ctor))
+          path (str render-dir "/html/" name ".html")]
+      (println "  writing" path)
+      (write-fn path html))
+    (let [html (js/ReactDOMServer.renderToStaticMarkup (ctor))
+          path (str render-dir "/markup/" name ".html")]
+      (println "  writing" path)
+      (write-fn path html)))))
 
 
 #?(:clj
@@ -273,6 +304,7 @@
           (println err)))
       (when-not (str/blank? out)
         (println out))))))
+
 
 #?(:clj
 (defn diff [s1 s2]
@@ -293,12 +325,17 @@
   (doseq [f (reverse (file-seq (io/file render-dir)))]
     (.delete ^java.io.File f))
   (.mkdir (io/file render-dir))
+  (.mkdir (io/file render-dir "html"))
+  (.mkdir (io/file render-dir "markup"))
   ;; run react_render_html using node
   (exec "node" "test/rum/test/react_render_html.js")
   (doseq [[name ctor] components]
     (testing name
       ;; compare html rendered with react 
       ;;      to html rendered with rum/render-html
-      (let [react-html (slurp (str render-dir "/" name ".html"))
+      (let [react-html (slurp (str render-dir "/html/" name ".html"))
             rum-html   (rum/render-html (ctor))]
+        (is (= react-html rum-html) (diff react-html rum-html)))
+      (let [react-html (slurp (str render-dir "/markup/" name ".html"))
+            rum-html   (rum/render-static-markup (ctor))]
         (is (= react-html rum-html) (diff react-html rum-html)))))))

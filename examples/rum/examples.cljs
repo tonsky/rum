@@ -3,7 +3,7 @@
     [clojure.string :as str]
     [rum.core :as rum]
     [rum.examples.core :as core]
-    
+
     [rum.examples.timer-static :as timer-static]
     [rum.examples.timer-reactive :as timer-reactive]
     [rum.examples.controls :as controls]
@@ -17,7 +17,10 @@
     [rum.examples.keys :as keys]
     [rum.examples.self-reference :as self-reference]
     [rum.examples.context :as context]
-    [rum.examples.custom-props :as custom-props]))
+    [rum.examples.custom-props :as custom-props]
+    [rum.examples.multiple-return :as multiple-return]
+    [rum.examples.portals :as portals]
+    [rum.examples.errors :as errors]))
 
 
 (enable-console-print!)
@@ -38,7 +41,10 @@
 (keys/mount!            (core/el "keys"))
 (self-reference/mount!  (core/el "self-reference"))
 (context/mount!         (core/el "context"))
-(custom-props/mount!    (core/el "custom-props")) 
+(custom-props/mount!    (core/el "custom-props"))
+(multiple-return/mount! (core/el "multiple-return"))
+(portals/mount!         (core/el "portal-root"))
+(errors/mount!          (core/el "client-errors"))
 
 
 ;; Start clock ticking

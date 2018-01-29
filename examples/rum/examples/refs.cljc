@@ -4,12 +4,13 @@
     [rum.examples.core :as core]))
 
 
-(rum/defcc ta < { :after-render
-                  (fn [state]
-                    (let [ta (rum/ref-node state "ta")]
-                      (set! (.-height (.-style ta)) "0")
-                      (set! (.-height (.-style ta)) (str (+ 2 (.-scrollHeight ta)) "px")))
-                    state) }
+(rum/defcc ta
+  < { :after-render
+      (fn [state]
+        (let [ta (rum/ref-node state "ta")]
+          (set! (.-height (.-style ta)) "0")
+          (set! (.-height (.-style ta)) (str (+ 2 (.-scrollHeight ta)) "px")))
+        state) }
   [comp]
   [:textarea
     { :ref :ta
@@ -30,4 +31,4 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (refs) mount-el)))
+     (rum/hydrate (refs) mount-el)))

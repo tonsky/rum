@@ -36,5 +36,5 @@
 
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (controls) mount-el)))
+     (rum/hydrate (controls) mount-el)))
 

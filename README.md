@@ -37,7 +37,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.10.8"]`
+Add to project.clj: `[rum "0.11.0"]`
 
 ### Defining a component
 
@@ -275,8 +275,9 @@ The internal state cannot be directly manipulated, except at certain stages of a
 The following mixin will record the component’s mount time:
 
 ```clojure
-(rum/defcs time-label < { :will-mount (fn [state]
-                                       (assoc state ::time (js/Date.))) }
+(rum/defcs time-label
+  < { :will-mount (fn [state]
+                    (assoc state ::time (js/Date.))) }
   [state label]
   [:div label ": " (str (::time state))])
 ```
@@ -312,6 +313,7 @@ Here’s a full list of callbacks you can define in a mixin:
   :before-render        ;; state            ⇒ state
   :wrap-render          ;; render-fn        ⇒ render-fn
   :render               ;; state            ⇒ [pseudo-dom state]
+  :did-catch            ;; state, err, info ⇒ state
   :did-mount            ;; state            ⇒ state
   :after-render         ;; state            ⇒ state
   :did-remount          ;; old-state, state ⇒ state
@@ -324,10 +326,11 @@ Here’s a full list of callbacks you can define in a mixin:
 Each component can have any number of mixins:
 
 ```clojure
-(rum/defcs component < rum/static 
-                       rum/reactive
-                       (rum/local 0 ::count)
-                       (rum/local "" ::text)
+(rum/defcs component
+  < rum/static 
+    rum/reactive
+    (rum/local 0 ::count)
+    (rum/local "" ::text)
   [state label]
   (let [count-atom (::count state)
         text-atom  (::text state)]
@@ -420,8 +423,9 @@ There’re three ways to specify React keys:
 3. or, you can specify `:key-fn` in a mixin to calculate key based on args at component creation time:
 
   ```clojure
-  (rum/defc my-component < { :key-fn (fn [x y z]
-                                       (str x "-" y "-" z)) }
+  (rum/defc my-component
+    < { :key-fn (fn [x y z]
+                  (str x "-" y "-" z)) }
     [x y z]
     ...)
 
@@ -451,14 +455,16 @@ There’re couple of helpers that will, given state map, find stuff in it for yo
 To define arbitrary properties and methods on a component class, specify a `:class-properties` map in a mixin:
 
 ```clojure
-(rum/defc comp < { :class-properties { ... } }
+(rum/defc comp 
+  < { :class-properties { ... } }
   [:div]))
 ```
 
 To define static properties on a component class, specify a `:static-properties` map in a mixin:
 
 ```clojure
-(rum/defc comp < { :static-properties { ... } }
+(rum/defc comp
+  < { :static-properties { ... } }
   [:div]))
 ```
 
@@ -471,12 +477,13 @@ To define child context
 3. Specify a `:child-context` function taking state and returning context map in a mixin:
 
 ```clojure
-(rum/defc theme < { :child-context
-                    (fn [state]
-                      (let [[color] (:rum/args state)]
-                        { :color color }))
-                    :static-properties
-                    { :childContextTypes {:color js/PropTypes.string} } }
+(rum/defc theme
+  < { :child-context
+      (fn [state]
+        (let [[color] (:rum/args state)]
+          { :color color }))
+      :static-properties
+      { :childContextTypes {:color js/PropTypes.string} } }
   [color child]
   child)
 ```
@@ -489,7 +496,7 @@ If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 2. Define components using `rum/defc` or other macros as usual.
 3. Instead of mounting, call `rum/render-html` to render into a string.
 4. Generate the HTML page using that string.
-5. On the client side, mount _the same_ component over the node where you rendered your server-side component.
+5. On the client side, mount (but using `rum/hydrate`) _the same_ component over the node where you rendered your server-side component.
 
 ```clojure
 (require '[rum.core :as rum])
@@ -499,10 +506,10 @@ If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
 ;; on a server
 (rum/render-html (my-comp "hello"))
-;; => "<div data-reactroot=\"\" data-reactid=\"1\" data-react-checksum=\"-857140882\">hello</div>"
+;; => "<div data-reactroot=\"\">hello</div>"
 
 ;; on a client
-(rum/mount (my-comp "hello") js/document.body)
+(rum/hydrate (my-comp "hello") js/document.body)
 ```
 
 Use `rum/render-static-markup` if you’re not planning to connect your page with React later:
@@ -555,6 +562,6 @@ All heavy lifting done by [React](http://facebook.github.io/react/), [Ŝablono](
 
 ## License
 
-Copyright © 2014–2016 Nikita Prokopov
+Copyright © 2014 Nikita Prokopov
 
 Licensed under Eclipse Public License (see [LICENSE](LICENSE)).

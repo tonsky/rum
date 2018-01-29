@@ -23,4 +23,4 @@
 ;; After initial mount, all changes will be re-rendered automatically
 #?(:cljs
 (defn mount! [mount-el]
-  (rum/mount (timer-reactive) mount-el)))
+     (rum/hydrate (timer-reactive) mount-el)))
