@@ -1,7 +1,10 @@
-## WIP
+## 0.11.0 (thx [Roman Liutikov](https://github.com/roman01la) & [Alexander Solovyov](https://github.com/piranha), PR #151)
 
 - [ BREAKING ] `contextTypes` and `childContextTypes` should be specified through `:static-properties` instead of `:class-properties`
-- React 15.6.2-0
+- React 16.2.0, Sablono 0.8.1
+- Added `rum/portal` method
+- Added `:did-catch` lifecycle callback
+- Added `rum/hydrate` and updated SSR output to match React’s
 
 ## 0.10.8
 

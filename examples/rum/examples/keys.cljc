@@ -5,8 +5,9 @@
     [rum.examples.core :as core]))
 
 
-(rum/defc keyed < { :key-fn (fn [label number]
-                              (str label "-" number)) }
+(rum/defc keyed
+  < { :key-fn (fn [label number]
+                (str label "-" number)) }
   [label number]
   [:div (str label "-" number)])
 
