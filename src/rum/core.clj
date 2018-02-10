@@ -1,7 +1,6 @@
 (ns rum.core
   (:refer-clojure :exclude [ref])
   (:require
-    [sablono.compiler :as s]
     [rum.cursor :as cursor]
     [rum.server-render :as render]
     [rum.util :as util :refer [collect collect* call-all]]
@@ -43,9 +42,11 @@
 
 
 (defn- compile-body [[argvec conditions & body]]
-  (if (and (map? conditions) (seq body))
-    (list argvec conditions (s/compile-html `(do ~@body)))
-    (list argvec (s/compile-html `(do ~@(cons conditions body))))))
+  (let [_            (require 'sablono.compiler)
+        compile-html (ns-resolve (find-ns 'sablono.compiler) 'compile-html)]
+    (if (and (map? conditions) (seq body))
+      (list argvec conditions (compile-html `(do ~@body)))
+      (list argvec (compile-html `(do ~@(cons conditions body)))))))
 
 
 (defn- -defc [builder cljs? body]

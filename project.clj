@@ -1,4 +1,4 @@
-(defproject rum "0.11.0"
+(defproject rum "0.11.1"
   :description  "ClojureScript wrapper for React"
   :license      { :name "Eclipse"
                   :url  "http://www.eclipse.org/legal/epl-v10.html" }
@@ -10,7 +10,7 @@
    [cljsjs/react               "16.2.0-3"]
    [cljsjs/react-dom           "16.2.0-3"]
    [sablono                    "0.8.1"]]
-  
+
   :plugins [ [lein-cljsbuild "1.1.7"] ]
 
   :profiles {

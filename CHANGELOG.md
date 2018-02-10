@@ -1,3 +1,7 @@
+## 0.11.1
+
+- Sablono or CLJS are excluded completely when using SSR (#83 #157)
+
 ## 0.11.0 (thx [Roman Liutikov](https://github.com/roman01la) & [Alexander Solovyov](https://github.com/piranha), PR #151)
 
 - [ BREAKING ] `contextTypes` and `childContextTypes` should be specified through `:static-properties` instead of `:class-properties`
