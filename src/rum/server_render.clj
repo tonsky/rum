@@ -196,6 +196,8 @@
 
 (defn normalize-attr-key ^String [key]
   (or (normalized-attrs key)
+      (when (.startsWith (name key) "on")
+        (-> (name key) (str/lower-case) (str/replace "-" "")))
       (name key)))
 
 
@@ -347,7 +349,9 @@
       (.startsWith attr "aria-") (render-attr-str! sb attr value)
       (not value)      :nop
       (true? value)    (append! sb " " attr "=\"\"")
-      (.startsWith attr "on")            :nop
+      (.startsWith attr "on") (if (string? value)
+                                (render-attr-str! sb attr value)
+                                :nop)
       (= "dangerouslySetInnerHTML" attr) :nop
       :else (render-attr-str! sb attr value))))
 

@@ -1,3 +1,7 @@
+## 0.11.2
+
+- Server-render on-* event handlers with string values
+
 ## 0.11.1
 
 - Sablono or CLJS are excluded completely when using SSR (#83 #157)
