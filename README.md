@@ -34,6 +34,7 @@ Rum:
 - [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
 - [PurposeFly](https://www.purposefly.com/), HR 2.0 platform
 - [Simply](https://www.simply.co.za), Simple direct life insurance
+- [Oscaro.com](https://www.oscaro.com), online autoparts retailer
 
 ## Using Rum
 
