@@ -35,7 +35,8 @@ Rum:
 - [PurposeFly](https://www.purposefly.com/), HR 2.0 platform
 - [Simply](https://www.simply.co.za), Simple direct life insurance
 - [Oscaro.com](https://www.oscaro.com), online autoparts retailer
-- [Lupapiste](https://github.com/lupapiste/lupapiste), building permit issuance and management 
+- [Lupapiste](https://github.com/lupapiste/lupapiste), building permit issuance and management
+- [Newsroom AI](https://www.nws.ai), personalised content delivery platform
 
 ## Using Rum
 
