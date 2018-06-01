@@ -20,7 +20,8 @@
     [rum.examples.custom-props :as custom-props]
     [rum.examples.multiple-return :as multiple-return]
     [rum.examples.portals :as portals]
-    [rum.examples.errors :as errors]))
+    [rum.examples.errors :as errors]
+    [rum.examples.fragment :as fragment]))
 
 
 (enable-console-print!)
@@ -45,7 +46,7 @@
 (multiple-return/mount! (core/el "multiple-return"))
 (portals/mount!         (core/el "portal-root"))
 (errors/mount!          (core/el "client-errors"))
-
+(fragment/mount!        (core/el "fragment"))
 
 ;; Start clock ticking
 

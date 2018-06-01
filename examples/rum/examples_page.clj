@@ -14,7 +14,8 @@
     [rum.examples.keys           :as keys]
     [rum.examples.self-reference :as self-reference]
     [rum.examples.multiple-return :as multiple-return]
-    [rum.examples.errors         :as errors]))
+    [rum.examples.errors         :as errors]
+    [rum.examples.fragment       :as fragment]))
 
 (def page (str
 "<!doctype html>
@@ -132,7 +133,12 @@
       <div class=example-title>Error boundaries</div> 
       <p>Server: <span id=server-errors>" (rum/render-html (errors/errors)) "</span></p>
       <p>Client: <span id=client-errors></span></p>
-    </div> 
+    </div>
+
+    <div class=example>
+      <div class=example-title>Fragments</div>
+      <div id=fragment>" (rum/render-html (fragment/fragment)) "</div>
+    </div>
 
     <script src='target/main.js' type='text/javascript'></script>
   </body>
