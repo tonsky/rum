@@ -248,6 +248,14 @@
      :aria-disabled "true" 
      :aria-checked  "false" }])
 
+(rum/defc comp-fragment []
+  [:*
+   "Some text"
+   [:h2 "A heading"]
+   "More text"
+   [:h2.bis "Another heading"]
+   "Even more text"
+   ])
 
 (def components
   { "simple"      comp-simple
@@ -270,7 +278,8 @@
     "html"        comp-html
     "inputs"      comp-inputs
     "svg"         comp-svg
-    "aria"        comp-aria})
+    "aria"        comp-aria
+    "fragment"    comp-fragment})
 
 
 (def render-dir "target/server_render_test")

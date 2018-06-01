@@ -434,7 +434,8 @@
           (render-content! tag attrs children *state sb)))
       (when (= "*" tag)
         (vreset! *state :state/fragment)
-        (doall (map #(render-element! % *state sb) children))))))
+        (doseq [child children]
+          (-render-html child *state sb))))))
 
 
 (extend-protocol HtmlRenderer
