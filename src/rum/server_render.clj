@@ -432,6 +432,7 @@
           (binding [*select-value* (get-value attrs)]
             (render-content! tag attrs children *state sb))
           (render-content! tag attrs children *state sb)))
+
       (when (= "*" tag)
         (vreset! *state :state/fragment)
         (doseq [child children]

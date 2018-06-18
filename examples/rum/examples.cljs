@@ -47,6 +47,7 @@
 (portals/mount!         (core/el "portal-root"))
 (errors/mount!          (core/el "client-errors"))
 (fragment/mount!        (core/el "fragment"))
+(fragment/mount-keyed!  (core/el "keyed-fragments"))
 
 ;; Start clock ticking
 

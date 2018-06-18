@@ -257,29 +257,39 @@
    "Even more text"
    ])
 
+(rum/defc comp-keyed-fragments []
+  [:* {:key 1}
+   "Some text"
+   [:h2 "A heading"]
+   "More text"
+   [:h2.bis "Another heading"]
+   "Even more text"
+   ])
+
 (def components
-  { "simple"      comp-simple
-    "tag"         comp-tag
-    "list"        comp-list
-    "lists"       comp-lists
-    "root-array"  comp-root-array
-    "header"      comp-header
-    "nil1"        comp-nil1
-    "nil2"        comp-nil2
-    "nothing"     comp-nothing
-    "nothing2"    comp-nothing2
-    "span"        comp-span
-    "campaign"    comp-campaign
-    "styles"      comp-styles
-    "attrs"       comp-attrs
-    "attrs-cap"   comp-attrs-capitalization
-    "attrs-order" comp-attrs-order
-    "classes"     comp-classes
-    "html"        comp-html
-    "inputs"      comp-inputs
-    "svg"         comp-svg
-    "aria"        comp-aria
-    "fragment"    comp-fragment})
+  {"simple"          comp-simple
+   "tag"             comp-tag
+   "list"            comp-list
+   "lists"           comp-lists
+   "root-array"      comp-root-array
+   "header"          comp-header
+   "nil1"            comp-nil1
+   "nil2"            comp-nil2
+   "nothing"         comp-nothing
+   "nothing2"        comp-nothing2
+   "span"            comp-span
+   "campaign"        comp-campaign
+   "styles"          comp-styles
+   "attrs"           comp-attrs
+   "attrs-cap"       comp-attrs-capitalization
+   "attrs-order"     comp-attrs-order
+   "classes"         comp-classes
+   "html"            comp-html
+   "inputs"          comp-inputs
+   "svg"             comp-svg
+   "aria"            comp-aria
+   "fragment"        comp-fragment
+   "keyed-fragments" comp-keyed-fragments})
 
 
 (def render-dir "target/server_render_test")

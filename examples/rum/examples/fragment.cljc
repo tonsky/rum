@@ -11,3 +11,15 @@
 #?(:cljs
 (defn mount! [mount-el]
   (rum/hydrate (fragment) mount-el)))
+
+(rum/defc keyed-fragments []
+  [:dl
+   (map (fn [[term definition]]
+          [:* {:key term}
+           [:dt term]
+           [:dd definition]])
+        [["clj" "Clojure"] ["cljs" "ClojureScript"]])])
+
+#?(:cljs
+(defn mount-keyed! [mount-el]
+  (rum/hydrate (keyed-fragments) mount-el)))

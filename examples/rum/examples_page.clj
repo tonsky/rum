@@ -140,6 +140,11 @@
       <div id=fragment>" (rum/render-html (fragment/fragment)) "</div>
     </div>
 
+    <div class=example>
+      <div class=example-title>Keyed Fragments</div>
+      <div id=keyed-fragments>" (rum/render-html (fragment/keyed-fragments)) "</div>
+    </div>
+
     <script src='target/main.js' type='text/javascript'></script>
   </body>
 </html>"))
