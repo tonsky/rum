@@ -30,14 +30,14 @@
         render         render                               ;; state -> [dom state]
         wrap-render    (collect   :wrap-render mixins)      ;; render-fn -> render-fn
         wrapped-render (reduce #(%2 %1) render wrap-render)
-        did-mount      (collect* [:did-mount                ;; state -> state
-                                  :after-render] mixins)    ;; state -> state
+        did-mount      (collect   :did-mount mixins)        ;; state -> state
+        after-mount    (collect   :after-render mixins)     ;; state snapshot -> state
         did-remount    (collect   :did-remount mixins)      ;; old-state state -> state
         derive-state   (collect   :derive-state mixins)     ;; state -> state
         should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
         will-update    (collect* [:will-update              ;; state -> state
                                   :before-render] mixins)   ;; state -> state
-        make-snapshot  (collect :make-snapshot mixins)       ;; state -> state
+        make-snapshot  (collect :make-snapshot mixins)      ;; state -> state
         did-update     (collect* [:did-update               ;; state snapshot -> state
                                   :after-render] mixins)    ;; state snapshot -> state
         did-catch      (collect   :did-catch mixins)        ;; state error info -> state
@@ -76,11 +76,14 @@
           (this-as this
             (vswap! (state this) call-all will-mount)))))
 
-    (when-not (empty? did-mount)
+    (when-not (and (empty? did-mount) (empty? after-mount))
       (gobj/set prototype "componentDidMount"
         (fn []
           (this-as this
-            (vswap! (state this) call-all did-mount)))))
+            (reduce
+             #(%2 %1 nil)
+             (call-all @(state this) did-mount)
+             after-mount)))))
 
     (when-not (empty? did-remount)
       (gobj/set prototype "componentWillReceiveProps"
