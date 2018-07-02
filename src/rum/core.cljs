@@ -240,7 +240,7 @@
   [value]
   (js/React.createContext value))
 
-(defn provide-context
+(defn provide-context-js
   "Provides `value` to consumers in UI subtree via React’s Context API"
   [ctx value & children]
   (apply js/React.createElement (.-Provider ctx) #js {:value value} children))
@@ -249,7 +249,7 @@
   "Subscribes UI subtree to context changes.
   Calls `render-child` everytime a new value gets added into context via `Provider`"
   [ctx render-child]
-  (js/React.createElement (.-Consumer ctx) nil render-child))
+  (js/React.createElement (.-Consumer ctx) nil #(render-child %)))
 
 ;; initialization
 

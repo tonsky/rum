@@ -163,23 +163,22 @@
   element)
 
 ;; Mimic React's Context API
-(def contexts (atom {}))
-
 (defn create-context
-  "“Creates” an “instance” of React’s Context"
+  "In ClojureScript: Creates an instance of React’s Context
+  In Clojure: mimics behaviour with Clojure's dynamic var"
   [value]
-  (swap! contexts assoc (gensym) value))
+  value)
 
-(defn provide-context
-  "“Provides” `value` to consumers in UI subtree"
+(defmacro provide-context
+  "Provides `value` to consumers in UI subtree"
   [ctx value child]
-  (swap! contexts assoc ctx value)
-  child)
+  `(binding [~ctx ~value]
+     ~child))
 
 (defn with-context
   "Calls `render-child` with a value associated with provided context"
   [ctx render-child]
-  (render-child (get @contexts ctx)))
+  (render-child ctx))
 
 
 ;; mixins

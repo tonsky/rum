@@ -14,7 +14,8 @@
     [rum.examples.keys           :as keys]
     [rum.examples.self-reference :as self-reference]
     [rum.examples.multiple-return :as multiple-return]
-    [rum.examples.errors         :as errors]))
+    [rum.examples.errors         :as errors]
+    [rum.examples.context         :as context]))
 
 (def page (str
 "<!doctype html>
@@ -109,7 +110,7 @@
 
     <div class=example>
       <div class=example-title>Contexts</div>
-      <div id=context></div>
+      <div id=context>" (rum/render-html (context/context)) "</div>
     </div>
 
     <div class=example>

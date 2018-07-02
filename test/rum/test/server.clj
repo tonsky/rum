@@ -38,3 +38,17 @@
          '([a] [a b] [a b c])))
   (is (= (:arglists (meta #'comp-arglists-1))
          '([a] [a b] [a b c]))))
+
+(def ^:dynamic *color-theme* (rum/create-context "#000"))
+
+(rum/defc rum-context-comp
+  []
+  (rum/with-context *color-theme* identity))
+
+(rum/defc context []
+  (rum/provide-context *color-theme* "#fff" (rum-context-comp)))
+
+(deftest test-context
+  (is (= (rum-context-comp) "#000"))
+  (is (= (context) "#fff"))
+  (is (= (rum-context-comp) "#000")))
