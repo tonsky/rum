@@ -2,6 +2,37 @@
 
 Rum is a client/server library for HTML UI. In ClojureScript, it works as React wrapper, in Clojure, it is a static HTML generator.
 
+## Table of Contents
+
+- [Principles](#principles)
+- [Comparison to other frameworks](#comparison-to-other-frameworks)
+- [Who’s using Rum?](#whos-using-rum)
+- [Using Rum](#using-rum)
+  - [Defining a component](#defining-a-component)
+  - [Rendering component](#rendering-component)
+  - [Updating components manually](#updating-components-manually)
+  - [Reactive components](#reactive-components)
+  - [Component’s local state](#components-local-state)
+  - [Optimizing with shouldComponentUpdate](#optimizing-with-shouldcomponentupdate)
+  - [Writing your own mixin](#writing-your-own-mixin)
+  - [Working with atoms](#working-with-atoms)
+    - [Cursors](#cursors)
+    - [Derived atoms](#derived-atoms)
+  - [Interop with React](#interop-with-react)
+    - [Native React component](#native-react-component)
+    - [React keys and refs](#react-keys-and-refs)
+    - [Accessing DOM](#accessing-dom)
+    - [Custom class properties](#custom-class-properties)
+    - [React context](#react-context)
+  - [Server-side rendering](#server-side-rendering)
+- [Support](#support)
+  - [Talks](#talks)
+  - [App templates](#app-templates)
+  - [Libraries](#libraries)
+  - [Examples](#examples)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
 ### Principles
 
 **Simple semantics**: Rum is arguably smaller, simpler and more straightforward than React itself.
@@ -68,7 +99,7 @@ Rum uses Hiccup-like syntax for defining markup:
   :span#id.class
   :span.class.class2
 ```
-  
+
 By default, if you omit the tag, `div` is assumed:
 
 ```
@@ -182,27 +213,26 @@ One very common use-case is for a component to update when some reference change
 (rum/defc counter < rum/reactive []
   [:div { :on-click (fn [_] (swap! count inc)) }
     "Clicks: " (rum/react count)])
-    
+
 (rum/mount (counter) js/document.body)
 ```
 
 Two things are happening here:
 
-1. We’re adding the `rum.core/reactive` mixin to the component.
-2. We’re using `rum.core/react` instead of `deref` in the component body.
+1.  We’re adding the `rum.core/reactive` mixin to the component.
+2.  We’re using `rum.core/react` instead of `deref` in the component body.
 
 This will set up a watch on the `count` atom and will automatically call `rum.core/request-render` on the component each time the atom changes.
-
 
 ### Component’s local state
 
 Sometimes you need to keep track of some mutable data just inside a component and nowhere else. Rum provides the `rum.core/local` mixin. It’s a little trickier to use, so hold on:
 
-1. Each component in Rum has internal state associated with it, normally used by mixins and Rum internals.
-2. `rum.core/local` creates a mixin that will put an atom into the component’s state.
-3. `rum.core/defcs` is used instead of `rum.core/defc`. It allows you to get hold of the components’s state in the render function (it will be passed as a first argument).
-4. You can then extract that atom from the component’s state and `deref`/`swap!`/`reset!` it as usual.
-5. Any change to the atom will force the component to update.
+1.  Each component in Rum has internal state associated with it, normally used by mixins and Rum internals.
+2.  `rum.core/local` creates a mixin that will put an atom into the component’s state.
+3.  `rum.core/defcs` is used instead of `rum.core/defc`. It allows you to get hold of the components’s state in the render function (it will be passed as a first argument).
+4.  You can then extract that atom from the component’s state and `deref`/`swap!`/`reset!` it as usual.
+5.  Any change to the atom will force the component to update.
 
 In practice, it’s quite convenient to use:
 
@@ -212,7 +242,7 @@ In practice, it’s quite convenient to use:
   (let [local-atom (::key state)]
     [:div { :on-click (fn [_] (swap! local-atom inc)) }
       label ": " @local-atom]))
-      
+
 (rum/mount (stateful "Click count") js/document.body)
 ```
 
@@ -253,7 +283,7 @@ For example, if we have this component defined:
 (rum/defc input [label value]
   [:label label ": "
     [:input { :value value }]])
-    
+
 (input "Your name" "")
 ```
 
@@ -269,7 +299,7 @@ You can read the internal state by using the `rum.core/defcs` (short for “defi
 ```clojure
 (rum/defcs label [state label value]
   [:div "My args:" (pr-str (:rum/args state))])
-  
+
 (label "A" 3) ;; => <div>My args: ["A" 3]</div>
 ```
 
@@ -304,7 +334,7 @@ This mixin will update a component each second:
 
 (rum/defc timer < periodic-update-mixin []
   [:div (.toISOString (js/Date.))])
-  
+
 (rum/mount (timer) js/document.body)
 ```
 
@@ -330,7 +360,7 @@ Each component can have any number of mixins:
 
 ```clojure
 (rum/defcs component
-  < rum/static 
+  < rum/static
     rum/reactive
     (rum/local 0 ::count)
     (rum/local "" ::text)
@@ -342,12 +372,11 @@ Each component can have any number of mixins:
 
 One gotcha: don’t forget to return `state` from the mixin functions. If you’re using them for side-effects only, just return an unmodified `state`.
 
-
 ### Working with atoms
 
 Since Rum relies a lot at components being able to efficiently update themselves in reaction to events, it includes two facilities to build architectures around Atoms and watchers.
 
-**Cursors**
+#### Cursors
 
 If you have a complex state and need a component to interact with only a part of it, create a cursor using `(rum.core/cursor-in ref path)`. Given atom with deep nested value and path inside it, `cursor-in` will create an atom-like structure that can be used separately from main atom, but will sync changes both ways:
 
@@ -367,7 +396,7 @@ If you have a complex state and need a component to interact with only a part of
 
 Cursors implement `IAtom` and `IWatchable` and interface-wise are drop-in replacement for regular atoms. They work well with `rum/reactive` and `rum/react` too.
 
-**Derived atoms**
+#### Derived atoms
 
 Use derived atoms to create “chains” and acyclic graphs of dependent atoms. `derived-atom` will:
 
@@ -395,10 +424,9 @@ Use derived atoms to create “chains” and acyclic graphs of dependent atoms. 
 
 Derived atoms are like cursors, but can “depend on” multiple references and won’t sync changes back to the source if you try to update derived atom (don’t).
 
-
 ### Interop with React
 
-**Native React component**
+#### Native React component
 
 You can access the raw React component by reading the state’s `:rum/react-component` attribute:
 
@@ -410,40 +438,40 @@ You can access the raw React component by reading the state’s `:rum/react-comp
                state) }
 ```
 
-**React keys and refs**
+#### React keys and refs
 
 There’re three ways to specify React keys:
 
-1. If you need a key on Sablono tag, put it into attributes: `[:div { :key "x" }]`
-2. If you need a key on Rum component, use `with-key`:
+1.  If you need a key on Sablono tag, put it into attributes: `[:div { :key "x" }]`
+2.  If you need a key on Rum component, use `with-key`:
 
-  ```clojure
-  (rum/defc my-component [str]
-    ...)
+```clojure
+(rum/defc my-component [str]
+  ...)
 
-  (rum/with-key (my-component "args") "x")
-  ```
-3. or, you can specify `:key-fn` in a mixin to calculate key based on args at component creation time:
+(rum/with-key (my-component "args") "x")
+```
 
-  ```clojure
-  (rum/defc my-component
-    < { :key-fn (fn [x y z]
-                  (str x "-" y "-" z)) }
-    [x y z]
-    ...)
+3.  or, you can specify `:key-fn` in a mixin to calculate key based on args at component creation time:
 
-  (my-component 1 2 3) ;; => key == "1-2-3"
-  ```
+```clojure
+(rum/defc my-component
+  < { :key-fn (fn [x y z]
+                (str x "-" y "-" z)) }
+  [x y z]
+  ...)
+
+(my-component 1 2 3) ;; => key == "1-2-3"
+```
 
 `:key-fn` must accept same arguments your render function does.
 
 Refs work the same way as options 1 and 2 for keys work:
 
-1. `[:div { :ref "x" }]`
-2. `(rum/with-ref (my-component) "x")`
+1.  `[:div { :ref "x" }]`
+2.  `(rum/with-ref (my-component) "x")`
 
-
-**Accessing DOM**
+#### Accessing DOM
 
 There’re couple of helpers that will, given state map, find stuff in it for you:
 
@@ -453,12 +481,12 @@ There’re couple of helpers that will, given state map, find stuff in it for yo
 (rum/ref-node state "x") ;; => top-level DOM node of ref-ed React component
 ```
 
-**Custom class properties**
+#### Custom class properties
 
 To define arbitrary properties and methods on a component class, specify a `:class-properties` map in a mixin:
 
 ```clojure
-(rum/defc comp 
+(rum/defc comp
   < { :class-properties { ... } }
   [:div]))
 ```
@@ -471,13 +499,13 @@ To define static properties on a component class, specify a `:static-properties`
   [:div]))
 ```
 
-**React context**
+#### React context
 
 To define child context
 
-1. Add dependency `[cljsjs/prop-types "15.5.10-1"]`
-2. `(require [cljsjs.prop-types])`
-3. Specify a `:child-context` function taking state and returning context map in a mixin:
+1.  Add dependency `[cljsjs/prop-types "15.5.10-1"]`
+2.  `(require [cljsjs.prop-types])`
+3.  Specify a `:child-context` function taking state and returning context map in a mixin:
 
 ```clojure
 (rum/defc theme
@@ -495,12 +523,12 @@ To define child context
 
 If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1. Rum’s `project.clj` dependency becomes `[rum "0.11.2" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
-2. Import `rum.core` as usual.
-3. Define components using `rum/defc` or other macros as usual.
-4. Instead of mounting, call `rum/render-html` to render into a string.
-5. Generate the HTML page using that string.
-6. On the client side, mount (but using `rum/hydrate`) _the same_ component over the node where you rendered your server-side component.
+1.  Rum’s `project.clj` dependency becomes `[rum "0.11.2" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
+2.  Import `rum.core` as usual.
+3.  Define components using `rum/defc` or other macros as usual.
+4.  Instead of mounting, call `rum/render-html` to render into a string.
+5.  Generate the HTML page using that string.
+6.  On the client side, mount (but using `rum/hydrate`) _the same_ component over the node where you rendered your server-side component.
 
 ```clojure
 (require '[rum.core :as rum])
