@@ -7,16 +7,15 @@
   :dependencies
   [[org.clojure/clojure        "1.8.0"   :scope "provided"]
    [org.clojure/clojurescript  "1.9.946" :scope "provided"]
-   [cljsjs/react               "16.2.0-3"]
-   [cljsjs/react-dom           "16.2.0-3"]
+   [cljsjs/react               "16.4.0-0"]
+   [cljsjs/react-dom           "16.4.0-0"]
    [sablono                    "0.8.1"]]
 
   :plugins [ [lein-cljsbuild "1.1.7"] ]
 
   :profiles {
     :dev  { :source-paths ["examples"]
-            :dependencies [[cljsjs/react-dom-server "16.2.0-3"]
-                           [cljsjs/prop-types "15.6.0-0"]
+            :dependencies [[cljsjs/react-dom-server "16.4.0-0"]
                            [clj-diffmatchpatch "0.0.9.3" :exclusions [org.clojure/clojure]]] }
     :perf { :source-paths ["perf"]
             :dependencies 
