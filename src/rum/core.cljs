@@ -33,11 +33,13 @@
         did-mount      (collect* [:did-mount                ;; state -> state
                                   :after-render] mixins)    ;; state -> state
         did-remount    (collect   :did-remount mixins)      ;; old-state state -> state
+        derive-state   (collect   :derive-state mixins)     ;; state -> state
         should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
         will-update    (collect* [:will-update              ;; state -> state
                                   :before-render] mixins)   ;; state -> state
-        did-update     (collect* [:did-update               ;; state -> state
-                                  :after-render] mixins)    ;; state -> state
+        make-snapshot  (collect :make-snapshot mixins)       ;; state -> state
+        did-update     (collect* [:did-update               ;; state snapshot -> state
+                                  :after-render] mixins)    ;; state snapshot -> state
         did-catch      (collect   :did-catch mixins)        ;; state error info -> state
         will-unmount   (collect   :will-unmount mixins)     ;; state -> state
         child-context  (collect   :child-context mixins)    ;; state -> child-context
@@ -56,6 +58,18 @@
         _              (goog/inherits ctor js/React.Component)
         prototype      (gobj/get ctor "prototype")]
 
+    ;; lifecycle static methods
+    (when-not (empty? derive-state)
+      (gobj/set ctor "getDerivedStateFromProps"
+        (fn [next-props state]
+          (let [old-state  @(gobj/get state ":rum/state")
+                state      (merge old-state (gobj/get next-props ":rum/initial-state"))
+                next-state (reduce #(%2 %1) state derive-state)]
+            ;; allocate new volatile
+            ;; so that we can access both old and new states in shouldComponentUpdate
+            #js {":rum/state" (volatile! next-state)}))))
+
+    ;; lifecycle instance methods
     (when-not (empty? will-mount)
       (gobj/set prototype "componentWillMount"
         (fn []
@@ -68,15 +82,16 @@
           (this-as this
             (vswap! (state this) call-all did-mount)))))
 
-    (gobj/set prototype "componentWillReceiveProps"
-      (fn [next-props]
-        (this-as this
-          (let [old-state  @(state this)
-                state      (merge old-state
-                                  (gobj/get next-props ":rum/initial-state"))
-                next-state (reduce #(%2 old-state %1) state did-remount)]
-            ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
-            (.setState this #js {":rum/state" (volatile! next-state)})))))
+    (when-not (empty? did-remount)
+      (gobj/set prototype "componentWillReceiveProps"
+        (fn [next-props]
+          (this-as this
+            (let [old-state  @(state this)
+                  state      (merge old-state
+                                    (gobj/get next-props ":rum/initial-state"))
+                  next-state (reduce #(%2 old-state %1) state did-remount)]
+              ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
+              (.setState this #js {":rum/state" (volatile! next-state)}))))))
 
     (when-not (empty? should-update)
       (gobj/set prototype "shouldComponentUpdate"
@@ -101,11 +116,19 @@
             (vreset! state next-state)
             dom))))
 
+    (when-not (empty? make-snapshot)
+      (gobj/set prototype "getSnapshotBeforeUpdate"
+        (fn [props state]
+          (let [old-state  @(gobj/get state ":rum/state")
+                state      (merge old-state (gobj/get props ":rum/initial-state"))
+                next-state (call-all state make-snapshot)]
+            (:rum/snapshot next-state)))))
+
     (when-not (empty? did-update)
       (gobj/set prototype "componentDidUpdate"
-        (fn [_ _]
+        (fn [_ _ snapshot]
           (this-as this
-            (vswap! (state this) call-all did-update)))))
+            (vswap! (state this) call-all did-update snapshot)))))
 
     (when-not (empty? did-catch)
       (gobj/set prototype "componentDidCatch"
@@ -301,8 +324,8 @@
    Atom is stored under user-provided key or under `:rum/local` by default"
   ([initial] (local initial :rum/local))
   ([initial key]
-    { :will-mount
-      (fn [state]
+    { :init
+      (fn [state props]
         (let [local-state (atom initial)
               component   (:rum/react-component state)]
           (add-watch local-state key

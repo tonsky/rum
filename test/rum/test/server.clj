@@ -4,19 +4,25 @@
     [clojure.test :refer [deftest is are testing]]))
 
 
-(rum/defcs comp-mixins < (rum/local 7)
-                         { :will-mount (fn [s] (assoc s ::key 1)) }
-  [state]
+(rum/defcs comp-mixins <
+  (rum/local 7)
+  {:will-mount (fn [s] (assoc s ::key 1))
+   :derive-state
+    (fn [{[value] :rum/args :as s}]
+      (assoc s :derived/value value))}
+  [state _]
   [:div
     [:.local @(:rum/local state)]
-    [:.key   (::key state)]])
+    [:.key   (::key state)]
+    [:.derived   (:derived/value state)]])
 
 
 (deftest test-lifecycle
-  (is (= (comp-mixins)
+  (is (= (comp-mixins 2)
          [:div
            [:.local 7]
-           [:.key   1]])))
+           [:.key   1]
+           [:.derived   2]])))
 
 
 (rum/defc comp-arglists
@@ -33,7 +39,7 @@
 
 (deftest test-arglists
   (is (= (:arglists (meta #'comp-mixins))
-         '([])))
+         '([_])))
   (is (= (:arglists (meta #'comp-arglists))
          '([a] [a b] [a b c])))
   (is (= (:arglists (meta #'comp-arglists-1))

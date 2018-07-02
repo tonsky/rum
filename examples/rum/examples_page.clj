@@ -15,7 +15,8 @@
     [rum.examples.self-reference :as self-reference]
     [rum.examples.multiple-return :as multiple-return]
     [rum.examples.errors         :as errors]
-    [rum.examples.context         :as context]))
+    [rum.examples.context         :as context]
+    [rum.examples.lifecycle      :as lifecycle]))
 
 (def page (str
 "<!doctype html>
@@ -134,6 +135,11 @@
       <p>Server: <span id=server-errors>" (rum/render-html (errors/errors)) "</span></p>
       <p>Client: <span id=client-errors></span></p>
     </div> 
+
+    <div class=example>
+      <div class=example-title>Lifecycle</div>
+      <div id=client-lifecycle>" (rum/render-html (lifecycle/lifecycle)) "</div>
+    </div>
 
     <script src='target/main.js' type='text/javascript'></script>
   </body>

@@ -109,6 +109,7 @@
 (defn- build-ctor [render mixins display-name]
   (let [init           (collect :init mixins)                ;; state props -> state
         will-mount     (collect* [:will-mount                ;; state -> state
+                                  :derive-state              ;; state -> state
                                   :before-render] mixins)    ;; state -> state
         did-catch      (collect :did-catch mixins)           ;; state error info -> state
         render         render                                ;; state -> [dom state]
@@ -190,8 +191,8 @@
 (defn local
   ([initial] (local initial :rum/local))
   ([initial key]
-    {:will-mount (fn [state]
-                   (assoc state key (atom initial)))}))
+    {:init (fn [state props]
+            (assoc state key (atom initial)))}))
 
 
 (def reactive {})
