@@ -240,7 +240,7 @@
   [value]
   (js/React.createContext value))
 
-(defn provide-context-js
+(defn provide-context
   "Provides `value` to consumers in UI subtree via React’s Context API"
   [ctx value & children]
   (apply js/React.createElement (.-Provider ctx) #js {:value value} children))

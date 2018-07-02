@@ -46,7 +46,7 @@
   (rum/with-context *color-theme* identity))
 
 (rum/defc context []
-  (rum/provide-context *color-theme* "#fff" (rum-context-comp)))
+  (rum/provide-context-clj *color-theme* "#fff" (rum-context-comp)))
 
 (deftest test-context
   (is (= (rum-context-comp) "#000"))

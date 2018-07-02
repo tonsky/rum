@@ -24,8 +24,8 @@
 (rum/defc context < rum/reactive []
   [:div
     [:div "Root component implicitly passes data to descendants."]
-    #?(:clj (rum/provide-context *color-theme* (rum/react core/*color) (rum-context-comp))
-       :cljs (rum/provide-context-js *color-theme* (rum/react core/*color) (rum-context-comp)))])
+    #?(:clj (rum/provide-context-clj *color-theme* (rum/react core/*color) (rum-context-comp))
+       :cljs (rum/provide-context *color-theme* (rum/react core/*color) (rum-context-comp)))])
 
 
 #?(:cljs

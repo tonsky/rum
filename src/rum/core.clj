@@ -169,7 +169,7 @@
   [value]
   value)
 
-(defmacro provide-context
+(defmacro provide-context-clj
   "Provides `value` to consumers in UI subtree"
   [ctx value child]
   `(binding [~ctx ~value]
