@@ -80,10 +80,10 @@
       (gobj/set prototype "componentDidMount"
         (fn []
           (this-as this
-            (reduce
-             #(%2 %1 nil)
-             (call-all @(state this) did-mount)
-             after-mount)))))
+            (let [old-state @(state this)
+                  tmp-state (call-all old-state did-mount)
+                  next-state (reduce #(%2 %1 nil) tmp-state after-mount)]
+              (vreset! (state this) next-state))))))
 
     (when-not (empty? did-remount)
       (gobj/set prototype "componentWillReceiveProps"
