@@ -58,7 +58,7 @@ Rum:
 - [Cognician](https://www.cognician.com), coaching platform
 - [Attendify](https://attendify.com), mobile app builder
 - [PartsBox.io](https://partsbox.io), inventory management
-- [modnaKasta](https://modnaKasta.ua), online shopping
+- [kasta.ua](https://kasta.ua), online marketplace
 - [ChildrensHeartSurgery.info](http://childrensheartsurgery.info), heart surgery statistics
 - [Mighty Hype](http://mightyhype.com/), cinema platform (server-side rendering)
 - [БезопасныеДороги.рф](https://xn--80abhddbmm5bieahtk5n.xn--p1ai/), road data aggregator
