@@ -59,15 +59,14 @@
         prototype      (gobj/get ctor "prototype")]
 
     ;; lifecycle static methods
-    (when-not (empty? derive-state)
-      (gobj/set ctor "getDerivedStateFromProps"
-        (fn [next-props state]
-          (let [old-state  @(gobj/get state ":rum/state")
-                state      (merge old-state (gobj/get next-props ":rum/initial-state"))
-                next-state (reduce #(%2 %1) state derive-state)]
-            ;; allocate new volatile
-            ;; so that we can access both old and new states in shouldComponentUpdate
-            #js {":rum/state" (volatile! next-state)}))))
+    (gobj/set ctor "getDerivedStateFromProps"
+      (fn [next-props state]
+        (let [old-state  @(gobj/get state ":rum/state")
+              state      (merge old-state (gobj/get next-props ":rum/initial-state"))
+              next-state (reduce #(%2 %1) state derive-state)]
+          ;; allocate new volatile
+          ;; so that we can access both old and new states in shouldComponentUpdate
+          #js {":rum/state" (volatile! next-state)})))
 
     ;; lifecycle instance methods
     (when-not (empty? will-mount)
