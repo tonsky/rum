@@ -307,6 +307,21 @@
   [state key]
   (js/ReactDOM.findDOMNode (ref state (name key))))
 
+;; React v16.3 ref API
+(defn create-ref
+  "Creates an instance of React's ref"
+  []
+  (js/React.createRef))
+
+(defn current-ref
+  "Returns current value in React's ref instace"
+  [ref]
+  (gobj/get ref "current"))
+
+(defn current-ref-node
+  "Given ref instance, returns DOM node associated with it"
+  [ref]
+  (js/ReactDOM.findDOMNode (current-ref ref)))
 
 ;; static mixin
 

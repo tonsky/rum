@@ -3,17 +3,18 @@
     [rum.core :as rum]
     [rum.examples.core :as core]))
 
+(def ta-ref (rum/create-ref))
 
 (rum/defcc ta
   < { :after-render
       (fn [state _]
-        (let [ta (rum/ref-node state "ta")]
+        (let [ta (rum/current-ref-node ta-ref)]
           (set! (.-height (.-style ta)) "0")
           (set! (.-height (.-style ta)) (str (+ 2 (.-scrollHeight ta)) "px")))
         state) }
   [comp]
   [:textarea
-    { :ref :ta
+    { :ref ta-ref
       :style { :width   "100%"
                :padding "10px"
                :font    "inherit"

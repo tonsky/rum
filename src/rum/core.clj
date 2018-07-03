@@ -298,6 +298,15 @@
 (defn ref-node [s k]
   (throw (UnsupportedOperationException. "ref is only available from ClojureScript")))
 
+(defn create-ref []
+  nil)
+
+(defn current-ref [ref]
+  (throw (UnsupportedOperationException. "current-ref is only available from ClojureScript")))
+
+(defn current-ref-node [ref]
+  (throw (UnsupportedOperationException. "current-ref-node is only available from ClojureScript")))
+
 
 (defn mount [c n]
   (throw (UnsupportedOperationException. "mount is only available from ClojureScript")))
