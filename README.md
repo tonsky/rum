@@ -68,6 +68,7 @@ Rum:
 - [Oscaro.com](https://www.oscaro.com), online autoparts retailer
 - [Lupapiste](https://github.com/lupapiste/lupapiste), building permit issuance and management
 - [Newsroom AI](https://www.nws.ai), personalised content delivery platform
+- [Lambdahackers](https://lambdahackers.com), reddit-like groups for programmers
 
 ## Using Rum
 
