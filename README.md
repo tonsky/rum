@@ -69,6 +69,7 @@ Rum:
 - [Lupapiste](https://github.com/lupapiste/lupapiste), building permit issuance and management
 - [Newsroom AI](https://www.nws.ai), personalised content delivery platform
 - [Lambdahackers](https://lambdahackers.com), reddit-like groups for programmers
+- [Predict](https://predict.nhs.uk/predict_v2.1/), predicting survival after adjuvant treatment for breast cancer
 
 ## Using Rum
 
