@@ -2,6 +2,8 @@
 
 Rum is a client/server library for HTML UI. In ClojureScript, it works as React wrapper, in Clojure, it is a static HTML generator.
 
+<a href="https://patreon.com/tonsky" target="_blank"><img src="./rum_patreon.png"></a>
+
 ## Table of Contents
 
 - [Principles](#principles)
