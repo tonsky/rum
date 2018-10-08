@@ -10,6 +10,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
 - [Comparison to other frameworks](#comparison-to-other-frameworks)
 - [Who’s using Rum?](#whos-using-rum)
 - [Using Rum](#using-rum)
+  - [API Docs](#api-docs)
   - [Defining a component](#defining-a-component)
   - [Rendering component](#rendering-component)
   - [Updating components manually](#updating-components-manually)
@@ -76,6 +77,10 @@ Rum:
 ## Using Rum
 
 Add to project.clj: `[rum "0.11.2"]`
+
+### API Docs
+
+[![cljdoc badge](https://cljdoc.xyz/badge/rum/rum)](https://cljdoc.xyz/d/rum/rum/CURRENT)
 
 ### Defining a component
 
