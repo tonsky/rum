@@ -76,11 +76,11 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.11.2"]`
+Add to project.clj: `[rum "0.11.3"]`
 
-### API Docs
+### API Docs & Articles
 
-[![cljdoc badge](https://cljdoc.xyz/badge/rum/rum)](https://cljdoc.xyz/d/rum/rum/CURRENT)
+[![cljdoc badge](https://cljdoc.org/badge/rum/rum)](https://cljdoc.org/d/rum/rum/CURRENT)
 
 ### Defining a component
 
@@ -532,7 +532,7 @@ To define child context
 
 If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1.  Rum’s `project.clj` dependency becomes `[rum "0.11.2" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
+1.  Rum’s `project.clj` dependency becomes `[rum "0.11.3" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
 2.  Import `rum.core` as usual.
 3.  Define components using `rum/defc` or other macros as usual.
 4.  Instead of mounting, call `rum/render-html` to render into a string.

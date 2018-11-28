@@ -412,7 +412,7 @@
                        (fn [a b]
                          (str a \":\" b))))
              
-             (type *x) ;; => clojure.lang.Atom
+             (type *x)  ;; => clojure.lang.Atom
              (deref *x) ;; => \"0:1\"
              
              (swap! *a inc)
