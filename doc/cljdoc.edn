@@ -1,0 +1,6 @@
+{:cljdoc.doc/tree [
+  ["Readme" {:file "README.md"}]
+  ["Changelog" {:file "CHANGELOG.md"}]
+  ["Useful mixins" {:file "doc/useful-mixins.md"}]
+  ["React interop" {:file "doc/react-interop.md"}]
+]}

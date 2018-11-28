@@ -1,3 +1,7 @@
+## 0.11.3
+
+- Docstrings for https://cljdoc.org/d/rum/rum
+
 ## 0.11.2
 
 - Server-render on-* event handlers with string values

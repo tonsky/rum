@@ -12,12 +12,12 @@
 
 
 (defn state
-  "Given React component, returns Rum state associated with it"
+  "Given React component, returns Rum state associated with it."
   [comp]
   (gobj/get (.-state comp) ":rum/state"))
 
 
-(defn extend! [obj props]
+(defn- extend! [obj props]
   (doseq [[k v] props
           :when (some? v)]
     (gobj/set obj (name k) (clj->js v))))
@@ -148,7 +148,7 @@
     (with-meta ctor { :rum/class class })))
 
 
-(defn build-defc [render-body mixins display-name]
+(defn ^:no-doc build-defc [render-body mixins display-name]
   (if (empty? mixins)
     (let [class (fn [props]
                   (apply render-body (aget props ":rum/args")))
@@ -160,12 +160,12 @@
       (build-ctor render mixins display-name))))
 
 
-(defn build-defcs [render-body mixins display-name]
+(defn ^:no-doc build-defcs [render-body mixins display-name]
   (let [render (fn [state] [(apply render-body state (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
 
-(defn build-defcc [render-body mixins display-name]
+(defn ^:no-doc build-defcc [render-body mixins display-name]
   (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])] 
     (build-ctor render mixins display-name)))
 
@@ -204,7 +204,7 @@
 
 
 (defn request-render
-  "Schedules react component to be rendered on next animation frame"
+  "Schedules react component to be rendered on next animation frame."
   [component]
   (when (empty? @render-queue)
     (schedule render))
@@ -212,58 +212,74 @@
 
 
 (defn mount
-  "Add component to the DOM tree. Idempotent. Subsequent mounts will just update component"
-  [component node]
-  (js/ReactDOM.render component node)
+  "Add element to the DOM tree. Idempotent. Subsequent mounts will just update element."
+  [element node]
+  (js/ReactDOM.render element node)
   nil)
 
 
 (defn unmount
-  "Removes component from the DOM tree"
+  "Removes component from the DOM tree."
   [node]
   (js/ReactDOM.unmountComponentAtNode node))
 
 
 (defn hydrate
-  "Hydrates server rendered DOM tree with provided component."
-  [component node]
-  (js/ReactDOM.hydrate component node))
+  "Same as [[mount]] but must be called on DOM tree already rendered by a server via [[render-html]]."
+  [element node]
+  (js/ReactDOM.hydrate element node))
 
 
 (defn portal
-  "Render `component` in a DOM `node` that might be ouside of current DOM hierarchy"
-  [component node]
-  (js/ReactDOM.createPortal component node))
+  "Render `element` in a DOM `node` that is ouside of current DOM hierarchy."
+  [element node]
+  (js/ReactDOM.createPortal element node))
 
 
 ;; initialization
 
 (defn with-key
-  "Adds React key to component"
-  [component key]
-  (js/React.cloneElement component #js { "key" key } nil))
+  "Adds React key to element.
+   
+   ```
+   (rum/defc label [text] [:div text])
+
+   (-> (label)
+       (rum/with-key \"abc\")
+       (rum/mount js/document.body))
+   ```"
+  [element key]
+  (js/React.cloneElement element #js { "key" key } nil))
 
 
 (defn with-ref
-  "Adds React ref (string or callback) to component"
-  [component ref]
-  (js/React.cloneElement component #js { "ref" ref } nil))
+  "Adds React ref (string or callback) to element.
+   
+   ```
+   (rum/defc label [text] [:div text])
+
+   (-> (label)
+       (rum/with-ref \"abc\")
+       (rum/mount js/document.body))
+   ```"
+  [element ref]
+  (js/React.cloneElement element #js { "ref" ref } nil))
 
 
 (defn dom-node
-  "Given state, returns top-level DOM node. Can’t be called during render"
+  "Given state, returns top-level DOM node of component. Call it during lifecycle callbacks. Can’t be called during render."
   [state]
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
 
 
 (defn ref
-  "Given state and ref handle, returns React component"
+  "Given state and ref handle, returns React component."
   [state key]
   (-> state :rum/react-component (aget "refs") (aget (name key))))
 
 
 (defn ref-node
-  "Given state and ref handle, returns DOM node associated with ref"
+  "Given state and ref handle, returns DOM node associated with ref."
   [state key]
   (js/ReactDOM.findDOMNode (ref state (name key))))
 
@@ -271,8 +287,21 @@
 ;; static mixin
 
 (def static
-  "Mixin. Will avoid re-render if none of component’s arguments have changed.
-   Does equality check (=) on all arguments"
+  "Mixin. Will avoid re-render if none of component’s arguments have changed. Does equality check (`=`) on all arguments.
+  
+   ```
+   (rum/defc label < rum/static
+     [text]
+     [:div text])
+     
+   (rum/mount (label \"abc\") js/document.body)
+
+   ;; def != abc, will re-render
+   (rum/mount (label \"def\") js/document.body)
+
+   ;; def == def, won’t re-render
+   (rum/mount (label \"def\") js/document.body)
+   ```"
   { :should-update
     (fn [old-state new-state]
       (not= (:rum/args old-state) (:rum/args new-state))) })
@@ -281,9 +310,17 @@
 ;; local mixin
 
 (defn local
-  "Mixin constructor. Adds an atom to component’s state that can be used to keep stuff
-   during component’s lifecycle. Component will be re-rendered if atom’s value changes.
-   Atom is stored under user-provided key or under `:rum/local` by default"
+  "Mixin constructor. Adds an atom to component’s state that can be used to keep stuff during component’s lifecycle. Component will be re-rendered if atom’s value changes. Atom is stored under user-provided key or under `:rum/local` by default.
+  
+   ```
+   (rum/defcs counter < (rum/local 0 :cnt)
+     [state label]
+     (let [*cnt (:cnt state)]
+       [:div {:on-click (fn [_] (swap! *cnt inc))}
+         label @*cnt]))
+   
+   (rum/mount (counter \"Click count: \"))
+   ```"
   ([initial] (local initial :rum/local))
   ([initial key]
     { :will-mount
@@ -302,7 +339,17 @@
 
 
 (def reactive
-  "Mixin. Works in conjunction with `rum.core/react`"
+  "Mixin. Works in conjunction with [[react]].
+  
+   ```
+   (rum/defc comp < rum/reactive
+     [*counter]
+     [:div (rum/react counter)])
+
+   (def *counter (atom 0))
+   (rum/mount (comp *counter) js/document.body)
+   (swap! *counter inc) ;; will force comp to re-render
+   ```"
   { :init
     (fn [state props]
       (assoc state :rum.reactive/key (random-uuid)))
@@ -333,9 +380,7 @@
 
 
 (defn react
-  "Works in conjunction with `rum.core/reactive` mixin. Use this function instead of
-   `deref` inside render, and your component will subscribe to changes happening
-   to the derefed atom."
+  "Works in conjunction with [[reactive]] mixin. Use this function instead of `deref` inside render, and your component will subscribe to changes happening to the derefed atom."
   [ref]
   (assert *reactions* "rum.core/react is only supported in conjunction with rum.core/reactive")
   (vswap! *reactions* conj ref)
@@ -344,41 +389,48 @@
 
 ;; derived-atom
 
-(def ^{:style/indent 2} derived-atom
-  "Use this to create “chains” and acyclic graphs of dependent atoms.
-   `derived-atom` will:
-    - Take N “source” refs
-    - Set up a watch on each of them
-    - Create “sink” atom
-    - When any of source refs changes:
-       - re-run function `f`, passing N dereferenced values of source refs
-       - `reset!` result of `f` to the sink atom
-    - return sink atom
+(def ^{:style/indent 2
+       :arglists '([refs key f] [refs key f opts])
+       :doc "Use this to create “chains” and acyclic graphs of dependent atoms.
+   
+             [[derived-atom]] will:
+          
+             - Take N “source” refs.
+             - Set up a watch on each of them.
+             - Create “sink” atom.
+             - When any of source refs changes:
+                - re-run function `f`, passing N dereferenced values of source refs.
+                - `reset!` result of `f` to the sink atom.
+             - Return sink atom.
 
-    (def *a (atom 0))
-    (def *b (atom 1))
-    (def *x (derived-atom [*a *b] ::key
-              (fn [a b]
-                (str a \":\" b))))
-    (type *x) ;; => clojure.lang.Atom
-    \\@*x     ;; => 0:1
-    (swap! *a inc)
-    \\@*x     ;; => 1:1
-    (reset! *b 7)
-    \\@*x     ;; => 1:7
+             Example:
 
-   Arguments:
-     refs - sequence of source refs
-     key  - unique key to register watcher, see `clojure.core/add-watch`
-     f    - function that must accept N arguments (same as number of source refs)
-            and return a value to be written to the sink ref.
-            Note: `f` will be called with already dereferenced values
-     opts - optional. Map of:
-       :ref           - Use this as sink ref. By default creates new atom
-       :check-equals? - Do an equality check on each update: `(= @sink (f new-vals))`.
-                        If result of `f` is equal to the old one, do not call `reset!`.
-                        Defaults to `true`. Set to false if calling `=` would be expensive"
-  derived-atom/derived-atom)
+             ```
+             (def *a (atom 0))
+             (def *b (atom 1))
+             (def *x (derived-atom [*a *b] ::key
+                       (fn [a b]
+                         (str a \":\" b))))
+             
+             (type *x) ;; => clojure.lang.Atom
+             (deref *x) ;; => \"0:1\"
+             
+             (swap! *a inc)
+             (deref *x) ;; => \"1:1\"
+             
+             (reset! *b 7)
+             (deref *x) ;; => \"1:7\"
+             ```
+
+             Arguments:
+          
+             - `refs` - sequence of source refs,
+             - `key`  - unique key to register watcher, same as in `clojure.core/add-watch`,
+             - `f`    - function that must accept N arguments (same as number of source refs) and return a value to be written to the sink ref. Note: `f` will be called with already dereferenced values,
+             - `opts` - optional. Map of:
+               - `:ref` - use this as sink ref. By default creates new atom,
+               - `:check-equals?` - Defaults to `true`. If equality check should be run on each source update: `(= @sink (f new-vals))`. When result of recalculating `f` equals to the old value, `reset!` won’t be called. Set to `false` if checking for equality can be expensive."}
+  derived-atom derived-atom/derived-atom)
 
 
 ;; cursors
@@ -387,16 +439,24 @@
   "Given atom with deep nested value and path inside it, creates an atom-like structure
    that can be used separately from main atom, but will sync changes both ways:
   
-     (def db (atom { :users { \"Ivan\" { :age 30 }}}))
-     (def ivan (rum/cursor db [:users \"Ivan\"]))
-     \\@ivan ;; => { :age 30 }
-     (swap! ivan update :age inc) ;; => { :age 31 }
-     \\@db ;; => { :users { \"Ivan\" { :age 31 }}}
-     (swap! db update-in [:users \"Ivan\" :age] inc) ;; => { :users { \"Ivan\" { :age 32 }}}
-     \\@ivan ;; => { :age 32 }
+   ```
+   (def db (atom { :users { \"Ivan\" { :age 30 }}}))
+   
+   (def ivan (rum/cursor db [:users \"Ivan\"]))
+   (deref ivan) ;; => { :age 30 }
+   
+   (swap! ivan update :age inc) ;; => { :age 31 }
+   (deref db) ;; => { :users { \"Ivan\" { :age 31 }}}
+   
+   (swap! db update-in [:users \"Ivan\" :age] inc)
+   ;; => { :users { \"Ivan\" { :age 32 }}}
+   
+   (deref ivan) ;; => { :age 32 }
+   ```
   
-  Returned value supports deref, swap!, reset!, watches and metadata.
-  The only supported option is `:meta`"
+   Returned value supports `deref`, `swap!`, `reset!`, watches and metadata.
+  
+   The only supported option is `:meta`"
   [ref path & {:as options}]
   (if (instance? cursor/Cursor ref)
     (cursor/Cursor. (.-ref ref) (into (.-path ref) path) (:meta options))
@@ -404,6 +464,6 @@
 
 
 (defn cursor
-  "Same as `rum.core/cursor-in` but accepts single key instead of path vector"
+  "Same as [[cursor-in]] but accepts single key instead of path vector."
   [ref key & options]
   (apply cursor-in ref [key] options))

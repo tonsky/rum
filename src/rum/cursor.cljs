@@ -1,4 +1,4 @@
-(ns rum.cursor)
+(ns ^:no-doc rum.cursor)
 
 
 (deftype Cursor [ref path meta]

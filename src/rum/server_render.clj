@@ -1,4 +1,4 @@
-(ns rum.server-render
+(ns ^:no-doc rum.server-render
   (:require
     [clojure.string :as str])
   (:import

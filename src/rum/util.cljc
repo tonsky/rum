@@ -1,4 +1,4 @@
-(ns rum.util)
+(ns ^:no-doc rum.util)
 
 
 (defn collect [key mixins]

@@ -1,4 +1,4 @@
-(ns rum.derived-atom)
+(ns ^:no-doc rum.derived-atom)
 
 
 (defn derived-atom
