@@ -74,8 +74,8 @@ Given e.g. [react-router-transition](https://github.com/maisano/react-router-tra
   (js/React.createElement js/RouteTransition
     #js { :pathname pathname
           :atEnter  #js { :opacity 0 }
-          :atLeave  #js { opacity: 0 }
-          :atActive #js { opacity: 1 } }
+          :atLeave  #js { :opacity 0 }
+          :atActive #js { :opacity 1 } }
     (clj->js children)))
 ```
 
