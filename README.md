@@ -72,7 +72,8 @@ Rum:
 - [Lupapiste](https://github.com/lupapiste/lupapiste), building permit issuance and management
 - [Newsroom AI](https://www.nws.ai), personalised content delivery platform
 - [Lambdahackers](https://lambdahackers.com), reddit-like groups for programmers
-- [Predict](https://predict.nhs.uk/predict_v2.1/), predicting survival after adjuvant treatment for breast cancer
+- [Breast Predict](https://breast.predict.nhs.uk/), predicting survival after adjuvant treatment for breast cancer
+- [Prostate Predict](https://prostate.predict.nhs.uk/), prognostic model for men newly diagnosed with non-metastatic prostate cancer
 
 ## Using Rum
 
