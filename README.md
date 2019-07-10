@@ -74,6 +74,7 @@ Rum:
 - [Lambdahackers](https://lambdahackers.com), reddit-like groups for programmers
 - [Breast Predict](https://breast.predict.nhs.uk/), predicting survival after adjuvant treatment for breast cancer
 - [Prostate Predict](https://prostate.predict.nhs.uk/), prognostic model for men newly diagnosed with non-metastatic prostate cancer
+- [Wobaka](https://wobaka.com), CRM system
 
 ## Using Rum
 
