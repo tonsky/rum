@@ -1,3 +1,7 @@
+## 0.11.4
+
+- Fix render-all to forbid forceUpdate on falsy comp (#193 thx @FieryCod)
+
 ## 0.11.3
 
 - Docstrings for https://cljdoc.org/d/rum/rum
