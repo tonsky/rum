@@ -193,7 +193,7 @@
 
 (defn- render-all [queue]
   (doseq [comp queue
-          :when (not (gobj/get comp ":rum/unmounted?"))]
+          :when (and (some? comp) (not (gobj/get comp ":rum/unmounted?")))]
     (.forceUpdate comp)))
 
 
