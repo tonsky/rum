@@ -164,7 +164,7 @@ Given this code:
 (require [rum.core :as rum])
 
 (rum/defc repeat-label [n text]
-  [:div (vec (repeat n [:.label text]))])
+  [:div (repeat n [:.label text])])
 ```
 
 First, we need to create a component instance by calling its function:
@@ -261,7 +261,7 @@ If your component accepts only immutable data structures as arguments, it may be
 
 ```clojure
 (rum/defc label < rum/static [n text]
-  [:.label (vec (repeat n text))])
+  [:.label (repeat n text)])
 ```
 
 `rum.core/static` will check if the arguments of a component’s constructor have changed (using Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
