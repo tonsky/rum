@@ -164,7 +164,8 @@ Given this code:
 (require [rum.core :as rum])
 
 (rum/defc repeat-label [n text]
-  [:div (repeat n [:.label text])])
+  [:div (for [x (range n)]
+          [:div {:key x :class "label"} text])])
 ```
 
 First, we need to create a component instance by calling its function:
@@ -261,16 +262,16 @@ If your component accepts only immutable data structures as arguments, it may be
 
 ```clojure
 (rum/defc label < rum/static [n text]
-  [:.label (repeat n text)])
+  [:.label (vec (repeat n text))])
 ```
 
 `rum.core/static` will check if the arguments of a component’s constructor have changed (using Clojure’s `-equiv` semantic), and if they are the same, avoid re-rendering.
 
 ```clojure
-(rum/mount (label 1 "abc") body)
-(rum/mount (label 1 "abc") body) ;; render won’t be called
-(rum/mount (label 1 "xyz") body) ;; this will cause a re-render
-(rum/mount (label 1 "xyz") body) ;; this won’t
+(rum/mount (label 1 "abc") js/document.body)
+(rum/mount (label 1 "abc") js/document.body) ;; render won’t be called
+(rum/mount (label 1 "xyz") js/document.body) ;; this will cause a re-render
+(rum/mount (label 1 "xyz") js/document.body) ;; this won’t
 ```
 
 Note that this is not enabled by default because a) comparisons can be expensive, and b) things will go wrong if you pass a mutable reference as an argument.
