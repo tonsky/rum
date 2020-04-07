@@ -74,6 +74,7 @@ Rum:
 - [Prostate Predict](https://prostate.predict.nhs.uk/), prognostic model for men newly diagnosed with non-metastatic prostate cancer
 - [Wobaka](https://wobaka.com), CRM system
 - [Icebreaker](https://icebreaker.video/), online events
+- [Carrot / OpenCompany](https://github.com/open-company/open-company-web), company updates
 
 ## Using Rum
 
