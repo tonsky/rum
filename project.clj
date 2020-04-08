@@ -6,7 +6,7 @@
 
   :dependencies
   [[org.clojure/clojure        "1.8.0"   :scope "provided"]
-   [org.clojure/clojurescript  "1.9.946" :scope "provided"]
+   [org.clojure/clojurescript  "1.10.597" :scope "provided"]
    [cljsjs/react               "16.2.0-3"]
    [cljsjs/react-dom           "16.2.0-3"]
    [sablono                    "0.8.1"]]
