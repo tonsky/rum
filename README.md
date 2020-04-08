@@ -482,7 +482,12 @@ Refs work the same way as options 1 and 2 for keys work:
 1.  `[:div { :ref "x" }]`
 2.  `(rum/with-ref (my-component) "x")`
 
-#### Accessing DOM
+#### Accessing DOM 
+
+⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
+```clojure
+[:div {:ref (fn [node] ...)}]
+```
 
 There’re couple of helpers that will, given state map, find stuff in it for you:
 
