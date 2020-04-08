@@ -267,19 +267,22 @@
 
 
 (defn dom-node
-  "Given state, returns top-level DOM node of component. Call it during lifecycle callbacks. Can’t be called during render."
+  "Usage of this function is discouraged. Use :ref callback instead.
+  Given state, returns top-level DOM node of component. Call it during lifecycle callbacks. Can’t be called during render."
   [state]
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
 
 
 (defn ref
-  "Given state and ref handle, returns React component."
+  "DEPRECATED: Use :ref (fn [dom-or-nil]) callback instead. See rum issue #124
+  Given state and ref handle, returns React component."
   [state key]
   (-> state :rum/react-component (aget "refs") (aget (name key))))
 
 
 (defn ref-node
-  "Given state and ref handle, returns DOM node associated with ref."
+  "DEPRECATED: Use :ref (fn [dom-or-nil]) callback instead. See rum issue #124
+  Given state and ref handle, returns DOM node associated with ref."
   [state key]
   (js/ReactDOM.findDOMNode (ref state (name key))))
 
