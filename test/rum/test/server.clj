@@ -15,6 +15,14 @@
   (is (= (rum/render-static-markup [:input {:type :checkbox}])
          "<input type=\"checkbox\"/>")))
 
+(rum/defc c-185 []
+  (for [x (range 2)]
+    [:b x]))
+
+(deftest test-185
+  (is (= (rum/render-static-markup (rum/with-key (c-185) "hello"))
+         "<b>0</b><b>1</b>")))
+
 (deftest test-suspense
   (is (= (rum/render-static-markup (rum/suspense {} [:span]))
          "<span></span>")))

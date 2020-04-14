@@ -166,15 +166,18 @@
        (rum/mount js/document.body))
    ```"
   [element key]
+  ;; Roman. Why we are doing this for SSR? Keys are not used on the server
   (cond
     (render/nothing? element)
     element
 
-    (map? (get element 1))
+    (and (vector? element) (map? (get element 1)))
     (assoc-in element [1 :key] key)
 
-    :else
-    (into [(first element) {:key key}] (next element))))
+    (vector? element)
+    (into [(first element) {:key key}] (next element))
+
+    :else element))
 
 
 (defn with-ref
