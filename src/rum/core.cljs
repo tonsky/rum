@@ -85,14 +85,14 @@
               (let [old-state @(state this)
                     new-state @(gobj/get next-state ":rum/state")]
                 (or (some #(% old-state new-state) should-update) false))))))
-    
+
     (when-not (empty? will-update)
       (gobj/set prototype "componentWillUpdate"
         (fn [_ next-state]
           (this-as this
             (let [new-state (gobj/get next-state ":rum/state")]
               (vswap! new-state call-all will-update))))))
-    
+
     (gobj/set prototype "render"
       (fn []
         (this-as this
@@ -127,7 +127,7 @@
           (this-as this
             (let [state @(state this)]
               (clj->js (transduce (map #(% state)) merge {} child-context)))))))
-    
+
     (extend! prototype class-props)
     (gobj/set ctor "displayName" display-name)
     (extend! ctor static-props)
@@ -139,23 +139,45 @@
         key-fn (first (collect :key-fn mixins))
         ctor   (if (some? key-fn)
                  (fn [& args]
-                   (let [props #js { ":rum/initial-state" { :rum/args args }
-                                     "key" (apply key-fn args) }]
+                   (let [props #js { ":rum/initial-state" { :rum/args args}
+                                     "key" (apply key-fn args)}]
                      (js/React.createElement class props)))
                  (fn [& args]
-                   (let [props #js { ":rum/initial-state" { :rum/args args }}] 
+                   (let [props #js { ":rum/initial-state" { :rum/args args}}]
                      (js/React.createElement class props))))]
-    (with-meta ctor { :rum/class class })))
+    (with-meta ctor { :rum/class class})))
 
+(declare static)
+
+(defn- memo-compare-props [prev-props next-props]
+  (= (aget prev-props ":rum/args")
+     (aget next-props ":rum/args")))
+
+(defn react-memo [f]
+  (if-some [memo (.-memo js/React)]
+    (memo f memo-compare-props)
+    f))
 
 (defn ^:no-doc build-defc [render-body mixins display-name]
-  (if (empty? mixins)
+  (cond
+    (= mixins [static])
+    (let [class (fn [props]
+                  (apply render-body (aget props ":rum/args")))
+          _     (aset class "displayName" display-name)
+          memo-class (react-memo class)
+          ctor  (fn [& args]
+                  (.createElement js/React memo-class #js { ":rum/args" args}))]
+      (with-meta ctor { :rum/class memo-class}))
+
+    (empty? mixins)
     (let [class (fn [props]
                   (apply render-body (aget props ":rum/args")))
           _     (aset class "displayName" display-name)
           ctor  (fn [& args]
-                  (js/React.createElement class #js { ":rum/args" args }))]
-      (with-meta ctor { :rum/class class }))
+                  (.createElement js/React class #js { ":rum/args" args}))]
+      (with-meta ctor { :rum/class class}))
+
+    :else
     (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
       (build-ctor render mixins display-name))))
 
@@ -166,7 +188,7 @@
 
 
 (defn ^:no-doc build-defcc [render-body mixins display-name]
-  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])] 
+  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
 
@@ -307,7 +329,7 @@
    ```"
   { :should-update
     (fn [old-state new-state]
-      (not= (:rum/args old-state) (:rum/args new-state))) })
+      (not= (:rum/args old-state) (:rum/args new-state)))})
 
 
 ;; local mixin
@@ -326,14 +348,14 @@
    ```"
   ([initial] (local initial :rum/local))
   ([initial key]
-    { :will-mount
-      (fn [state]
-        (let [local-state (atom initial)
-              component   (:rum/react-component state)]
-          (add-watch local-state key
-            (fn [_ _ _ _]
-              (request-render component)))
-          (assoc state key local-state))) }))
+   {:will-mount
+    (fn [state]
+      (let [local-state (atom initial)
+            component   (:rum/react-component state)]
+        (add-watch local-state key
+          (fn [_ _ _ _]
+            (request-render component)))
+        (assoc state key local-state)))}))
 
 
 ;; reactive mixin
@@ -379,7 +401,7 @@
       (let [key (:rum.reactive/key state)]
         (doseq [ref (:rum.reactive/refs state)]
           (remove-watch ref key)))
-      (dissoc state :rum.reactive/refs :rum.reactive/key)) })
+      (dissoc state :rum.reactive/refs :rum.reactive/key))})
 
 
 (defn react

@@ -73,7 +73,7 @@
     :col-span "colSpan"
     :content-editable "contenteditable"
     :context-menu "contextMenu"
-    :cross-origin "crossOrigin"
+    :cross-origin "crossorigin"
     :date-time "dateTime"
     :enc-type "encType"
     :form-action "formAction"

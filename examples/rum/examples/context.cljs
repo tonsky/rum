@@ -14,14 +14,14 @@
 (rum/defcc rum-context-comp < { :static-properties { :contextTypes {:color js/PropTypes.string}}}
   [comp]
   [:span
-    { :style { :color (.. comp -context -color) }}
+    { :style { :color (.. comp -context -color)}}
     "Child component uses context to set font color."])
 
 
 ;; Assume the following component is from our source code.
 (def color-theme
   { :child-context (fn [state] {:color @core/*color}) 
-    :static-properties { :childContextTypes {:color js/PropTypes.string} } })
+    :static-properties { :childContextTypes {:color js/PropTypes.string}}})
 
 
 (rum/defc context < color-theme []
