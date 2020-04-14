@@ -15,23 +15,23 @@
 (defn append!
   ([^StringBuilder sb s0] (.append sb s0))
   ([^StringBuilder sb s0 s1]
-    (.append sb s0)
-    (.append sb s1))
+   (.append sb s0)
+   (.append sb s1))
   ([^StringBuilder sb s0 s1 s2]
-    (.append sb s0)
-    (.append sb s1)
-    (.append sb s2))
+   (.append sb s0)
+   (.append sb s1)
+   (.append sb s2))
   ([^StringBuilder sb s0 s1 s2 s3]
-    (.append sb s0)
-    (.append sb s1)
-    (.append sb s2)
-    (.append sb s3))
+   (.append sb s0)
+   (.append sb s1)
+   (.append sb s2)
+   (.append sb s3))
   ([^StringBuilder sb s0 s1 s2 s3 s4]
-    (.append sb s0)
-    (.append sb s1)
-    (.append sb s2)
-    (.append sb s3)
-    (.append sb s4)))
+   (.append sb s0)
+   (.append sb s1)
+   (.append sb s2)
+   (.append sb s3)
+   (.append sb s4)))
 
 
 (defprotocol ToString
@@ -186,7 +186,7 @@
     :xml-lang "xml:lang"
     :xml-space "xml:space"
     :y-channel-selector "yChannelSelector"
-    :zoom-and-pan "zoomAndPan" })
+    :zoom-and-pan "zoomAndPan"})
 
 
 (defn get-value [attrs]
@@ -248,7 +248,7 @@
   (when-not (or (keyword? first)
                 (symbol? first)
                 (string? first))
-    (throw (ex-info "Expected a keyword as a tag" { :tag first })))
+    (throw (ex-info "Expected a keyword as a tag" { :tag first})))
   (let [[tag tag-id tag-classes] (parse-selector first)
         [attrs children] (if (or (map? second)
                                  (nil? second))
@@ -280,12 +280,9 @@
 
 (defn normalize-css-value [key value]
   (cond
-    (contains? unitless-css-props key)
-      (escape-html (str/trim (to-str value)))
-    (number? value)
-      (str value (when (not= 0 value) "px"))
-    :else
-      (escape-html (str/trim (to-str value)))))
+    (contains? unitless-css-props key) (escape-html (str/trim (to-str value)))
+    (number? value) (str value (when (not= 0 value) "px"))
+    :else (escape-html (str/trim (to-str value)))))
 
 
 (defn render-style-kv! [sb empty? k v]
@@ -309,19 +306,19 @@
 
 (defn render-class! [sb first? class]
   (cond
-    (nil? class)
-      first?
+    (nil? class) first?
+
     (string? class)
-      (do
-        (when-not first?
-          (append! sb " "))
-        (append! sb class)
-        false)
-    (or (sequential? class)
-        (set? class))
-      (reduce #(render-class! sb %1 %2) first? class)
-    :else
-      (render-class! sb first? (to-str class))))
+    (do
+      (when-not first?
+        (append! sb " "))
+      (append! sb class)
+      false)
+
+    (or (sequential? class) (set? class))
+    (reduce #(render-class! sb %1 %2) first? class)
+
+    :else (render-class! sb first? (to-str class))))
 
 
 (defn render-classes! [classes sb]
@@ -333,7 +330,6 @@
 
 (defn- render-attr-str! [sb attr value]
   (append! sb " " attr "=\"" (escape-html (to-str value)) "\""))
-
 
 (defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
@@ -408,7 +404,7 @@
       (append! sb "<" tag)
 
       (when-some [type (:type attrs)]
-        (append! sb " type=\"" type "\""))
+        (append! sb " type=\"" (to-str type) "\""))
 
       (when (and (= "option" tag)
                  (= (get-value attrs) *select-value*))
@@ -465,9 +461,9 @@
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
-    (let [sb (StringBuilder.)]
-      (-render-html src (volatile! :state/root) sb)
-      (str sb))))
+   (let [sb (StringBuilder.)]
+     (-render-html src (volatile! :state/root) sb)
+     (str sb))))
 
 
 (defn render-static-markup [src]

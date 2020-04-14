@@ -5,12 +5,15 @@
 
 
 (rum/defcs comp-mixins < (rum/local 7)
-                         { :will-mount (fn [s] (assoc s ::key 1)) }
+                         { :will-mount (fn [s] (assoc s ::key 1))}
   [state]
   [:div
     [:.local @(:rum/local state)]
     [:.key   (::key state)]])
 
+(deftest test-120
+  (is (= (rum/render-static-markup [:input {:type :checkbox}])
+         "<input type=\"checkbox\"/>")))
 
 (deftest test-lifecycle
   (is (= (comp-mixins)
