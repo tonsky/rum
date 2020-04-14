@@ -63,7 +63,7 @@ Rum:
 - [ChildrensHeartSurgery.info](http://childrensheartsurgery.info), heart surgery statistics
 - [Mighty Hype](http://mightyhype.com/), cinema platform (server-side rendering)
 - [БезопасныеДороги.рф](https://xn--80abhddbmm5bieahtk5n.xn--p1ai/), road data aggregator
-- [TourneyBot](http://houstonindoor.com/2016), frisbee tournament app
+- [TourneyBot](https://github.com/oakmac/tourney-bot), frisbee tournament app
 - [PurposeFly](https://www.purposefly.com/), HR 2.0 platform
 - [Simply](https://www.simply.co.za), Simple direct life insurance
 - [Oscaro.com](https://www.oscaro.com), online autoparts retailer
