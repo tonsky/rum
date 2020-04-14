@@ -5,7 +5,7 @@
   :url "https://github.com/tonsky/rum"
 
   :dependencies
-  [[org.clojure/clojure "1.8.0" :scope "provided"]
+  [[org.clojure/clojure "1.9.0" :scope "provided"]
    [org.clojure/clojurescript "1.10.597" :scope "provided"]
    [cljsjs/react "16.8.6-0"]
    [cljsjs/react-dom "16.8.6-0"]

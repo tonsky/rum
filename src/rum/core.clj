@@ -37,10 +37,13 @@
         (= mode :mixins) (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
+(defn- get-sablono []
+  (ns-resolve (find-ns 'sablono.compiler) 'compile-html))
+
 
 (defn- compile-body [[argvec conditions & body]]
   (let [_            (require 'sablono.compiler)
-        compile-html (ns-resolve (find-ns 'sablono.compiler) 'compile-html)]
+        compile-html (get-sablono)]
     (if (and (map? conditions) (seq body))
       (list argvec conditions (compile-html `(do ~@body)))
       (list argvec (compile-html `(do ~@(cons conditions body)))))))
@@ -358,3 +361,20 @@
 
 (defn set-ref! [ref value]
   (reset! ref value))
+
+;; suspense
+
+(defmacro suspense
+  "(rum/require-lazy '[app.components :refer [alert]])
+
+  (rum/defc root []
+    (suspense {:fallback \"Hello!\"}
+      (alert \"ARGUMENT\")))
+
+  See a complete example here https://github.com/roman01la/rum-code-splitting"
+  [{:keys [fallback]} child]
+  (if-not (:ns &env)
+    child
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React
+         (.-Suspense js/React) (cljs.core/js-obj "fallback" ~fallback) ~(compile-html child)))))
