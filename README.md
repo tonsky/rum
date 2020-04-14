@@ -75,6 +75,7 @@ Rum:
 - [Wobaka](https://wobaka.com), CRM system
 - [Icebreaker](https://icebreaker.video/), online events
 - [Carrot / OpenCompany](https://github.com/open-company/open-company-web), company updates
+- [UXBOX](https://uxbox.io/), the open-source solution for design and prototyping
 
 ## Using Rum
 
