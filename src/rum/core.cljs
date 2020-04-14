@@ -1,5 +1,5 @@
 (ns rum.core
-  (:refer-clojure :exclude [ref])
+  (:refer-clojure :exclude [ref deref])
   (:require-macros rum.core)
   (:require
     [cljsjs.react]
@@ -492,3 +492,98 @@
   "Same as [[cursor-in]] but accepts single key instead of path vector."
   [ref key & options]
   (apply cursor-in ref [key] options))
+
+;; hooks
+
+(defn ^array use-state
+  "Takes initial value or value returning fn and returns a tuple of [value set-value!],
+  where `value` is current state value and `set-value!` is a function that schedules re-render.
+
+  (let [[value set-state!] (rum/use-state 0)]
+    [:button {:on-click #(set-state! (inc value))}
+      value])"
+  [value-or-fn]
+  (.useState js/React value-or-fn))
+
+(defn ^array use-reducer
+  "Takes reducing function and initial state value.
+  Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
+
+  (defmulti value-reducer (fn [event value] event))
+
+  (defmethod value-reducer :inc [_ value]
+    (inc value))
+
+  (let [[value dispatch!] (rum/use-reducer value-reducer 0)]
+    [:button {:on-click #(dispatch! :inc)}
+      value])
+
+  Read more at https://reactjs.org/docs/hooks-reference.html#usereducer"
+  ([reducer-fn initial-value]
+   (.useReducer js/React #(reducer-fn %2 %1) initial-value identity)))
+
+(defn use-effect!
+  "Takes setup-fn that executes either on the first render or after every update.
+  The function may return cleanup-fn to cleanup the effect, either before unmount or before every next update.
+  Calling behavior is controlled by deps argument.
+
+  (rum/use-effect!
+    (fn []
+      (.addEventListener js/window \"load\" handler)
+      #(.removeEventListener js/window \"load\" handler))
+    []) ;; empty deps collection instructs React to run setup-fn only once on initial render
+        ;; and cleanup-fn only once before unmounting
+
+  Read more at https://reactjs.org/docs/hooks-effect.html"
+  ([setup-fn]
+   (.useEffect js/React #(or (setup-fn) js/undefined)))
+  ([setup-fn deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useEffect js/React #(or (setup-fn) js/undefined)))))
+
+
+(defn use-callback
+  "Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
+
+  (rum/defc button < rum/static
+    [{:keys [on-click]} text]
+    [:button {:on-click on-click}
+      text])
+
+  (rum/defc app [v]
+    (let [on-click (rum/use-callback #(do-stuff v) [v])]
+      ;; because on-click callback is memoized here based on v argument
+      ;; the callback won't be re-created on every render, unless v changes
+      ;; which means that underlying `button` component won't re-render wastefully
+      [button {:on-click on-click}
+        \"press me\"]))
+
+  Read more at https://reactjs.org/docs/hooks-reference.html#usecallback"
+  ([callback]
+   (.useCallback js/React callback))
+  ([callback deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useCallback js/React callback))))
+
+(defn use-memo
+  "Takes a function, memoizes it based on provided deps collection and executes immediately returning a result.
+  Read more at https://reactjs.org/docs/hooks-reference.html#usememo"
+  ([f]
+   (.useMemo js/React f))
+  ([f deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useMemo js/React f))))
+
+(defn use-ref
+  "Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
+  https://reactjs.org/docs/hooks-reference.html#useref"
+  ([initial-value]
+   (.useRef js/React initial-value)))
+
+(defn deref
+  "Takes a ref returned from use-ref and returns its current value."
+  [^js ref]
+  (.-current ref))
+
+(defn set-ref! [^js ref value]
+  (set! (.-current ref) value))

@@ -1,5 +1,5 @@
 (ns rum.core
-  (:refer-clojure :exclude [ref])
+  (:refer-clojure :exclude [ref deref])
   (:require
     [rum.cursor :as cursor]
     [rum.server-render :as render]
@@ -205,7 +205,7 @@
 
 (def ^{:arglists '([ref])
        :doc "Supported as simple deref."}
-  react deref)
+  react clojure.core/deref)
 
 
 (defn cursor-in
@@ -327,3 +327,34 @@
 
 (defn ^:no-doc request-render [c]
   (throw (UnsupportedOperationException. "request-render is only available from ClojureScript")))
+
+;; hooks
+
+(defn use-state [value-or-fn]
+  (if (fn? value-or-fn)
+    (value-or-fn)
+    value-or-fn))
+
+(defn use-reducer [reducer-fn initial-value]
+  initial-value)
+
+(defn use-effect!
+  ([setup-fn])
+  ([setup-fn deps]))
+
+(defn use-callback
+  ([callback] callback)
+  ([callback deps] callback))
+
+(defn use-memo
+  ([f] (f))
+  ([f deps] (f)))
+
+(defn use-ref [initial-value]
+  (atom initial-value))
+
+(defn deref [ref]
+  @ref)
+
+(defn set-ref! [ref value]
+  (reset! ref value))
