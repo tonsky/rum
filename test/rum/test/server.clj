@@ -15,6 +15,14 @@
   (is (= (rum/render-static-markup [:input {:type :checkbox}])
          "<input type=\"checkbox\"/>")))
 
+(deftest test-suspense
+  (is (= (rum/render-static-markup (rum/suspense {} [:span]))
+         "<span></span>")))
+
+(deftest test-fragment
+  (is (= (rum/render-static-markup (rum/fragment [:span] [:div]))
+         "<span></span><div></div>")))
+
 (deftest test-lifecycle
   (is (= (comp-mixins)
          [:div

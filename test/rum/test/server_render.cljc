@@ -10,17 +10,17 @@
              [cljsjs.react.dom.server]])))
 
 (rum/defc comp-simple []
-  [:div
+  (rum/fragment
     [:div "A"
-      [:span "A1"]
-      [:span "A2"]]
+     [:span "A1"]
+     [:span "A2"]]
     [:div "B"]
     [:div "C" "D"]
     [:div "E"
-      [:span "E1"]]
+     [:span "E1"]]
     [:div nil]
     [:div nil "F"]
-    [:div {} ((constantly nil)) "G"]])
+    [:div {} ((constantly nil)) "G"]))
 
 
 (rum/defc comp-tag []

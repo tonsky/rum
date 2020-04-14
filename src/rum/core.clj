@@ -37,8 +37,11 @@
         (= mode :mixins) (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
-(defn- get-sablono []
-  (ns-resolve (find-ns 'sablono.compiler) 'compile-html))
+(defn- get-sablono
+  ([]
+   (get-sablono 'compile-html))
+  ([var-sym]
+   (ns-resolve (find-ns 'sablono.compiler) var-sym)))
 
 
 (defn- compile-body [[argvec conditions & body]]
@@ -362,7 +365,7 @@
 (defn set-ref! [ref value]
   (reset! ref value))
 
-;; suspense
+;; React.Suspense
 
 (defmacro suspense
   "(rum/require-lazy '[app.components :refer [alert]])
@@ -378,3 +381,18 @@
     (let [compile-html (get-sablono)]
       `(.createElement js/React
          (.-Suspense js/React) (cljs.core/js-obj "fallback" ~fallback) ~(compile-html child)))))
+
+;; React.Fragment
+
+(defmacro fragment
+  "(rum/fragment [button] [input] ...)"
+  [{:keys [key] :as attrs} & children]
+  (let [[attrs children] (if (map? attrs)
+                           [attrs children]
+                           [nil (concat [attrs] children)])]
+    (if-not (:ns &env)
+      `(list ~@children)
+      (let [compile-html (get-sablono)
+            compile-attrs (get-sablono 'compile-attrs)]
+        `(.createElement js/React
+           (.-Fragment js/React) ~(compile-attrs attrs) ~@(map compile-html children))))))
