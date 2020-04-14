@@ -587,3 +587,29 @@
 
 (defn set-ref! [^js ref value]
   (set! (.-current ref) value))
+
+;;; Server-side rendering
+
+;; Roman. For Node.js runtime we require "react-dom/server" for you
+;; In the browser you have to add cljsjs/react-dom-server yourself
+
+(defn render-html
+  "Main server-side rendering method. Given component, returns HTML string with static markup of that component.
+  Serve that string to the browser and [[hydrate]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster.
+  No opts are supported at the moment."
+  ([element]
+   (render-html element nil))
+  ([element opts]
+   (if-not (identical? *target* "nodejs")
+     (.renderToString js/ReactDOMServer element)
+     (let [react-dom-server (js/require "react-dom/server")]
+       (.renderToString react-dom-server element)))))
+
+(defn render-static-markup
+  "Same as [[render-html]] but returned string has nothing React-specific.
+  This allows Rum to be used as traditional server-side templating engine."
+  [src]
+  (if-not (identical? *target* "nodejs")
+    (.renderToStaticMarkup js/ReactDOMServer src)
+    (let [react-dom-server (js/require "react-dom/server")]
+      (.renderToStaticMarkup react-dom-server src))))

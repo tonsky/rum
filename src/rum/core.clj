@@ -298,7 +298,7 @@
 ;;; Server-side rendering
 
 (def ^{:arglists '([element] [element opts])
-       :doc "Main server-side rendering method. Given component, returns HTML string with static markup of that component. Serve that string to the browser and [[mount]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster. No opts are supported at the moment."}
+       :doc "Main server-side rendering method. Given component, returns HTML string with static markup of that component. Serve that string to the browser and [[hydrate]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster. No opts are supported at the moment."}
   render-html render/render-html)
 
 

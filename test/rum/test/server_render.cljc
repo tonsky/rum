@@ -283,11 +283,11 @@
   [write-fn]
   (enable-console-print!)
   (doseq [[name ctor] components]
-    (let [html (js/ReactDOMServer.renderToString (ctor))
+    (let [html (rum/render-html (ctor))
           path (str render-dir "/html/" name ".html")]
       (println "  writing" path)
       (write-fn path html))
-    (let [html (js/ReactDOMServer.renderToStaticMarkup (ctor))
+    (let [html (rum/render-static-markup (ctor))
           path (str render-dir "/markup/" name ".html")]
       (println "  writing" path)
       (write-fn path html)))))
