@@ -312,7 +312,7 @@
     (do
       (when-not first?
         (append! sb " "))
-      (append! sb class)
+      (append! sb (escape-html class))
       false)
 
     (or (sequential? class) (set? class))
@@ -404,7 +404,7 @@
       (append! sb "<" tag)
 
       (when-some [type (:type attrs)]
-        (append! sb " type=\"" (to-str type) "\""))
+        (append! sb " type=\"" (escape-html (to-str type)) "\""))
 
       (when (and (= "option" tag)
                  (= (get-value attrs) *select-value*))

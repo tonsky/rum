@@ -11,6 +11,12 @@
     [:.local @(:rum/local state)]
     [:.key   (::key state)]])
 
+(deftest test-93
+  (is (= (rum/render-static-markup [:a {:type "<script>"}])
+         "<a type=\"&lt;script&gt;\"></a>"))
+  (is (= (rum/render-static-markup [:a {:class "<script>"}])
+         "<a class=\"&lt;script&gt;\"></a>")))
+
 (deftest test-120
   (is (= (rum/render-static-markup [:input {:type :checkbox}])
          "<input type=\"checkbox\"/>")))
