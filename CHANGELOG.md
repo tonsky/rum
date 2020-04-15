@@ -1,21 +1,21 @@
 ## 0.11.x
 
-## Deprecations
+### Deprecations
 
 - Deprecated usage of string refs
 
-## Dependencies
+### Dependencies
 
 - Upgraded to React 16.8.6
 
-## New
+### New
 
 - Added `use-state`, `use-reducer`, `use-effect!`, `use-callback`, `use-memo` and `use-ref` hooks
 - Added `rum.lazy-loader` ns and `suspense` component
 - Added `fragment` component
 - Added JS SSR API (#105)
 
-## Fixes
+### Fixes
 
 - Fixed `:type` attribute value serialization on JVM SSR (#120)
 - Fixed an error when calling `rum/with-key` on multiple return components on JVM SSR (#185)
