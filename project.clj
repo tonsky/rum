@@ -11,7 +11,8 @@
    [cljsjs/react-dom "16.8.6-0"]
    [sablono "0.8.1"]]
 
-  :plugins [[lein-cljsbuild "1.1.7"]]
+  :plugins [[lein-cljsbuild "1.1.7"]
+            [lein-cljfmt "0.6.7"]]
 
   :profiles {:dev {:source-paths ["examples"]
                    :dependencies [[cljsjs/react-dom-server "16.8.6-0"]

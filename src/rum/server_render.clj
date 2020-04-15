@@ -1,14 +1,12 @@
 (ns ^:no-doc rum.server-render
   (:require
-    [clojure.string :as str])
+   [clojure.string :as str])
   (:import
-    [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
-
+   [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
 
 (defn nothing? [element]
   (and (vector? element)
        (= :rum/nothing (first element))))
-
 
 (def ^:dynamic *select-value*)
 
@@ -33,10 +31,8 @@
    (.append sb s3)
    (.append sb s4)))
 
-
 (defprotocol ToString
   (^String to-str [x] "Convert a value into a string."))
-
 
 (extend-protocol ToString
   Keyword (to-str [k] (name k))
@@ -44,7 +40,6 @@
   String  (to-str [s] s)
   Object  (to-str [x] (str x))
   nil     (to-str [_] ""))
-  
 
 (def ^{:doc "A list of elements that must be rendered without a closing tag."
        :private true}
@@ -52,154 +47,149 @@
   #{"area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen" "link"
     "meta" "param" "source" "track" "wbr"})
 
-
-
 (def normalized-attrs
-  { ;; special cases
-    :default-checked "checked"
-    :default-value "value"
+  {;; special cases
+   :default-checked "checked"
+   :default-value "value"
 
     ;; https://github.com/facebook/react/blob/v15.6.2/src/renderers/dom/shared/HTMLDOMPropertyConfig.js
-    :accept-charset "accept-charset"
-    :access-key "accessKey"
-    :allow-full-screen "allowfullscreen"
-    :allow-transparency "allowTransparency"
-    :auto-complete "autoComplete"
-    :auto-play "autoplay"
-    :cell-padding "cellPadding"
-    :cell-spacing "cellSpacing"
-    :char-set "charSet"
-    :class-id "classId"
-    :col-span "colSpan"
-    :content-editable "contenteditable"
-    :context-menu "contextMenu"
-    :cross-origin "crossorigin"
-    :date-time "dateTime"
-    :enc-type "encType"
-    :form-action "formAction"
-    :form-enc-type "formEncType"
-    :form-method "formMethod"
-    :form-no-validate "formnovalidate"
-    :form-target "formTarget"
-    :frame-border "frameBorder"
-    :href-lang "hrefLang"
-    :http-equiv "http-equiv"
-    :input-mode "inputMode"
-    :key-params "keyParams"
-    :key-type "keyType"
-    :margin-height "marginHeight"
-    :margin-width "marginWidth"
-    :max-length "maxLength"
-    :media-group "mediaGroup"
-    :min-length "minLength"
-    :no-validate "novalidate"
-    :radio-group "radioGroup"
-    :referrer-policy "referrerPolicy"
-    :read-only "readonly"
-    :row-span "rowspan"
-    :spell-check "spellcheck"
-    :src-doc "srcDoc"
-    :src-lang "srcLang"
-    :src-set "srcSet"
-    :tab-index "tabindex"
-    :use-map "useMap"
-    :auto-capitalize "autoCapitalize"
-    :auto-correct "autoCorrect"
-    :auto-save "autoSave"
-    :item-prop "itemProp"
-    :item-scope "itemscope"
-    :item-type "itemType"
-    :item-id "itemId"
-    :item-ref "itemRef"
-    
-    ;; https://github.com/facebook/react/blob/v15.6.2/src/renderers/dom/shared/SVGDOMPropertyConfig.js
-    :allow-reorder "allowReorder"
-    :attribute-name "attributeName"
-    :attribute-type "attributeType"
-    :auto-reverse "autoReverse"
-    :base-frequency "baseFrequency"
-    :base-profile "baseProfile"
-    :calc-mode "calcMode"
-    :clip-path-units "clipPathUnits"
-    :content-script-type "contentScriptType"
-    :content-style-type "contentStyleType"
-    :diffuse-constant "diffuseConstant"
-    :edge-mode "edgeMode"
-    :external-resources-required "externalResourcesRequired"
-    :filter-res "filterRes"
-    :filter-units "filterUnits"
-    :glyph-ref "glyphRef"
-    :gradient-transform "gradientTransform"
-    :gradient-units "gradientUnits"
-    :kernel-matrix "kernelMatrix"
-    :kernel-unit-length "kernelUnitLength"
-    :key-points "keyPoints"
-    :key-splines "keySplines"
-    :key-times "keyTimes"
-    :length-adjust "lengthAdjust"
-    :limiting-cone-angle "limitingConeAngle"
-    :marker-height "markerHeight"
-    :marker-units "markerUnits"
-    :marker-width "markerWidth"
-    :mask-content-units "maskContentUnits"
-    :mask-units "maskUnits"
-    :num-octaves "numOctaves"
-    :path-length "pathLength"
-    :pattern-content-units "patternContentUnits"
-    :pattern-transform "patternTransform"
-    :pattern-units "patternUnits"
-    :points-at-x "pointsAtX"
-    :points-at-y "pointsAtY"
-    :points-at-z "pointsAtZ"
-    :preserve-alpha "preserveAlpha"
-    :preserve-aspect-ratio "preserveAspectRatio"
-    :primitive-units "primitiveUnits"
-    :ref-x "refX"
-    :ref-y "refY"
-    :repeat-count "repeatCount"
-    :repeat-dur "repeatDur"
-    :required-extensions "requiredExtensions"
-    :required-features "requiredFeatures"
-    :specular-constant "specularConstant"
-    :specular-exponent "specularExponent"
-    :spread-method "spreadMethod"
-    :start-offset "startOffset"
-    :std-deviation "stdDeviation"
-    :stitch-tiles "stitchTiles"
-    :surface-scale "surfaceScale"
-    :system-language "systemLanguage"
-    :table-values "tableValues"
-    :target-x "targetX"
-    :target-y "targetY"
-    :view-box "viewBox"
-    :view-target "viewTarget"
-    :x-channel-selector "xChannelSelector"
-    :xlink-actuate "xlink:actuate"
-    :xlink-arcrole "xlink:arcrole"
-    :xlink-href "xlink:href"
-    :xlink-role "xlink:role"
-    :xlink-show "xlink:show"
-    :xlink-title "xlink:title"
-    :xlink-type "xlink:type"
-    :xml-base "xml:base"
-    :xmlns-xlink "xmlns:xlink"
-    :xml-lang "xml:lang"
-    :xml-space "xml:space"
-    :y-channel-selector "yChannelSelector"
-    :zoom-and-pan "zoomAndPan"})
+   :accept-charset "accept-charset"
+   :access-key "accessKey"
+   :allow-full-screen "allowfullscreen"
+   :allow-transparency "allowTransparency"
+   :auto-complete "autoComplete"
+   :auto-play "autoplay"
+   :cell-padding "cellPadding"
+   :cell-spacing "cellSpacing"
+   :char-set "charSet"
+   :class-id "classId"
+   :col-span "colSpan"
+   :content-editable "contenteditable"
+   :context-menu "contextMenu"
+   :cross-origin "crossorigin"
+   :date-time "dateTime"
+   :enc-type "encType"
+   :form-action "formAction"
+   :form-enc-type "formEncType"
+   :form-method "formMethod"
+   :form-no-validate "formnovalidate"
+   :form-target "formTarget"
+   :frame-border "frameBorder"
+   :href-lang "hrefLang"
+   :http-equiv "http-equiv"
+   :input-mode "inputMode"
+   :key-params "keyParams"
+   :key-type "keyType"
+   :margin-height "marginHeight"
+   :margin-width "marginWidth"
+   :max-length "maxLength"
+   :media-group "mediaGroup"
+   :min-length "minLength"
+   :no-validate "novalidate"
+   :radio-group "radioGroup"
+   :referrer-policy "referrerPolicy"
+   :read-only "readonly"
+   :row-span "rowspan"
+   :spell-check "spellcheck"
+   :src-doc "srcDoc"
+   :src-lang "srcLang"
+   :src-set "srcSet"
+   :tab-index "tabindex"
+   :use-map "useMap"
+   :auto-capitalize "autoCapitalize"
+   :auto-correct "autoCorrect"
+   :auto-save "autoSave"
+   :item-prop "itemProp"
+   :item-scope "itemscope"
+   :item-type "itemType"
+   :item-id "itemId"
+   :item-ref "itemRef"
 
+    ;; https://github.com/facebook/react/blob/v15.6.2/src/renderers/dom/shared/SVGDOMPropertyConfig.js
+   :allow-reorder "allowReorder"
+   :attribute-name "attributeName"
+   :attribute-type "attributeType"
+   :auto-reverse "autoReverse"
+   :base-frequency "baseFrequency"
+   :base-profile "baseProfile"
+   :calc-mode "calcMode"
+   :clip-path-units "clipPathUnits"
+   :content-script-type "contentScriptType"
+   :content-style-type "contentStyleType"
+   :diffuse-constant "diffuseConstant"
+   :edge-mode "edgeMode"
+   :external-resources-required "externalResourcesRequired"
+   :filter-res "filterRes"
+   :filter-units "filterUnits"
+   :glyph-ref "glyphRef"
+   :gradient-transform "gradientTransform"
+   :gradient-units "gradientUnits"
+   :kernel-matrix "kernelMatrix"
+   :kernel-unit-length "kernelUnitLength"
+   :key-points "keyPoints"
+   :key-splines "keySplines"
+   :key-times "keyTimes"
+   :length-adjust "lengthAdjust"
+   :limiting-cone-angle "limitingConeAngle"
+   :marker-height "markerHeight"
+   :marker-units "markerUnits"
+   :marker-width "markerWidth"
+   :mask-content-units "maskContentUnits"
+   :mask-units "maskUnits"
+   :num-octaves "numOctaves"
+   :path-length "pathLength"
+   :pattern-content-units "patternContentUnits"
+   :pattern-transform "patternTransform"
+   :pattern-units "patternUnits"
+   :points-at-x "pointsAtX"
+   :points-at-y "pointsAtY"
+   :points-at-z "pointsAtZ"
+   :preserve-alpha "preserveAlpha"
+   :preserve-aspect-ratio "preserveAspectRatio"
+   :primitive-units "primitiveUnits"
+   :ref-x "refX"
+   :ref-y "refY"
+   :repeat-count "repeatCount"
+   :repeat-dur "repeatDur"
+   :required-extensions "requiredExtensions"
+   :required-features "requiredFeatures"
+   :specular-constant "specularConstant"
+   :specular-exponent "specularExponent"
+   :spread-method "spreadMethod"
+   :start-offset "startOffset"
+   :std-deviation "stdDeviation"
+   :stitch-tiles "stitchTiles"
+   :surface-scale "surfaceScale"
+   :system-language "systemLanguage"
+   :table-values "tableValues"
+   :target-x "targetX"
+   :target-y "targetY"
+   :view-box "viewBox"
+   :view-target "viewTarget"
+   :x-channel-selector "xChannelSelector"
+   :xlink-actuate "xlink:actuate"
+   :xlink-arcrole "xlink:arcrole"
+   :xlink-href "xlink:href"
+   :xlink-role "xlink:role"
+   :xlink-show "xlink:show"
+   :xlink-title "xlink:title"
+   :xlink-type "xlink:type"
+   :xml-base "xml:base"
+   :xmlns-xlink "xmlns:xlink"
+   :xml-lang "xml:lang"
+   :xml-space "xml:space"
+   :y-channel-selector "yChannelSelector"
+   :zoom-and-pan "zoomAndPan"})
 
 (defn get-value [attrs]
   (or (:value attrs)
       (:default-value attrs)))
-
 
 (defn normalize-attr-key ^String [key]
   (or (normalized-attrs key)
       (when (.startsWith (name key) "on")
         (-> (name key) (str/lower-case) (str/replace "-" "")))
       (name key)))
-
 
 (defn escape-html [^String s]
   (let [len (count s)]
@@ -229,7 +219,6 @@
                        (.append repl))
                      (inc i)))))
         (if (nil? sb) s (str sb))))))
-        
 
 (defn parse-selector [s]
   (loop [matches (re-seq #"([#.])?([^#.]+)" (name s))
@@ -243,12 +232,11 @@
         "." (recur (next matches) tag id (conj (or classes []) val)))
       [tag id classes])))
 
-
 (defn normalize-element [[first second & rest]]
   (when-not (or (keyword? first)
                 (symbol? first)
                 (string? first))
-    (throw (ex-info "Expected a keyword as a tag" { :tag first})))
+    (throw (ex-info "Expected a keyword as a tag" {:tag first})))
   (let [[tag tag-id tag-classes] (parse-selector first)
         [attrs children] (if (or (map? second)
                                  (nil? second))
@@ -265,25 +253,24 @@
 
 
 ;; https://github.com/facebook/react/blob/master/src/renderers/dom/shared/CSSProperty.js
+
+
 (def unitless-css-props
   (into #{}
-    (for [key ["animation-iteration-count" "box-flex" "box-flex-group" "box-ordinal-group" "column-count" "flex" "flex-grow" "flex-positive" "flex-shrink" "flex-negative" "flex-order" "grid-row" "grid-column" "font-weight" "line-clamp" "line-height" "opacity" "order" "orphans" "tab-size" "widows" "z-index" "zoom" "fill-opacity" "stop-opacity" "stroke-dashoffset" "stroke-opacity" "stroke-width"]
-          prefix ["" "-webkit-" "-ms-" "-moz-" "-o-"]]
-      (str prefix key))))
-
+        (for [key ["animation-iteration-count" "box-flex" "box-flex-group" "box-ordinal-group" "column-count" "flex" "flex-grow" "flex-positive" "flex-shrink" "flex-negative" "flex-order" "grid-row" "grid-column" "font-weight" "line-clamp" "line-height" "opacity" "order" "orphans" "tab-size" "widows" "z-index" "zoom" "fill-opacity" "stop-opacity" "stroke-dashoffset" "stroke-opacity" "stroke-width"]
+              prefix ["" "-webkit-" "-ms-" "-moz-" "-o-"]]
+          (str prefix key))))
 
 (defn normalize-css-key [k]
   (-> (to-str k)
       (str/replace #"[A-Z]" (fn [ch] (str "-" (str/lower-case ch))))
       (str/replace #"^ms-" "-ms-")))
 
-
 (defn normalize-css-value [key value]
   (cond
     (contains? unitless-css-props key) (escape-html (str/trim (to-str value)))
     (number? value) (str value (when (not= 0 value) "px"))
     :else (escape-html (str/trim (to-str value)))))
-
 
 (defn render-style-kv! [sb empty? k v]
   (if v
@@ -297,12 +284,10 @@
       false)
     empty?))
 
-
 (defn render-style! [map sb]
   (let [empty? (reduce-kv (partial render-style-kv! sb) true map)]
     (when-not empty?
       (append! sb "\""))))
-
 
 (defn render-class! [sb first? class]
   (cond
@@ -320,13 +305,11 @@
 
     :else (render-class! sb first? (to-str class))))
 
-
 (defn render-classes! [classes sb]
   (when classes
     (append! sb " class=\"")
     (render-class! sb true classes)
     (append! sb "\"")))
-
 
 (defn- render-attr-str! [sb attr value]
   (append! sb " " attr "=\"" (escape-html (to-str value)) "\""))
@@ -351,7 +334,6 @@
       (= "dangerouslySetInnerHTML" attr) :nop
       :else (render-attr-str! sb attr value))))
 
-
 (defn render-attrs! [tag attrs sb]
   (reduce-kv (fn [_ k v] (render-attr! tag k v sb)) nil attrs))
 
@@ -363,7 +345,6 @@
   (-render-html [this *state sb]
     "Turn a Clojure data type into a string of HTML with react ids."))
 
-
 (defn render-inner-html! [attrs children sb]
   (when-let [inner-html (:dangerouslySetInnerHTML attrs)]
     (when-not (empty? children)
@@ -373,13 +354,11 @@
     (append! sb (:__html inner-html))
     true))
 
-
 (defn render-textarea-value! [tag attrs sb]
   (when (= tag "textarea")
     (when-some [value (get-value attrs)]
       (append! sb (escape-html value))
       true)))
-
 
 (defn render-content! [tag attrs children *state sb]
   (if (and (nil? children)
@@ -394,7 +373,6 @@
       (append! sb "</" tag ">")))
   (when (not= :state/static @*state)
     (vreset! *state :state/tag-close)))
-
 
 (defn render-element!
   "Render an element vector as a HTML element."
@@ -428,7 +406,6 @@
           (render-content! tag attrs children *state sb))
         (render-content! tag attrs children *state sb)))))
 
-
 (extend-protocol HtmlRenderer
   IPersistentVector
   (-render-html [this *state sb]
@@ -457,14 +434,12 @@
   (-render-html [this *state sb]
     :nop))
 
-
 (defn render-html
   ([src] (render-html src nil))
   ([src opts]
    (let [sb (StringBuilder.)]
      (-render-html src (volatile! :state/root) sb)
      (str sb))))
-
 
 (defn render-static-markup [src]
   (let [sb (StringBuilder.)]

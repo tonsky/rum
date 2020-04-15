@@ -1,7 +1,7 @@
 (ns rum.examples.controls
   (:require
-    [rum.core :as rum]
-    [rum.examples.core :as core]))
+   [rum.core :as rum]
+   [rum.examples.core :as core]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -9,6 +9,8 @@
 
 
 ;; generic “atom editor” component
+
+
 (rum/defc input < rum/reactive [ref]
   [:input {:type "text"
            :value (rum/react ref)
@@ -17,24 +19,24 @@
 
 
 ;; Raw top-level component, everything interesting is happening inside
+
+
 (rum/defc controls []
   [:dl
-    [:dt "Color: "]
-    [:dd (input core/*color)]
+   [:dt "Color: "]
+   [:dd (input core/*color)]
     ;; Binding another component to the same atom will keep 2 input boxes in sync
-    [:dt "Clone: "]
-    [:dd (input core/*color)]
-    [:dt "Color: "]
-    [:dd (core/watches-count core/*color) " watches"]
+   [:dt "Clone: "]
+   [:dd (input core/*color)]
+   [:dt "Color: "]
+   [:dd (core/watches-count core/*color) " watches"]
 
-    [:dt "Tick: "]
-    [:dd (input core/*speed) " ms"]
-    [:dt "Time:"]
-    [:dd (core/watches-count core/*clock) " watches"]
-])
-
+   [:dt "Tick: "]
+   [:dd (input core/*speed) " ms"]
+   [:dt "Time:"]
+   [:dd (core/watches-count core/*clock) " watches"]])
 
 #?(:cljs
-(defn mount! [mount-el]
+   (defn mount! [mount-el]
      (rum/hydrate (controls) mount-el)))
 

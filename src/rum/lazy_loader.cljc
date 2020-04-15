@@ -6,16 +6,16 @@
                      [cljsjs.react])))
 
 #?(:clj
-    (s/def :lazy/libspec
-      (s/and
-        seq?
-        (s/cat
-           :quote #{'quote}
-           :libspec (s/spec
-                     (s/cat
-                          :lib simple-symbol?
-                          :marker #{:refer}
-                          :refer :cljs.core.specs.alpha/refer))))))
+   (s/def :lazy/libspec
+     (s/and
+      seq?
+      (s/cat
+       :quote #{'quote}
+       :libspec (s/spec
+                 (s/cat
+                  :lib simple-symbol?
+                  :marker #{:refer}
+                  :refer :cljs.core.specs.alpha/refer))))))
 
 #?(:cljs
    (def react-lazy (.-lazy js/React)))
@@ -25,7 +25,7 @@
 
 #?(:clj
    (s/fdef require-lazy
-           :args (s/cat :form :lazy/libspec)))
+     :args (s/cat :form :lazy/libspec)))
 
 #?(:clj
    (defmacro require-lazy

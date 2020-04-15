@@ -1,9 +1,9 @@
 (ns rum.test.defc
   (:require
-    [rum.core]
-    [clojure.string :as str]
-    [clojure.test :refer [deftest is are testing]]
-    [clojure.java.shell :as shell]))
+   [rum.core]
+   [clojure.string :as str]
+   [clojure.test :refer [deftest is are testing]]
+   [clojure.java.shell :as shell]))
 
 (defmacro eval-in-temp-ns [& forms]
   `(binding [*ns* *ns*]
@@ -17,9 +17,9 @@
 (deftest defc-error-messages
   (testing "bad name"
     (is (thrown-with-msg?
-          IllegalArgumentException
-          #"First argument to defc must be a symbol"
-          (eval-in-temp-ns (defc "bad docstring" testname [arg1 arg2])))))
+         IllegalArgumentException
+         #"First argument to defc must be a symbol"
+         (eval-in-temp-ns (defc "bad docstring" testname [arg1 arg2])))))
   (testing "mixins after argvec"
     (is (thrown-with-msg?
          IllegalArgumentException
