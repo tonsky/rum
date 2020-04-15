@@ -1,3 +1,26 @@
+## 0.11.x
+
+## Deprecations
+
+- Deprecated usage of string refs
+
+## Dependencies
+
+- Upgraded to React 16.8.6
+
+## New
+
+- Added `use-state`, `use-reducer`, `use-effect!`, `use-callback`, `use-memo` and `use-ref` hooks
+- Added `rum.lazy-loader` ns and `suspense` component
+- Added `fragment` component
+- Added JS SSR API (#105)
+
+## Fixes
+
+- Fixed `:type` attribute value serialization on JVM SSR (#120)
+- Fixed an error when calling `rum/with-key` on multiple return components on JVM SSR (#185)
+- Fixed string escaping for `:class` and `:type` attribute values (#93)
+
 ## 0.11.4
 
 - Fix render-all to forbid forceUpdate on falsy comp (#193 thx @FieryCod)
@@ -8,7 +31,7 @@
 
 ## 0.11.2
 
-- Server-render on-* event handlers with string values
+- Server-render on-\* event handlers with string values
 
 ## 0.11.1
 
@@ -25,7 +48,7 @@
 ## 0.10.8
 
 - React 15.4.2-0, Sablono 0.7.7
-- Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114) 
+- Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114)
 - Escape attributes during server-side rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #115)
 
 ## 0.10.7
@@ -100,7 +123,6 @@ And couple of optimizations:
 - Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
 - Streamlined internals of component construction, removed `render->mixin`, `args->state`, `element` and `ctor->class`
 
-
 ## 0.9.1
 
 - Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes
@@ -110,24 +132,24 @@ And couple of optimizations:
 ## 0.9.0
 
 - Better support for server-side rendering of SVG
-- [ BREAKING ] Rum used to support multiple ways to specify attributes. You would expect that both `:allow-full-screen`, `:allowFullScreen` and `"allowFullScreen"` would be normalized to `allowfullscreen`. As a result, you have to face three problems: 
+- [ BREAKING ] Rum used to support multiple ways to specify attributes. You would expect that both `:allow-full-screen`, `:allowFullScreen` and `"allowFullScreen"` would be normalized to `allowfullscreen`. As a result, you have to face three problems:
   - how do I decide which variant to use?
   - how do I ensure consistency accross my team and our codebase?
   - find & replace become harder
 
 Starting with 0.9.0, Rum will adopt “There’s Only One Way To Do It” policy. All attributes MUST be specified as kebab-cased keywords:
 
-| Attribute | What to use | What not to use |
-| --------- | ----------- | --------------- |
-| class     | `:class`    | ~~`:class-name`~~ ~~`:className`~~ |
-| for       | `:for`      | ~~`:html-for`~~ ~~`:htmlFor`~~ |
-| unescaped innerHTML | `:dangerouslySetInnerHTML { :__html { "..." }}` | |
-| uncontrolled value | `:default-value` | ~~`:defaultValue`~~ |
-| uncontrolled checked | `:default-checked` | ~~`:defaultChecked`~~ |
-| itemid, classid | `:item-id`, `:class-id` | ~~`:itemID`~~ ~~`:itemId`~~ ~~`:itemid`~~|
-| xml:lang etc | `:xml-lang` | ~~`:xml/lang`~~ ~~`:xmlLang`~~ ~~`"xml:lang"`~~ |
-| xlink:href etc | `:xlink-href` | ~~`:xlink/href`~~ ~~`:xlinkHref`~~ ~~`"xlink:href"`~~ |
-| xmlns | not supported |  |
+| Attribute            | What to use                                     | What not to use                                       |
+| -------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| class                | `:class`                                        | ~~`:class-name`~~ ~~`:className`~~                    |
+| for                  | `:for`                                          | ~~`:html-for`~~ ~~`:htmlFor`~~                        |
+| unescaped innerHTML  | `:dangerouslySetInnerHTML { :__html { "..." }}` |                                                       |
+| uncontrolled value   | `:default-value`                                | ~~`:defaultValue`~~                                   |
+| uncontrolled checked | `:default-checked`                              | ~~`:defaultChecked`~~                                 |
+| itemid, classid      | `:item-id`, `:class-id`                         | ~~`:itemID`~~ ~~`:itemId`~~ ~~`:itemid`~~             |
+| xml:lang etc         | `:xml-lang`                                     | ~~`:xml/lang`~~ ~~`:xmlLang`~~ ~~`"xml:lang"`~~       |
+| xlink:href etc       | `:xlink-href`                                   | ~~`:xlink/href`~~ ~~`:xlinkHref`~~ ~~`"xlink:href"`~~ |
+| xmlns                | not supported                                   |                                                       |
 
 To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-standard variants and replace them with recommended ones.
 
