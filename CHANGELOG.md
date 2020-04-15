@@ -1,15 +1,18 @@
 ## 0.11.x
 
+### Dependencies
+
+- Rum now requires Clojure 1.9.0
+- Upgraded to ClojureScript 1.10.597
+- Upgraded to React 16.8.6
+
 ### Deprecations
 
 - Deprecated usage of string refs
 
-### Dependencies
-
-- Upgraded to React 16.8.6
-
 ### New
 
+- Added `deps.edn`
 - Added `use-state`, `use-reducer`, `use-effect!`, `use-callback`, `use-memo` and `use-ref` hooks
 - Added `rum.lazy-loader` ns and `suspense` component
 - Added `fragment` component
