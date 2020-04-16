@@ -13,9 +13,15 @@
 
 (rum/defcc rum-context-comp < {:static-properties {:contextTypes {:color js/PropTypes.string}}}
   [comp]
-  [:span
-   {:style {:color (.. comp -context -color)}}
-   "Child component uses context to set font color."])
+  [:div {:style {:color (.. comp -context -color)}}
+   "(Class-based Context API) Child component uses context to set font color."])
+
+(rum/defcontext *color-ctx*)
+
+(rum/defc rum-create-context-comp []
+  (rum/with-context [color *color-ctx*]
+    [:div {:style {:color color}}
+     "(Component-based Context API) Child component uses context to set font color."]))
 
 
 ;; Assume the following component is from our source code.
@@ -28,7 +34,9 @@
 (rum/defc context < color-theme []
   [:div
    [:div "Root component implicitly passes data to descendants."]
-   (rum-context-comp)])
+   (rum-context-comp)
+   (rum/bind-context [*color-ctx* @core/*color]
+     (rum-create-context-comp))])
 
 (defn mount! [mount-el]
   (rum/mount (context) mount-el))

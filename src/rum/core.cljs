@@ -243,6 +243,9 @@
   [element node]
   (js/ReactDOM.createPortal element node))
 
+(defn create-context [default-value]
+  (.createContext js/React default-value))
+
 
 ;; initialization
 

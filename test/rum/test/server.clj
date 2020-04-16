@@ -42,6 +42,14 @@
           [:.local 7]
           [:.key   1]])))
 
+(rum/defcontext *ctx* 1)
+
+(deftest test-context
+  (is (= *ctx* 1))
+  (rum/bind-context [*ctx* 2]
+    (rum/with-context [value *ctx*]
+      (is (= value 2)))))
+
 (rum/defc comp-arglists
   ([a])
   ([a b])

@@ -315,6 +315,44 @@
 (defn ^:no-doc request-render [c]
   (throw (UnsupportedOperationException. "request-render is only available from ClojureScript")))
 
+;; Context API
+
+(defmacro defcontext
+  "cljs: Creates React context with initial value set to `value`.
+  clj: Create dynamic var bound to `value`."
+  ([name]
+   (if (:ns &env)
+     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context nil)]
+                                               (set! (.-displayName ctx#) ~(str "Context(" name ")"))
+                                               ctx#))
+     `(def ~(with-meta name {:dynamic true}))))
+  ([name value]
+   (if (:ns &env)
+     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context value)]
+                                               (set! (.-displayName ctx#) ~(str "Context(" name ")"))
+                                               ctx#))
+     `(def ~(with-meta name {:dynamic true}) ~value))))
+
+(defmacro with-context
+  "(with-context [value ctx]
+     [:div value])"
+  [[sym context] & body]
+  (if (:ns &env)
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map compile-html body))))
+    `(let [~sym ~context]
+       ~@body)))
+
+(defmacro bind-context
+  "(bind-context [context value]
+    ...)"
+  [[context value] & body]
+  (if (:ns &env)
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React (.-Provider ~context) (cljs.core/js-obj "value" ~value) ~@(map compile-html body)))
+    `(binding [~context ~value]
+       ~@body)))
+
 ;; hooks
 
 (defn use-state [value-or-fn]
