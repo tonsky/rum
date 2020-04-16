@@ -1,6 +1,4 @@
 {:deps {org.clojure/clojure {:mvn/version "1.9.0"}
         org.clojure/clojurescript {:mvn/version "1.10.597"}
         cljsjs/react {:mvn/version "16.8.6-0"}
-        cljsjs/react-dom {:mvn/version "16.8.6-0"}
-        sablono {:mvn/version "0.8.1"
-                 :exclusions [cljsjs/react cljsjs/react-dom]}}}
+        cljsjs/react-dom {:mvn/version "16.8.6-0"}}}

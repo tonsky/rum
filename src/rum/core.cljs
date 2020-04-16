@@ -185,42 +185,8 @@
   (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
-
-;; render queue
-
-
-(def ^:private schedule
-  (or (and (exists? js/window)
-           (or js/window.requestAnimationFrame
-               js/window.webkitRequestAnimationFrame
-               js/window.mozRequestAnimationFrame
-               js/window.msRequestAnimationFrame))
-      #(js/setTimeout % 16)))
-
-(def ^:private batch
-  (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
-      (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
-      (fn [f a] (f a))))
-
-(def ^:private empty-queue [])
-(def ^:private render-queue (volatile! empty-queue))
-
-(defn- render-all [queue]
-  (doseq [comp queue
-          :when (and (some? comp) (not (gobj/get comp ":rum/unmounted?")))]
-    (.forceUpdate comp)))
-
-(defn- render []
-  (let [queue @render-queue]
-    (vreset! render-queue empty-queue)
-    (batch render-all queue)))
-
-(defn request-render
-  "Schedules react component to be rendered on next animation frame."
-  [component]
-  (when (empty? @render-queue)
-    (schedule render))
-  (vswap! render-queue conj component))
+(defn request-render [comp]
+  (.setState comp (.-state comp)))
 
 (defn mount
   "Add element to the DOM tree. Idempotent. Subsequent mounts will just update element."
@@ -339,10 +305,11 @@
    {:will-mount
     (fn [state]
       (let [local-state (atom initial)
-            component   (:rum/react-component state)]
+            component   ^js (:rum/react-component state)]
         (add-watch local-state key
-                   (fn [_ _ _ _]
-                     (request-render component)))
+                   (fn [_ _ p n]
+                     (when (not= p n)
+                       (.setState component (.-state component)))))
         (assoc state key local-state)))}))
 
 
@@ -381,8 +348,9 @@
            (doseq [ref new-reactions]
              (when-not (contains? old-reactions ref)
                (add-watch ref key
-                          (fn [_ _ _ _]
-                            (request-render comp)))))
+                          (fn [_ _ p n]
+                            (when (not= p n)
+                              (.setState comp (.-state comp)))))))
            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
    :will-unmount
    (fn [state]
