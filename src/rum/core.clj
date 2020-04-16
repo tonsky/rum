@@ -321,19 +321,22 @@
 
 ;; Context API
 
+(defn- sym->context-name [name env]
+  (str "Context(" (-> env :ns :name (str "/" name)) ")"))
+
 (defmacro defcontext
   "cljs: Creates React context with initial value set to `value`.
   clj: Create dynamic var bound to `value`."
   ([name]
    (if (:ns &env)
      `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context nil)]
-                                               (set! (.-displayName ctx#) ~(str "Context(" name ")"))
+                                               (set! (.-displayName ctx#) ~(sym->context-name name &env))
                                                ctx#))
      `(def ~(with-meta name {:dynamic true}))))
   ([name value]
    (if (:ns &env)
      `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context value)]
-                                               (set! (.-displayName ctx#) ~(str "Context(" name ")"))
+                                               (set! (.-displayName ctx#) ~(sym->context-name name &env))
                                                ctx#))
      `(def ~(with-meta name {:dynamic true}) ~value))))
 
