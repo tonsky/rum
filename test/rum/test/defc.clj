@@ -46,9 +46,9 @@
                  ([y] (do {:x 1}))
                  ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
                nil
-               "pre-post-test"))
+               "core/pre-post-test"))
            (#'rum.core/-defc 'rum.core/build-defc
-                             true ; cljs?
+                             {:ns {:name 'core}} ; cljs?
                              '(pre-post-test ([y] {:x 1})
                                              ([y z] (+ y z 1)))))))
   (testing "some conditions supplied"
@@ -58,8 +58,8 @@
                  ([y] {:pre [(pos? y)]} (do {:x 1}))
                  ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
                nil
-               "pre-post-test"))
+               "core/pre-post-test"))
            (#'rum.core/-defc 'rum.core/build-defc
-                             true ; cljs?
+                             {:ns {:name 'core}} ; cljs?
                              '(pre-post-test ([y] {:pre [(pos? y)]} {:x 1})
                                              ([y z] (+ y z 1))))))))

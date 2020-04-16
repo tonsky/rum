@@ -48,17 +48,21 @@
       (list argvec conditions (compile-html `(do ~@body)))
       (list argvec (compile-html `(do ~@(cons conditions body)))))))
 
-(defn- -defc [builder cljs? body]
+(defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
+        cljs? (:ns env)
         render-body (if cljs?
                       (map compile-body bodies)
                       bodies)
         arglists  (if (= builder 'rum.core/build-defc)
                     (map (fn [[arglist & _body]] arglist) bodies)
-                    (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))]
+                    (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))
+        display-name (if cljs?
+                       (-> env :ns :name (str "/" name))
+                       (str name))]
     `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
        ~@(if doc [doc] [])
-       (~builder (fn ~@render-body) ~mixins ~(str name)))))
+       (~builder (fn ~@render-body) ~mixins ~display-name))))
 
 (defmacro defc
   "```
@@ -86,7 +90,7 @@
    (label \"text\") ;; => returns React element built with label class
    ```"
   [& body]
-  (-defc 'rum.core/build-defc (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defc &env body))
 
 (defmacro defcs
   "```
@@ -95,7 +99,7 @@
    
    Same as [[defc]], but render will take additional first argument: component state."
   [& body]
-  (-defc 'rum.core/build-defcs (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defcs &env body))
 
 (defmacro defcc
   "```
@@ -104,7 +108,7 @@
 
    Same as [[defc]], but render will take additional first argument: react component."
   [& body]
-  (-defc 'rum.core/build-defcc (boolean (:ns &env)) body))
+  (-defc 'rum.core/build-defcc &env body))
 
 (defn- build-ctor [render mixins display-name]
   (let [init           (collect :init mixins)                ;; state props -> state
