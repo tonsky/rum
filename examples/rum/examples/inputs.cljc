@@ -34,7 +34,7 @@
                 :name "inputs_radio"
                 :checked (= v value)
                 :value   v
-                  :on-change (fn [_] (reset! *ref v))}])]))
+                :on-change (fn [_] (reset! *ref v))}])]))
 
 (rum/defc select < rum/reactive
   [*ref]

@@ -71,7 +71,7 @@
            (map? attrs-2))
       (normalize/merge-with-class attrs-1 attrs-2)
       :else `(sablono.interpreter/attributes
-               (sablono.normalize/merge-with-class ~attrs-1 ~attrs-2)))))
+              (sablono.normalize/merge-with-class ~attrs-1 ~attrs-2)))))
 
 (defn- compile-tag
   "Replace fragment syntax (`:*` or `:<>`) by 'React.Fragment, otherwise the
@@ -86,9 +86,9 @@
   [element]
   (let [[tag attrs content] (normalize/element element)]
     `(~(compile-constructor tag)
-       ~(compile-tag tag)
-       ~(compile-attrs attrs)
-       ~(when content `(cljs.core/array ~@(compile-react content))))))
+      ~(compile-tag tag)
+      ~(compile-attrs attrs)
+      ~(when content `(cljs.core/array ~@(compile-react content))))))
 
 (defn- unevaluated?
   "True if the expression has not been evaluated."
@@ -106,35 +106,35 @@
 (declare compile-html)
 
 (defmulti compile-form
-          "Pre-compile certain standard forms, where possible."
-          {:private true}
-          form-name)
+  "Pre-compile certain standard forms, where possible."
+  {:private true}
+  form-name)
 
 (defmethod compile-form "case"
   [[_ v & cases]]
   `(case ~v
      ~@(doall (mapcat
-                (fn [[test hiccup]]
-                  (if hiccup
-                    [test (compile-html hiccup)]
-                    [(compile-html test)]))
-                (partition-all 2 cases)))))
+               (fn [[test hiccup]]
+                 (if hiccup
+                   [test (compile-html hiccup)]
+                   [(compile-html test)]))
+               (partition-all 2 cases)))))
 
 (defmethod compile-form "cond"
   [[_ & clauses]]
   `(cond ~@(mapcat
-             (fn [[check expr]] [check (compile-html expr)])
-             (partition 2 clauses))))
+            (fn [[check expr]] [check (compile-html expr)])
+            (partition 2 clauses))))
 
 (defmethod compile-form "condp"
   [[_ f v & cases]]
   `(condp ~f ~v
      ~@(doall (mapcat
-                (fn [[test hiccup]]
-                  (if hiccup
-                    [test (compile-html hiccup)]
-                    [(compile-html test)]))
-                (partition-all 2 cases)))))
+               (fn [[test hiccup]]
+                 (if hiccup
+                   [test (compile-html hiccup)]
+                   [(compile-html test)]))
+               (partition-all 2 cases)))))
 
 (defmethod compile-form "do"
   [[_ & forms]]
@@ -256,10 +256,10 @@
 (declare compile-html)
 
 (defmulti compile-element
-          "Returns an unevaluated form that will render the supplied vector as a HTML
+  "Returns an unevaluated form that will render the supplied vector as a HTML
           element."
-          {:private true}
-          element-compile-strategy)
+  {:private true}
+  element-compile-strategy)
 
 (defmethod compile-element ::all-literal
   [element]
@@ -269,9 +269,9 @@
   [[tag attrs & content]]
   (let [[tag attrs _] (normalize/element [tag attrs])]
     `(~(compile-constructor tag)
-       ~(compile-tag tag)
-       ~(compile-attrs attrs)
-       (cljs.core/array ~@(map compile-html content)))))
+      ~(compile-tag tag)
+      ~(compile-attrs attrs)
+      (cljs.core/array ~@(map compile-html content)))))
 
 (defmethod compile-element ::literal-tag-and-no-attributes
   [[tag & content]]
@@ -298,24 +298,24 @@
         attrs-sym (gensym "attrs")]
     `(let [~attrs-sym ~attrs]
        (~(compile-constructor tag)
-         ~(compile-tag tag)
-         (if (map? ~attrs-sym)
-           ~(compile-merge-attrs tag-attrs attrs-sym)
-           ~(compile-attrs tag-attrs))
-         (if (map? ~attrs-sym)
-           ~(when-not (empty? content)
-              `(cljs.core/array ~@(mapv compile-html content)))
-           ~(when attrs
-              `(cljs.core/array ~@(mapv compile-html (cons attrs-sym content)))))))))
+        ~(compile-tag tag)
+        (if (map? ~attrs-sym)
+          ~(compile-merge-attrs tag-attrs attrs-sym)
+          ~(compile-attrs tag-attrs))
+        (if (map? ~attrs-sym)
+          ~(when-not (empty? content)
+             `(cljs.core/array ~@(mapv compile-html content)))
+          ~(when attrs
+             `(cljs.core/array ~@(mapv compile-html (cons attrs-sym content)))))))))
 
 (defmethod compile-element :default
   [element]
   `(sablono.interpreter/interpret
-     [~(first element)
-      ~@(for [x (rest element)]
-          (if (vector? x)
-            (compile-element x)
-            x))]))
+    [~(first element)
+     ~@(for [x (rest element)]
+         (if (vector? x)
+           (compile-element x)
+           x))]))
 
 (defn compile-html
   "Pre-compile data structures into HTML where possible."

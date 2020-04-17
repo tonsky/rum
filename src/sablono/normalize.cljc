@@ -56,8 +56,8 @@
   "Normalize the `attrs` of an element."
   [attrs]
   (cond-> attrs
-          (:class attrs)
-          (update-in [:class] class)))
+    (:class attrs)
+    (update-in [:class] class)))
 
 (defn merge-with-class
   "Like clojure.core/merge but concatenate :class entries."
@@ -66,8 +66,8 @@
         classes (mapcat :class maps)]
     (when (seq maps)
       (cond-> (reduce into {} maps)
-              (not (empty? classes))
-              (assoc :class (vec classes))))))
+        (not (empty? classes))
+        (assoc :class (vec classes))))))
 
 (defn strip-css
   "Strip the # and . characters from the beginning of `s`."
@@ -140,8 +140,8 @@
     (throw (ex-info (str tag " is not a valid element name.") {:tag tag :content content})))
   (let [[tag id class] (match-tag tag)
         tag-attrs (cond-> {}
-                          (not (empty? id)) (assoc :id id)
-                          (not (empty? class)) (assoc :class class))
+                    (not (empty? id)) (assoc :id id)
+                    (not (empty? class)) (assoc :class class))
         map-attrs (first content)]
     (if (attrs? map-attrs)
       [tag

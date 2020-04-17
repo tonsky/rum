@@ -37,8 +37,8 @@
                   (map (fn [[k v]] [(camel-case k) v]))
                   m)]
       (cond-> m
-              (map? (:style m))
-              (update :style camel-case-keys)))
+        (map? (:style m))
+        (update :style camel-case-keys)))
     m))
 
 (defn element?
@@ -71,6 +71,6 @@
   [classes]
   (->> classes
        (into [] (comp
-                  (mapcat (fn [x] (if (string? x) [x] (seq x))))
-                  (remove nil?)))
+                 (mapcat (fn [x] (if (string? x) [x] (seq x))))
+                 (remove nil?)))
        (str/join " ")))

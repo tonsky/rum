@@ -47,8 +47,8 @@
 (deftest test-context
   (is (= *ctx* 1))
   (rum/bind-context [*ctx* 2]
-    (rum/with-context [value *ctx*]
-      (is (= value 2)))))
+                    (rum/with-context [value *ctx*]
+                      (is (= value 2)))))
 
 (rum/defc comp-arglists
   ([a])
