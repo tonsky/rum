@@ -11,8 +11,7 @@
 
 (defn attributes [attrs]
   (when-let [js-attrs (util/html-to-dom-attrs attrs)]
-    (let [class (.-className js-attrs)
-          class (if (array? class) (str/join " " class) class)]
+    (let [class (.-className js-attrs)]
       (if (str/blank? class)
         (js-delete js-attrs "className")
         (set! (.-className js-attrs) class))

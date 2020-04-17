@@ -55,8 +55,12 @@
                        {:class :className
                         :for :htmlFor})
      :cljs (reduce-kv (fn [ret k v]
-                        (if (= :style k)
-                          (aset ret (str (camel-case k)) (html-to-dom-attrs v))
+                        (case k
+                          :style (set! (.-style ret) (html-to-dom-attrs v))
+                          :class (->> (if (vector? v)
+                                        (str/join " " v)
+                                        v)
+                                      (set! (.-className ret)))
                           (aset ret (str (camel-case k)) v))
                         ret)
                       #js {}

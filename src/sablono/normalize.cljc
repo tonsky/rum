@@ -3,14 +3,6 @@
   (:require [clojure.string :as str]
             [sablono.util :as util]))
 
-(defn compact-map
-  "Removes all map entries where the value of the entry is empty."
-  [m]
-  (when m
-    (into {}
-          (remove (fn [[_ v]] (empty? v)))
-          m)))
-
 (defn class-name
   [x]
   (cond
@@ -147,7 +139,9 @@
                 (string? tag))
     (throw (ex-info (str tag " is not a valid element name.") {:tag tag :content content})))
   (let [[tag id class] (match-tag tag)
-        tag-attrs (compact-map {:id id :class class})
+        tag-attrs (cond-> {}
+                          (not (empty? id)) (assoc :id id)
+                          (not (empty? class)) (assoc :class class))
         map-attrs (first content)]
     (if (attrs? map-attrs)
       [tag
