@@ -57,9 +57,7 @@
      :cljs (reduce-kv (fn [ret k v]
                         (case k
                           :style (set! (.-style ret) (html-to-dom-attrs v))
-                          :class (->> (if (vector? v)
-                                        (str/join " " v)
-                                        v)
+                          :class (->> (if (vector? v) (str/join " " v) v)
                                       (set! (.-className ret)))
                           (aset ret (str (camel-case k)) v))
                         ret)

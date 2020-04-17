@@ -1,5 +1,4 @@
 (ns sablono.normalize
-  (:refer-clojure :exclude [class])
   (:require [clojure.string :as str]
             [sablono.util :as util]))
 
@@ -15,7 +14,7 @@
   [x]
   (and (list? x) (keyword? (first x))))
 
-(defn class
+(defn normalize-class
   "Normalize `class` into a vector of classes."
   [class]
   (cond
@@ -57,7 +56,7 @@
   [attrs]
   (cond-> attrs
     (:class attrs)
-    (update-in [:class] class)))
+    (update :class normalize-class)))
 
 (defn merge-with-class
   "Like clojure.core/merge but concatenate :class entries."
