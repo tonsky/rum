@@ -385,6 +385,11 @@
 (defn use-ref [initial-value]
   (atom initial-value))
 
+;; Refs
+
+(defn create-ref []
+  (atom nil))
+
 (defn deref [ref]
   @ref)
 
