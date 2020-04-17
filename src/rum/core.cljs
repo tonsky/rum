@@ -567,6 +567,11 @@
   ([initial-value]
    (.useRef js/React initial-value)))
 
+;; Refs
+
+(defn create-ref []
+  (.createRef js/React))
+
 (defn deref
   "Takes a ref returned from use-ref and returns its current value."
   [^js ref]
