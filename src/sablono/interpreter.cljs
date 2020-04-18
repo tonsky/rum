@@ -6,8 +6,8 @@
 (defn create-element
   "Create a React element. Returns a JavaScript object when running
   under ClojureScript, and a om.dom.Element record in Clojure."
-  [type props & children]
-  (.apply (.-createElement js/React) nil (into-array (into [type props] children))))
+  [type props children]
+  (.apply (.-createElement js/React) nil (.concat #js [type props] children)))
 
 (defn attributes [attrs]
   (when-let [js-attrs (util/html-to-dom-attrs attrs)]
@@ -19,18 +19,23 @@
 
 (declare interpret)
 
-(defn- interpret-seq
+(defn- ^array interpret-seq
   "Eagerly interpret the seq `x` as HTML elements."
   [x]
-  (mapv interpret x))
+  (reduce
+    (fn [^array ret x]
+      (.push ret (interpret x))
+      ret)
+    #js []
+    x))
 
 (defn element
   "Render an element vector as a HTML element."
   [element]
   (let [[type attrs content] (normalize/element element)]
-    (apply create-element type
-           (attributes attrs)
-           (interpret-seq content))))
+    (create-element type
+      (attributes attrs)
+      (interpret-seq content))))
 
 (defn- interpret-vec
   "Interpret the vector `x` as an HTML element or a the children of an
