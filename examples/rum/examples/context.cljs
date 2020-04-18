@@ -36,7 +36,7 @@
    [:div "Root component implicitly passes data to descendants."]
    (rum-context-comp)
    (rum/bind-context [*color-ctx* @core/*color]
-     (rum-create-context-comp))])
+                     (rum-create-context-comp))])
 
 (defn mount! [mount-el]
   (rum/mount (context) mount-el))

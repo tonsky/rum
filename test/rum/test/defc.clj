@@ -42,7 +42,7 @@
   (testing "no conditions supplied"
     (is (= '(def pre-post-test
               (rum.core/lazy-build
-                rum.core/build-defc
+               rum.core/build-defc
                (clojure.core/fn
                  ([y] (do {:x 1}))
                  ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
@@ -55,7 +55,7 @@
   (testing "some conditions supplied"
     (is (= '(def pre-post-test
               (rum.core/lazy-build
-                rum.core/build-defc
+               rum.core/build-defc
                (clojure.core/fn
                  ([y] {:pre [(pos? y)]} (do {:x 1}))
                  ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))

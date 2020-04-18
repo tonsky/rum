@@ -2,14 +2,14 @@
   (:refer-clojure :exclude [ref deref])
   (:require-macros rum.core)
   (:require
-    [cljsjs.react]
-    [cljsjs.react.dom]
-    [goog.object :as gobj]
-    [goog.functions :as fns]
-    [sablono.core]
-    [rum.cursor :as cursor]
-    [rum.util :as util :refer [collect collect* call-all]]
-    [rum.derived-atom :as derived-atom]))
+   [cljsjs.react]
+   [cljsjs.react.dom]
+   [goog.object :as gobj]
+   [goog.functions :as fns]
+   [sablono.core]
+   [rum.cursor :as cursor]
+   [rum.util :as util :refer [collect collect* call-all]]
+   [rum.derived-atom :as derived-atom]))
 
 (defn state
   "Given React component, returns Rum state associated with it."
@@ -131,9 +131,9 @@
     (extend! ctor static-props)
     ctor))
 
-(defn- set-meta [c]
+(defn- set-meta! [c]
   (let [f #(let [ctr (c)]
-              (.apply ctr ctr (js-arguments)))]
+             (.apply ctr ctr (js-arguments)))]
     (specify! f IMeta (-meta [_] (meta (c))))
     f))
 
@@ -145,7 +145,7 @@
   [ctor render mixins display-name]
   (let [bf #(ctor render mixins display-name) ;; Avoid IIFE
         c  (fns/cacheReturnValue bf)]
-    (set-meta c)))
+    (set-meta! c)))
 
 (defn- build-ctor [render mixins display-name]
   (let [class  (build-class render mixins display-name)

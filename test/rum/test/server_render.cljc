@@ -230,6 +230,17 @@
     :aria-disabled "true"
     :aria-checked  "false"}])
 
+#?(:cljs
+   (do
+     (rum/defc fn-test [])
+     (rum/defcc class-test [])
+
+     (assert (some? (:rum/class (meta fn-test)))
+             "defc should have :rum/class in meta")
+
+     (assert (some? (:rum/class (meta class-test)))
+             "defcc should have :rum/class in meta")))
+
 (def components
   {"simple"      comp-simple
    "tag"         comp-tag
