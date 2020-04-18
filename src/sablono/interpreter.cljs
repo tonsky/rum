@@ -10,8 +10,9 @@
   (.apply (.-createElement js/React) nil (.concat #js [type props] children)))
 
 (defn attributes [attrs]
-  (when-let [js-attrs (util/html-to-dom-attrs attrs)]
-    (let [class (.-className js-attrs)]
+  (when-let [js-attrs (clj->js (util/html-to-dom-attrs attrs))]
+    (let [class (.-className js-attrs)
+          class (if (array? class) (str/join " " class) class)]
       (if (str/blank? class)
         (js-delete js-attrs "className")
         (set! (.-className js-attrs) class))
@@ -23,19 +24,19 @@
   "Eagerly interpret the seq `x` as HTML elements."
   [x]
   (reduce
-    (fn [^array ret x]
-      (.push ret (interpret x))
-      ret)
-    #js []
-    x))
+   (fn [^array ret x]
+     (.push ret (interpret x))
+     ret)
+   #js []
+   x))
 
 (defn element
   "Render an element vector as a HTML element."
   [element]
   (let [[type attrs content] (normalize/element element)]
     (create-element type
-      (attributes attrs)
-      (interpret-seq content))))
+                    (attributes attrs)
+                    (interpret-seq content))))
 
 (defn- interpret-vec
   "Interpret the vector `x` as an HTML element or a the children of an

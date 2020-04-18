@@ -23,11 +23,7 @@
 (defn camel-case
   "Returns camel case version of the key, e.g. :http-equiv becomes :httpEquiv."
   [k]
-  #?(:clj (-camel-case k)
-     :cljs (or (aget attrs-cache (name k))
-               (let [cck (name (-camel-case k))]
-                 (aset attrs-cache (name k) cck)
-                 cck))))
+  (-camel-case k))
 
 (defn camel-case-keys
   "Recursively transforms all map keys into camel case."
@@ -51,18 +47,9 @@
 (defn html-to-dom-attrs
   "Converts all HTML attributes to their DOM equivalents."
   [attrs]
-  #?(:clj (rename-keys (camel-case-keys attrs)
-                       {:class :className
-                        :for :htmlFor})
-     :cljs (reduce-kv (fn [ret k v]
-                        (case k
-                          :style (set! (.-style ret) (html-to-dom-attrs v))
-                          :class (->> (if (vector? v) (str/join " " v) v)
-                                      (set! (.-className ret)))
-                          (aset ret (str (camel-case k)) v))
-                        ret)
-                      #js {}
-                      attrs)))
+  (rename-keys (camel-case-keys attrs)
+               {:class :className
+                :for :htmlFor}))
 
 (defn join-classes
   "Join the `classes` with a whitespace."
