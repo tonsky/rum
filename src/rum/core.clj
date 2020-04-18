@@ -3,10 +3,11 @@
   (:require
    [rum.cursor :as cursor]
    [rum.server-render :as render]
-   [rum.util :as util :refer [collect collect* call-all]]
+   [rum.util :refer [collect collect* call-all]]
    [rum.derived-atom :as derived-atom])
   (:import
-   [rum.cursor Cursor]))
+   [rum.cursor Cursor]
+   (rum.server_render JSComponent)))
 
 (defn- fn-body? [form]
   (when (and (seq? form)
@@ -429,3 +430,27 @@
             compile-attrs (get-sablono 'compile-attrs)]
         `(.createElement js/React
                          (.-Fragment js/React) ~(compile-attrs attrs) ~@(map compile-html children))))))
+
+;; JS components adapter
+(def ^{:arglists '([type-sym attrs children])
+       :dynamic true
+       :doc "Takes JS component name as a symbol, attributes map and a collection of child elements. Should return a string."}
+  *render-js-component*)
+
+(defmacro adapt-class
+  "Adapts JavaScript React component for usage in Rum components.
+
+  [:div
+    (rum/adapt-class js/Button {:on-click f} \"press me\")]
+
+  When using in Clojure JVM calls *render-js-component* to render a fallback.
+  See example in rum.examples.js-components ns"
+  [type attrs & children]
+  (let [[attrs children] (if (map? attrs)
+                           [attrs children]
+                           [nil (cons attrs children)])]
+    (if (:ns &env)
+      (let [_ (require 'sablono.compiler)
+            compile-html (get-sablono)]
+        `(adapt-class-helper ~type ~attrs (cljs.core/array ~@(map compile-html children))))
+      `(JSComponent. (*render-js-component* '~type ~attrs [~@children])))))

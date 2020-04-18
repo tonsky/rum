@@ -622,3 +622,10 @@
     (.renderToStaticMarkup js/ReactDOMServer src)
     (let [react-dom-server (js/require "react-dom/server")]
       (.renderToStaticMarkup react-dom-server src))))
+
+;; JS components adapter
+(defn adapt-class-helper [type attrs children]
+  (let [args (if (map? attrs)
+               (.concat #js [type attrs] children)
+               (.concat #js [type nil attrs] children))]
+    (.apply (.-createElement js/React) js/React args)))

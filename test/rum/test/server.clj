@@ -10,6 +10,15 @@
    [:.local @(:rum/local state)]
    [:.key   (::key state)]])
 
+(deftest test-js-component-ssr
+  (binding [rum/*render-js-component* (fn [type-sym attrs children]
+                                        (case type-sym
+                                          'h2 (rum/render-static-markup (into [:h2 attrs] children))
+                                          nil))]
+    (is (= (rum/render-static-markup
+            (rum/adapt-class h2 {:tab-index "1"} "This is JS component"))
+           "<h2 tabindex=\"1\">This is JS component</h2>"))))
+
 (deftest test-93
   (is (= (rum/render-static-markup [:a {:type "<script>"}])
          "<a type=\"&lt;script&gt;\"></a>"))
