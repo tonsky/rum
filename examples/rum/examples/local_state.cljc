@@ -1,7 +1,7 @@
 (ns rum.examples.local-state
   (:require
-    [rum.core :as rum]
-    [rum.examples.core :as core]))
+   [rum.core :as rum]
+   [rum.examples.core :as core]))
 
 
 ;; Local component state
@@ -13,10 +13,9 @@
     [:div
      {:style {"-webkit-user-select" "none"
               "cursor" "pointer"}
-      :on-click (fn [_] (swap! *count inc)) }
+      :on-click (fn [_] (swap! *count inc))}
      title ": " @*count]))
 
-
 #?(:cljs
-(defn mount! [mount-el]
+   (defn mount! [mount-el]
      (rum/hydrate (local-state "Clicks count") mount-el)))

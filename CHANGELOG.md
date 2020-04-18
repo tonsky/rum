@@ -1,6 +1,32 @@
+## 0.11.5-SNAPSHOT
+
+### Dependencies
+
+- Rum now requires Clojure 1.9.0
+- Upgraded to ClojureScript 1.10.597
+- Upgraded to React 16.8.6
+
+### Deprecations
+
+- Deprecated usage of string refs
+
+### New
+
+- Added `deps.edn`
+- Added `use-state`, `use-reducer`, `use-effect!`, `use-callback`, `use-memo` and `use-ref` hooks
+- Added `rum.lazy-loader` ns and `suspense` component
+- Added `fragment` component
+- Added JS SSR API ([#105](https://github.com/tonsky/rum/issues/105))
+
+### Fixes
+
+- Fixed `:type` attribute value serialization on JVM SSR ([#120](https://github.com/tonsky/rum/issues/120))
+- Fixed an error when calling `rum/with-key` on multiple return components on JVM SSR ([#185](https://github.com/tonsky/rum/issues/185))
+- Fixed string escaping for `:class` and `:type` attribute values ([#93](https://github.com/tonsky/rum/issues/93))
+
 ## 0.11.4
 
-- Fix render-all to forbid forceUpdate on falsy comp (#193 thx @FieryCod)
+- Fix render-all to forbid forceUpdate on falsy comp ([#193](https://github.com/tonsky/rum/pull/193), thx @FieryCod)
 
 ## 0.11.3
 
@@ -8,13 +34,13 @@
 
 ## 0.11.2
 
-- Server-render on-* event handlers with string values
+- Server-render on-\* event handlers with string values
 
 ## 0.11.1
 
-- Sablono or CLJS are excluded completely when using SSR (#83 #157)
+- Sablono or CLJS are excluded completely when using SSR ([#83](https://github.com/tonsky/rum/issues/83), [#157](https://github.com/tonsky/rum/pull/157))
 
-## 0.11.0 (thx [Roman Liutikov](https://github.com/roman01la) & [Alexander Solovyov](https://github.com/piranha), PR #151)
+## 0.11.0 (thx [Roman Liutikov](https://github.com/roman01la) & [Alexander Solovyov](https://github.com/piranha), [#151](https://github.com/tonsky/rum/pull/151))
 
 - [ BREAKING ] `contextTypes` and `childContextTypes` should be specified through `:static-properties` instead of `:class-properties`
 - React 16.2.0, Sablono 0.8.1
@@ -25,29 +51,29 @@
 ## 0.10.8
 
 - React 15.4.2-0, Sablono 0.7.7
-- Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), PR #114) 
-- Escape attributes during server-side rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #115)
+- Render boolean `aria-*` values as strings (thx [r0man](https://github.com/r0man), [#114](https://github.com/tonsky/rum/pull/114))
+- Escape attributes during server-side rendering (thx [Alexander Solovyov](https://github.com/piranha), [#115](https://github.com/tonsky/rum/pull/115))
 
 ## 0.10.7
 
-- Fixed server-side rendering discrepancy (issue #99)
+- Fixed server-side rendering discrepancy ([#99](https://github.com/tonsky/rum/issues/99))
 - Sablono 0.7.5, React 15.3.1-0
 
 ## 0.10.6
 
 - Sablono 0.7.4 [fixes the issue](https://github.com/r0man/sablono/pull/129) with controlling components refusing to change value if non-string value was used
 - React 15.3.0-0
-- Throw error when `<` is misplaced in `defc` (thx [Martin Klepsch](https://github.com/martinklepsch), issue #88, PR #90)
+- Throw error when `<` is misplaced in `defc` (thx [Martin Klepsch](https://github.com/martinklepsch), [#88](https://github.com/tonsky/rum/issues/88), [#90](https://github.com/tonsky/rum/pull/90))
 
 ## 0.10.5
 
-- Sablono 0.7.3 fixes the issue when IE lost keystrokes in controlled inputs/textarea (#86)
+- Sablono 0.7.3 fixes the issue when IE lost keystrokes in controlled inputs/textarea ([#86](https://github.com/tonsky/rum/issues/86))
 - React 15.2.1-1
-- Warn when `rum.core/react` is used without `rum.core/reactive` (thx [Martin Klepsch](https://github.com/martinklepsch), issue #82, PR #87)
+- Warn when `rum.core/react` is used without `rum.core/reactive` (thx [Martin Klepsch](https://github.com/martinklepsch), [#82](https://github.com/tonsky/rum/issues/82), [#87](https://github.com/tonsky/rum/pull/87))
 
 ## 0.10.4
 
-- Ability to use `:pre` and `:post` checks in `rum.core/defc` (thx [Martin Klepsch](https://github.com/martinklepsch), PR #81)
+- Ability to use `:pre` and `:post` checks in `rum.core/defc` (thx [Martin Klepsch](https://github.com/martinklepsch), [#81](https://github.com/tonsky/rum/pull/81))
 
 ## 0.10.3
 
@@ -61,7 +87,7 @@
 ## 0.10.1
 
 - Made `rum.core/state` public again
-- `:before-render` should be called on server-side rendering too (thx [Alexander Solovyov](https://github.com/piranha), PR #79)
+- `:before-render` should be called on server-side rendering too (thx [Alexander Solovyov](https://github.com/piranha), [#79](https://github.com/tonsky/rum/pull/79))
 
 ## 0.10.0
 
@@ -100,55 +126,54 @@ And couple of optimizations:
 - Rum will use React’s batched updates to perform rendering on `requestAnimationFrame` in a single chunk
 - Streamlined internals of component construction, removed `render->mixin`, `args->state`, `element` and `ctor->class`
 
-
 ## 0.9.1
 
 - Added `rum.core/derived-atom`, a function that let you build reactive chains and directed acyclic graphs of dependent atoms. E.g. you want `*c` to always contain a value of `*a` plus a value of `*b` and update whenever any of them changes
 - Added `rum.core/dom-node` helper that takes state and finds corresponding top DOM node of a component. Can be called in mixins after initial render only
-- Fixed compatibility of `with-key` on nil-returning component in server rendering (thx [Alexander Solovyov](https://github.com/piranha), PR #73)
+- Fixed compatibility of `with-key` on nil-returning component in server rendering (thx [Alexander Solovyov](https://github.com/piranha), [#73](https://github.com/tonsky/rum/pull/73))
 
 ## 0.9.0
 
 - Better support for server-side rendering of SVG
-- [ BREAKING ] Rum used to support multiple ways to specify attributes. You would expect that both `:allow-full-screen`, `:allowFullScreen` and `"allowFullScreen"` would be normalized to `allowfullscreen`. As a result, you have to face three problems: 
+- [ BREAKING ] Rum used to support multiple ways to specify attributes. You would expect that both `:allow-full-screen`, `:allowFullScreen` and `"allowFullScreen"` would be normalized to `allowfullscreen`. As a result, you have to face three problems:
   - how do I decide which variant to use?
   - how do I ensure consistency accross my team and our codebase?
   - find & replace become harder
 
 Starting with 0.9.0, Rum will adopt “There’s Only One Way To Do It” policy. All attributes MUST be specified as kebab-cased keywords:
 
-| Attribute | What to use | What not to use |
-| --------- | ----------- | --------------- |
-| class     | `:class`    | ~~`:class-name`~~ ~~`:className`~~ |
-| for       | `:for`      | ~~`:html-for`~~ ~~`:htmlFor`~~ |
-| unescaped innerHTML | `:dangerouslySetInnerHTML { :__html { "..." }}` | |
-| uncontrolled value | `:default-value` | ~~`:defaultValue`~~ |
-| uncontrolled checked | `:default-checked` | ~~`:defaultChecked`~~ |
-| itemid, classid | `:item-id`, `:class-id` | ~~`:itemID`~~ ~~`:itemId`~~ ~~`:itemid`~~|
-| xml:lang etc | `:xml-lang` | ~~`:xml/lang`~~ ~~`:xmlLang`~~ ~~`"xml:lang"`~~ |
-| xlink:href etc | `:xlink-href` | ~~`:xlink/href`~~ ~~`:xlinkHref`~~ ~~`"xlink:href"`~~ |
-| xmlns | not supported |  |
+| Attribute            | What to use                                     | What not to use                                       |
+| -------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| class                | `:class`                                        | ~~`:class-name`~~ ~~`:className`~~                    |
+| for                  | `:for`                                          | ~~`:html-for`~~ ~~`:htmlFor`~~                        |
+| unescaped innerHTML  | `:dangerouslySetInnerHTML { :__html { "..." }}` |                                                       |
+| uncontrolled value   | `:default-value`                                | ~~`:defaultValue`~~                                   |
+| uncontrolled checked | `:default-checked`                              | ~~`:defaultChecked`~~                                 |
+| itemid, classid      | `:item-id`, `:class-id`                         | ~~`:itemID`~~ ~~`:itemId`~~ ~~`:itemid`~~             |
+| xml:lang etc         | `:xml-lang`                                     | ~~`:xml/lang`~~ ~~`:xmlLang`~~ ~~`"xml:lang"`~~       |
+| xlink:href etc       | `:xlink-href`                                   | ~~`:xlink/href`~~ ~~`:xlinkHref`~~ ~~`"xlink:href"`~~ |
+| xmlns                | not supported                                   |                                                       |
 
 To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-standard variants and replace them with recommended ones.
 
 ## 0.8.4
 
-- Improved server-side rendering for inputs (issue #67 & beyond)
-- Compatible server-side rendering of components that return nil (issue #64)
+- Improved server-side rendering for inputs ([#67](https://github.com/tonsky/rum/issues/67) & beyond)
+- Compatible server-side rendering of components that return nil ([#64](https://github.com/tonsky/rum/issues/64))
 - Upgraded React to 15.1.0
 
 ## 0.8.3
 
 - `rum/render-static-markup` call for pure HTML templating. Use it if you’re not planning to connect your page with React later
-- `rum/def*` macros now correctly retain metadata that already exists on a symbol (thx [aJchemist](https://github.com/aJchemist), PR #62)
+- `rum/def*` macros now correctly retain metadata that already exists on a symbol (thx [aJchemist](https://github.com/aJchemist), [#62](https://github.com/tonsky/rum/pull/62))
 
 ## 0.8.2
 
-- Add `rum.core/unmount` function (thx [emnh](https://github.com/emnh), issue #61)
+- Add `rum.core/unmount` function (thx [emnh](https://github.com/emnh), [#61](https://github.com/tonsky/rum/issues/61))
 
 ## 0.8.1
 
-- Retain `:arglists` metadata on vars defined by `rum/def*` macros (thx [aJchemist](https://github.com/aJchemist), PR #60)
+- Retain `:arglists` metadata on vars defined by `rum/def*` macros (thx [aJchemist](https://github.com/aJchemist), [#60](https://github.com/tonsky/rum/pull/60))
 
 ## 0.8.0
 
@@ -161,20 +186,20 @@ To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-st
 
 ## 0.6.0
 
-- [ BREAKING ] Updated to [React 0.14.3](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html) (thx [Andrey Antukh](https://github.com/niwinz), PR #53)
+- [ BREAKING ] Updated to [React 0.14.3](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html) (thx [Andrey Antukh](https://github.com/niwinz), [#53](https://github.com/tonsky/rum/pull/53))
 
 ## 0.5.0
 
-- Added `:class-properties` to define arbitrary properties on a React class (thx [Karanbir Toor](https://github.com/currentoor), PR #44)
+- Added `:class-properties` to define arbitrary properties on a React class (thx [Karanbir Toor](https://github.com/currentoor), [#44](https://github.com/tonsky/rum/pull/44))
 - [ BREAKING ] Removed support for `:child-context-types` and `:context-types`. Use `{ :class-properties { :childContextTypes ..., :contextTypes ... } }` instead.
 
 ## 0.4.2
 
-- Check for `setTimeout` in global scope instead of in window (thx [Alexander Solovyov](https://github.com/piranha), PR #43)
+- Check for `setTimeout` in global scope instead of in window (thx [Alexander Solovyov](https://github.com/piranha), [#43](https://github.com/tonsky/rum/pull/43))
 
 ## 0.4.1
 
-- Fixed bug with rum macros emitting wrong namespace. You can now require `rum.core` under any alias you want (thx [Stuart Hinson](https://github.com/stuarth), PR #42)
+- Fixed bug with rum macros emitting wrong namespace. You can now require `rum.core` under any alias you want (thx [Stuart Hinson](https://github.com/stuarth), [#42](https://github.com/tonsky/rum/pull/42))
 
 ## 0.4.0
 
@@ -183,15 +208,15 @@ To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-st
 ## 0.3.0
 
 - Upgraded to React 0.13.3, Sablono 0.3.6, ClojueScript 1.7.48
-- New API to access context: `child-context`, `child-context-types`, `context-types` (thx [Karanbir Toor](https://github.com/currentoor), PR #37)
+- New API to access context: `child-context`, `child-context-types`, `context-types` (thx [Karanbir Toor](https://github.com/currentoor), [#37](https://github.com/tonsky/rum/pull/37))
 - New `defcc` macro for when you only need React component, not the whole Rum state
 - [ BREAKING ] Component inner state (`:rum/state`) was moved from `props` to `state`. It doesn’t change a thing if you were using Rum API only, but might break something if you were relaying on internal details
 - Deprecated `rum/with-props` macro, use `rum/with-key` or `rum/with-ref` fns instead
 
 ## 0.2.7
 
-- Allow components to refer to themselves (thx [Kevin Lynagh](https://github.com/lynaghk), pull request #30)
-- Support for multi-arity render fns (issue #23)
+- Allow components to refer to themselves (thx [Kevin Lynagh](https://github.com/lynaghk), [#30](https://github.com/tonsky/rum/pull/30))
+- Support for multi-arity render fns ([#23](https://github.com/tonsky/rum/issues/23))
 
 ## 0.2.6
 
@@ -199,16 +224,16 @@ To migrate to 0.9.0 from earlier versions, just do search-and-replace for non-st
 
 ## 0.2.5
 
-- Fixed argument destructuring in defc macro (issue #22)
+- Fixed argument destructuring in defc macro ([#22](https://github.com/tonsky/rum/issues/22))
 
 ## 0.2.4
 
-- `will-update` and `did-update` lifecycle methods added (thx [Andrey Vasenin](https://github.com/avasenin), pull request #18)
+- `will-update` and `did-update` lifecycle methods added (thx [Andrey Vasenin](https://github.com/avasenin), [#18](https://github.com/tonsky/rum/pull/18))
 
 ## 0.2.3
 
-- Components defined via `defc/defcs` will have `displayName` defined (thx [Ivan Dubrov](https://github.com/idubrov), pull request #16)
-- Not referencing `requestAnimationFrame` when used in headless environment (thx @[whodidthis](https://github.com/whodidthis), pull request #14)
+- Components defined via `defc/defcs` will have `displayName` defined (thx [Ivan Dubrov](https://github.com/idubrov), [#16](https://github.com/tonsky/rum/pull/16))
+- Not referencing `requestAnimationFrame` when used in headless environment (thx @[whodidthis](https://github.com/whodidthis), [#14](https://github.com/tonsky/rum/pull/14))
 
 ## 0.2.2
 

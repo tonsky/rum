@@ -1,7 +1,7 @@
 (ns rum.examples.board-reactive
   (:require
-    [rum.core :as rum]
-    [rum.examples.core :as core]))
+   [rum.core :as rum]
+   [rum.examples.core :as core]))
 
 
 ;; Reactive drawing board
@@ -9,7 +9,6 @@
 
 (def *board (atom (core/initial-board)))
 (def *board-renders (atom 0))
-
 
 (rum/defc cell < rum/reactive [x y]
   (swap! *board-renders inc)
@@ -21,18 +20,16 @@
     [:div.art-cell {:style {:background-color (when (rum/react *cursor) (rum/react core/*color))}
                     :on-mouse-over (fn [_] (swap! *cursor not) nil)}]))
 
-
 (rum/defc board-reactive []
   [:div.artboard
-    (for [y (range 0 core/board-height)]
-      [:div.art-row {:key y}
-        (for [x (range 0 core/board-width)]
+   (for [y (range 0 core/board-height)]
+     [:div.art-row {:key y}
+      (for [x (range 0 core/board-width)]
           ;; this is how one can specify React key for component
-          (-> (cell x y)
-              (rum/with-key [x y])))])
+        (-> (cell x y)
+            (rum/with-key [x y])))])
    (core/board-stats *board *board-renders)])
 
-
 #?(:cljs
-(defn mount! [mount-el]
+   (defn mount! [mount-el]
      (rum/hydrate (board-reactive) mount-el)))

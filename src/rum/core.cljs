@@ -1,5 +1,5 @@
 (ns rum.core
-  (:refer-clojure :exclude [ref])
+  (:refer-clojure :exclude [ref deref])
   (:require-macros rum.core)
   (:require
     [cljsjs.react]
@@ -11,18 +11,15 @@
     [rum.util :as util :refer [collect collect* call-all]]
     [rum.derived-atom :as derived-atom]))
 
-
 (defn state
   "Given React component, returns Rum state associated with it."
   [comp]
   (gobj/get (.-state comp) ":rum/state"))
 
-
 (defn- extend! [obj props]
   (doseq [[k v] props
           :when (some? v)]
     (gobj/set obj (name k) (clj->js v))))
-
 
 (defn- build-class [render mixins display-name]
   (let [init           (collect   :init mixins)             ;; state props -> state
@@ -47,88 +44,88 @@
 
         ctor           (fn [props]
                          (this-as this
-                           (gobj/set this "state"
-                             #js {":rum/state"
-                                  (-> (gobj/get props ":rum/initial-state")
-                                      (assoc :rum/react-component this)
-                                      (call-all init props)
-                                      volatile!)})
-                           (.call js/React.Component this props)))
+                                  (gobj/set this "state"
+                                            #js {":rum/state"
+                                                 (-> (gobj/get props ":rum/initial-state")
+                                                     (assoc :rum/react-component this)
+                                                     (call-all init props)
+                                                     volatile!)})
+                                  (.call js/React.Component this props)))
         _              (goog/inherits ctor js/React.Component)
         prototype      (gobj/get ctor "prototype")]
 
     (when-not (empty? will-mount)
       (gobj/set prototype "componentWillMount"
-        (fn []
-          (this-as this
-            (vswap! (state this) call-all will-mount)))))
+                (fn []
+                  (this-as this
+                           (vswap! (state this) call-all will-mount)))))
 
     (when-not (empty? did-mount)
       (gobj/set prototype "componentDidMount"
-        (fn []
-          (this-as this
-            (vswap! (state this) call-all did-mount)))))
+                (fn []
+                  (this-as this
+                           (vswap! (state this) call-all did-mount)))))
 
     (gobj/set prototype "componentWillReceiveProps"
-      (fn [next-props]
-        (this-as this
-          (let [old-state  @(state this)
-                state      (merge old-state
-                                  (gobj/get next-props ":rum/initial-state"))
-                next-state (reduce #(%2 old-state %1) state did-remount)]
+              (fn [next-props]
+                (this-as this
+                         (let [old-state  @(state this)
+                               state      (merge old-state
+                                                 (gobj/get next-props ":rum/initial-state"))
+                               next-state (reduce #(%2 old-state %1) state did-remount)]
             ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
-            (.setState this #js {":rum/state" (volatile! next-state)})))))
+                           (.setState this #js {":rum/state" (volatile! next-state)})))))
 
     (when-not (empty? should-update)
       (gobj/set prototype "shouldComponentUpdate"
-        (fn [next-props next-state]
-            (this-as this
-              (let [old-state @(state this)
-                    new-state @(gobj/get next-state ":rum/state")]
-                (or (some #(% old-state new-state) should-update) false))))))
-    
+                (fn [next-props next-state]
+                  (this-as this
+                           (let [old-state @(state this)
+                                 new-state @(gobj/get next-state ":rum/state")]
+                             (or (some #(% old-state new-state) should-update) false))))))
+
     (when-not (empty? will-update)
       (gobj/set prototype "componentWillUpdate"
-        (fn [_ next-state]
-          (this-as this
-            (let [new-state (gobj/get next-state ":rum/state")]
-              (vswap! new-state call-all will-update))))))
-    
+                (fn [_ next-state]
+                  (this-as this
+                           (let [new-state (gobj/get next-state ":rum/state")]
+                             (vswap! new-state call-all will-update))))))
+
     (gobj/set prototype "render"
-      (fn []
-        (this-as this
-          (let [state (state this)
-                [dom next-state] (wrapped-render @state)]
-            (vreset! state next-state)
-            dom))))
+              (fn []
+                (this-as this
+                         (let [state (state this)
+                               [dom next-state] (wrapped-render @state)]
+                           (vreset! state next-state)
+                           dom))))
 
     (when-not (empty? did-update)
       (gobj/set prototype "componentDidUpdate"
-        (fn [_ _]
-          (this-as this
-            (vswap! (state this) call-all did-update)))))
+                (fn [_ _]
+                  (this-as this
+                           (vswap! (state this) call-all did-update)))))
 
     (when-not (empty? did-catch)
       (gobj/set prototype "componentDidCatch"
-        (fn [error info]
-          (this-as this
-            (vswap! (state this) call-all did-catch error {:rum/component-stack (gobj/get info "componentStack")})
-            (.forceUpdate this)))))
+                (fn [error info]
+                  (this-as this
+                           (vswap! (state this) call-all did-catch error {:rum/component-stack (gobj/get info "componentStack")})
+                           (.forceUpdate this)))))
 
     (gobj/set prototype "componentWillUnmount"
-      (fn []
-        (this-as this
-          (when-not (empty? will-unmount)
-            (vswap! (state this) call-all will-unmount))
-          (gobj/set this ":rum/unmounted?" true))))
+              (fn []
+                (this-as this
+                         (when-not (empty? will-unmount)
+                           (vswap! (state this) call-all will-unmount))
+                         (gobj/set this ":rum/unmounted?" true))))
 
     (when-not (empty? child-context)
       (gobj/set prototype "getChildContext"
-        (fn []
-          (this-as this
-            (let [state @(state this)]
-              (clj->js (transduce (map #(% state)) merge {} child-context)))))))
-    
+                (fn []
+                  (this-as this
+                           (let [state @(state this)]
+                             (clj->js (transduce (map #(% state)) merge {} child-context)))))))
+
     (extend! prototype class-props)
     (gobj/set ctor "displayName" display-name)
     (extend! ctor static-props)
@@ -155,38 +152,59 @@
         key-fn (first (collect :key-fn mixins))
         ctor   (if (some? key-fn)
                  (fn [& args]
-                   (let [props #js { ":rum/initial-state" { :rum/args args }
-                                     "key" (apply key-fn args) }]
+                   (let [props #js {":rum/initial-state" {:rum/args args}
+                                    "key" (apply key-fn args)}]
                      (js/React.createElement class props)))
                  (fn [& args]
-                   (let [props #js { ":rum/initial-state" { :rum/args args }}] 
+                   (let [props #js {":rum/initial-state" {:rum/args args}}]
                      (js/React.createElement class props))))]
-    (with-meta ctor { :rum/class class })))
+    (with-meta ctor {:rum/class class})))
 
+(declare static)
+
+(defn- memo-compare-props [prev-props next-props]
+  (= (aget prev-props ":rum/args")
+     (aget next-props ":rum/args")))
+
+(defn react-memo [f]
+  (if-some [memo (.-memo js/React)]
+    (memo f memo-compare-props)
+    f))
 
 (defn ^:no-doc build-defc [render-body mixins display-name]
-  (if (empty? mixins)
+  (cond
+    (= mixins [static])
+    (let [class (fn [props]
+                  (apply render-body (aget props ":rum/args")))
+          _     (aset class "displayName" display-name)
+          memo-class (react-memo class)
+          ctor  (fn [& args]
+                  (.createElement js/React memo-class #js {":rum/args" args}))]
+      (with-meta ctor {:rum/class memo-class}))
+
+    (empty? mixins)
     (let [class (fn [props]
                   (apply render-body (aget props ":rum/args")))
           _     (aset class "displayName" display-name)
           ctor  (fn [& args]
-                  (js/React.createElement class #js { ":rum/args" args }))]
-      (with-meta ctor { :rum/class class }))
+                  (.createElement js/React class #js {":rum/args" args}))]
+      (with-meta ctor {:rum/class class}))
+
+    :else
     (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
       (build-ctor render mixins display-name))))
-
 
 (defn ^:no-doc build-defcs [render-body mixins display-name]
   (let [render (fn [state] [(apply render-body state (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
-
 (defn ^:no-doc build-defcc [render-body mixins display-name]
-  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])] 
+  (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
 
 ;; render queue
+
 
 (def ^:private schedule
   (or (and (exists? js/window)
@@ -194,30 +212,25 @@
                js/window.webkitRequestAnimationFrame
                js/window.mozRequestAnimationFrame
                js/window.msRequestAnimationFrame))
-    #(js/setTimeout % 16)))
-
+      #(js/setTimeout % 16)))
 
 (def ^:private batch
   (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
       (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
       (fn [f a] (f a))))
 
-
 (def ^:private empty-queue [])
 (def ^:private render-queue (volatile! empty-queue))
-
 
 (defn- render-all [queue]
   (doseq [comp queue
           :when (and (some? comp) (not (gobj/get comp ":rum/unmounted?")))]
     (.forceUpdate comp)))
 
-
 (defn- render []
   (let [queue @render-queue]
     (vreset! render-queue empty-queue)
     (batch render-all queue)))
-
 
 (defn request-render
   "Schedules react component to be rendered on next animation frame."
@@ -226,33 +239,33 @@
     (schedule render))
   (vswap! render-queue conj component))
 
-
 (defn mount
   "Add element to the DOM tree. Idempotent. Subsequent mounts will just update element."
   [element node]
   (js/ReactDOM.render element node)
   nil)
 
-
 (defn unmount
   "Removes component from the DOM tree."
   [node]
   (js/ReactDOM.unmountComponentAtNode node))
-
 
 (defn hydrate
   "Same as [[mount]] but must be called on DOM tree already rendered by a server via [[render-html]]."
   [element node]
   (js/ReactDOM.hydrate element node))
 
-
 (defn portal
   "Render `element` in a DOM `node` that is ouside of current DOM hierarchy."
   [element node]
   (js/ReactDOM.createPortal element node))
 
+(defn create-context [default-value]
+  (.createContext js/React default-value))
+
 
 ;; initialization
+
 
 (defn with-key
   "Adds React key to element.
@@ -265,8 +278,7 @@
        (rum/mount js/document.body))
    ```"
   [element key]
-  (js/React.cloneElement element #js { "key" key } nil))
-
+  (js/React.cloneElement element #js {"key" key} nil))
 
 (defn with-ref
   "Adds React ref (string or callback) to element.
@@ -279,8 +291,7 @@
        (rum/mount js/document.body))
    ```"
   [element ref]
-  (js/React.cloneElement element #js { "ref" ref } nil))
-
+  (js/React.cloneElement element #js {"ref" ref} nil))
 
 (defn dom-node
   "Usage of this function is discouraged. Use :ref callback instead.
@@ -288,13 +299,11 @@
   [state]
   (js/ReactDOM.findDOMNode (:rum/react-component state)))
 
-
 (defn ref
   "DEPRECATED: Use :ref (fn [dom-or-nil]) callback instead. See rum issue #124
   Given state and ref handle, returns React component."
   [state key]
   (-> state :rum/react-component (aget "refs") (aget (name key))))
-
 
 (defn ref-node
   "DEPRECATED: Use :ref (fn [dom-or-nil]) callback instead. See rum issue #124
@@ -304,6 +313,7 @@
 
 
 ;; static mixin
+
 
 (def static
   "Mixin. Will avoid re-render if none of component’s arguments have changed. Does equality check (`=`) on all arguments.
@@ -321,12 +331,13 @@
    ;; def == def, won’t re-render
    (rum/mount (label \"def\") js/document.body)
    ```"
-  { :should-update
-    (fn [old-state new-state]
-      (not= (:rum/args old-state) (:rum/args new-state))) })
+  {:should-update
+   (fn [old-state new-state]
+     (not= (:rum/args old-state) (:rum/args new-state)))})
 
 
 ;; local mixin
+
 
 (defn local
   "Mixin constructor. Adds an atom to component’s state that can be used to keep stuff during component’s lifecycle. Component will be re-rendered if atom’s value changes. Atom is stored under user-provided key or under `:rum/local` by default.
@@ -342,20 +353,20 @@
    ```"
   ([initial] (local initial :rum/local))
   ([initial key]
-    { :will-mount
-      (fn [state]
-        (let [local-state (atom initial)
-              component   (:rum/react-component state)]
-          (add-watch local-state key
-            (fn [_ _ _ _]
-              (request-render component)))
-          (assoc state key local-state))) }))
+   {:will-mount
+    (fn [state]
+      (let [local-state (atom initial)
+            component   (:rum/react-component state)]
+        (add-watch local-state key
+                   (fn [_ _ _ _]
+                     (request-render component)))
+        (assoc state key local-state)))}))
 
 
 ;; reactive mixin
 
-(def ^:private ^:dynamic *reactions*)
 
+(def ^:private ^:dynamic *reactions*)
 
 (def reactive
   "Mixin. Works in conjunction with [[react]].
@@ -369,34 +380,33 @@
    (rum/mount (comp *counter) js/document.body)
    (swap! *counter inc) ;; will force comp to re-render
    ```"
-  { :init
-    (fn [state props]
-      (assoc state :rum.reactive/key (random-uuid)))
-    :wrap-render
-    (fn [render-fn]
-      (fn [state]
-        (binding [*reactions* (volatile! #{})]
-          (let [comp             (:rum/react-component state)
-                old-reactions    (:rum.reactive/refs state #{})
-                [dom next-state] (render-fn state)
-                new-reactions    @*reactions*
-                key              (:rum.reactive/key state)]
-            (doseq [ref old-reactions]
-              (when-not (contains? new-reactions ref)
-                (remove-watch ref key)))
-            (doseq [ref new-reactions]
-              (when-not (contains? old-reactions ref)
-                (add-watch ref key
-                  (fn [_ _ _ _]
-                    (request-render comp)))))
-            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
-    :will-unmount
-    (fn [state]
-      (let [key (:rum.reactive/key state)]
-        (doseq [ref (:rum.reactive/refs state)]
-          (remove-watch ref key)))
-      (dissoc state :rum.reactive/refs :rum.reactive/key)) })
-
+  {:init
+   (fn [state props]
+     (assoc state :rum.reactive/key (random-uuid)))
+   :wrap-render
+   (fn [render-fn]
+     (fn [state]
+       (binding [*reactions* (volatile! #{})]
+         (let [comp             (:rum/react-component state)
+               old-reactions    (:rum.reactive/refs state #{})
+               [dom next-state] (render-fn state)
+               new-reactions    @*reactions*
+               key              (:rum.reactive/key state)]
+           (doseq [ref old-reactions]
+             (when-not (contains? new-reactions ref)
+               (remove-watch ref key)))
+           (doseq [ref new-reactions]
+             (when-not (contains? old-reactions ref)
+               (add-watch ref key
+                          (fn [_ _ _ _]
+                            (request-render comp)))))
+           [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
+   :will-unmount
+   (fn [state]
+     (let [key (:rum.reactive/key state)]
+       (doseq [ref (:rum.reactive/refs state)]
+         (remove-watch ref key)))
+     (dissoc state :rum.reactive/refs :rum.reactive/key))})
 
 (defn react
   "Works in conjunction with [[reactive]] mixin. Use this function instead of `deref` inside render, and your component will subscribe to changes happening to the derefed atom."
@@ -407,6 +417,7 @@
 
 
 ;; derived-atom
+
 
 (def ^{:style/indent 2
        :arglists '([refs key f] [refs key f opts])
@@ -454,6 +465,7 @@
 
 ;; cursors
 
+
 (defn cursor-in
   "Given atom with deep nested value and path inside it, creates an atom-like structure
    that can be used separately from main atom, but will sync changes both ways:
@@ -481,8 +493,132 @@
     (cursor/Cursor. (.-ref ref) (into (.-path ref) path) (:meta options))
     (cursor/Cursor. ref path (:meta options))))
 
-
 (defn cursor
   "Same as [[cursor-in]] but accepts single key instead of path vector."
   [ref key & options]
   (apply cursor-in ref [key] options))
+
+;; hooks
+
+(defn ^array use-state
+  "Takes initial value or value returning fn and returns a tuple of [value set-value!],
+  where `value` is current state value and `set-value!` is a function that schedules re-render.
+
+  (let [[value set-state!] (rum/use-state 0)]
+    [:button {:on-click #(set-state! (inc value))}
+      value])"
+  [value-or-fn]
+  (.useState js/React value-or-fn))
+
+(defn ^array use-reducer
+  "Takes reducing function and initial state value.
+  Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
+
+  (defmulti value-reducer (fn [event value] event))
+
+  (defmethod value-reducer :inc [_ value]
+    (inc value))
+
+  (let [[value dispatch!] (rum/use-reducer value-reducer 0)]
+    [:button {:on-click #(dispatch! :inc)}
+      value])
+
+  Read more at https://reactjs.org/docs/hooks-reference.html#usereducer"
+  ([reducer-fn initial-value]
+   (.useReducer js/React #(reducer-fn %2 %1) initial-value identity)))
+
+(defn use-effect!
+  "Takes setup-fn that executes either on the first render or after every update.
+  The function may return cleanup-fn to cleanup the effect, either before unmount or before every next update.
+  Calling behavior is controlled by deps argument.
+
+  (rum/use-effect!
+    (fn []
+      (.addEventListener js/window \"load\" handler)
+      #(.removeEventListener js/window \"load\" handler))
+    []) ;; empty deps collection instructs React to run setup-fn only once on initial render
+        ;; and cleanup-fn only once before unmounting
+
+  Read more at https://reactjs.org/docs/hooks-effect.html"
+  ([setup-fn]
+   (.useEffect js/React #(or (setup-fn) js/undefined)))
+  ([setup-fn deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useEffect js/React #(or (setup-fn) js/undefined)))))
+
+(defn use-callback
+  "Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
+
+  (rum/defc button < rum/static
+    [{:keys [on-click]} text]
+    [:button {:on-click on-click}
+      text])
+
+  (rum/defc app [v]
+    (let [on-click (rum/use-callback #(do-stuff v) [v])]
+      ;; because on-click callback is memoized here based on v argument
+      ;; the callback won't be re-created on every render, unless v changes
+      ;; which means that underlying `button` component won't re-render wastefully
+      [button {:on-click on-click}
+        \"press me\"]))
+
+  Read more at https://reactjs.org/docs/hooks-reference.html#usecallback"
+  ([callback]
+   (.useCallback js/React callback))
+  ([callback deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useCallback js/React callback))))
+
+(defn use-memo
+  "Takes a function, memoizes it based on provided deps collection and executes immediately returning a result.
+  Read more at https://reactjs.org/docs/hooks-reference.html#usememo"
+  ([f]
+   (.useMemo js/React f))
+  ([f deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useMemo js/React f))))
+
+(defn use-ref
+  "Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
+  https://reactjs.org/docs/hooks-reference.html#useref"
+  ([initial-value]
+   (.useRef js/React initial-value)))
+
+;; Refs
+
+(defn create-ref []
+  (.createRef js/React))
+
+(defn deref
+  "Takes a ref returned from use-ref and returns its current value."
+  [^js ref]
+  (.-current ref))
+
+(defn set-ref! [^js ref value]
+  (set! (.-current ref) value))
+
+;;; Server-side rendering
+
+;; Roman. For Node.js runtime we require "react-dom/server" for you
+;; In the browser you have to add cljsjs/react-dom-server yourself
+
+(defn render-html
+  "Main server-side rendering method. Given component, returns HTML string with static markup of that component.
+  Serve that string to the browser and [[hydrate]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster.
+  No opts are supported at the moment."
+  ([element]
+   (render-html element nil))
+  ([element opts]
+   (if-not (identical? *target* "nodejs")
+     (.renderToString js/ReactDOMServer element)
+     (let [react-dom-server (js/require "react-dom/server")]
+       (.renderToString react-dom-server element)))))
+
+(defn render-static-markup
+  "Same as [[render-html]] but returned string has nothing React-specific.
+  This allows Rum to be used as traditional server-side templating engine."
+  [src]
+  (if-not (identical? *target* "nodejs")
+    (.renderToStaticMarkup js/ReactDOMServer src)
+    (let [react-dom-server (js/require "react-dom/server")]
+      (.renderToStaticMarkup react-dom-server src))))

@@ -1,13 +1,12 @@
 (ns rum.core
-  (:refer-clojure :exclude [ref])
+  (:refer-clojure :exclude [ref deref])
   (:require
-    [rum.cursor :as cursor]
-    [rum.server-render :as render]
-    [rum.util :as util :refer [collect collect* call-all]]
-    [rum.derived-atom :as derived-atom])
+   [rum.cursor :as cursor]
+   [rum.server-render :as render]
+   [rum.util :as util :refer [collect collect* call-all]]
+   [rum.derived-atom :as derived-atom])
   (:import
-    [rum.cursor Cursor]))
-
+   [rum.cursor Cursor]))
 
 (defn- fn-body? [form]
   (when (and (seq? form)
@@ -15,7 +14,6 @@
     (if (= '< (second form))
       (throw (IllegalArgumentException. "Mixins must be given before argument list"))
       true)))
-
 
 (defn- parse-defc
   ":name  :doc?  <? :mixins* :bodies+
@@ -29,40 +27,44 @@
     (let [x    (first xs)
           next (next xs)]
       (cond
-        (and (empty? res) (symbol? x))
-          (recur {:name x} next nil)
+        (and (empty? res) (symbol? x)) (recur {:name x} next nil)
         (fn-body? xs)        (assoc res :bodies (list xs))
         (every? fn-body? xs) (assoc res :bodies xs)
         (string? x)          (recur (assoc res :doc x) next nil)
         (= '< x)             (recur res next :mixins)
-        (= mode :mixins)
-          (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
-        :else
-          (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
+        (= mode :mixins) (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
+        :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
+(defn- get-sablono
+  ([]
+   (get-sablono 'compile-html))
+  ([var-sym]
+   (ns-resolve (find-ns 'sablono.compiler) var-sym)))
 
 (defn- compile-body [[argvec conditions & body]]
   (let [_            (require 'sablono.compiler)
-        compile-html (ns-resolve (find-ns 'sablono.compiler) 'compile-html)]
+        compile-html (get-sablono)]
     (if (and (map? conditions) (seq body))
       (list argvec conditions (compile-html `(do ~@body)))
       (list argvec (compile-html `(do ~@(cons conditions body)))))))
 
-
-(defn- -defc [builder cljs? body]
+(defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
+        cljs? (:ns env)
         render-body (if cljs?
                       (map compile-body bodies)
                       bodies)
         arglists  (if (= builder 'rum.core/build-defc)
                     (map (fn [[arglist & _body]] arglist) bodies)
-                    (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))]
+                    (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))
+        display-name (if cljs?
+                       (-> env :ns :name (str "/" name))
+                       (str name))]
     `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
        ~@(if doc [doc] [])
        ~(if cljs?
-          `(rum.core/lazy-build ~builder (fn ~@render-body) ~mixins ~(str name))
-          `(~builder (fn ~@render-body) ~mixins ~(str name))))))
-
+          `(rum.core/lazy-build ~builder (fn ~@render-body) ~mixins ~display-name)
+          `(~builder (fn ~@render-body) ~mixins ~display-name)))))
 
 (defmacro defc
   "```
@@ -90,8 +92,7 @@
    (label \"text\") ;; => returns React element built with label class
    ```"
   [& body]
-  (-defc 'rum.core/build-defc (boolean (:ns &env)) body))
-
+  (-defc 'rum.core/build-defc &env body))
 
 (defmacro defcs
   "```
@@ -100,8 +101,7 @@
    
    Same as [[defc]], but render will take additional first argument: component state."
   [& body]
-  (-defc 'rum.core/build-defcs (boolean (:ns &env)) body))
-
+  (-defc 'rum.core/build-defcs &env body))
 
 (defmacro defcc
   "```
@@ -110,8 +110,7 @@
 
    Same as [[defc]], but render will take additional first argument: react component."
   [& body]
-  (-defc 'rum.core/build-defcc (boolean (:ns &env)) body))
-
+  (-defc 'rum.core/build-defcc &env body))
 
 (defn- build-ctor [render mixins display-name]
   (let [init           (collect :init mixins)                ;; state props -> state
@@ -122,7 +121,7 @@
         wrapped-render (reduce #(%2 %1) render (collect :wrap-render mixins))] ;; render-fn -> render-fn
     (fn [& args]
       (let [props   nil
-            state   (-> { :rum/args args }
+            state   (-> {:rum/args args}
                         (call-all init props)
                         (call-all will-mount))
             [dom _] (if (empty? did-catch)
@@ -133,18 +132,15 @@
                           (wrapped-render (call-all state did-catch e nil)))))]
         (or dom [:rum/nothing])))))
 
-
 (defn ^:no-doc build-defc [render-body mixins display-name]
   (if (empty? mixins)
     (fn [& args] (or (apply render-body args) [:rum/nothing]))
     (let [render (fn [state] [(apply render-body (:rum/args state)) state])]
       (build-ctor render mixins display-name))))
 
-
 (defn ^:no-doc build-defcs [render-body mixins display-name]
   (let [render (fn [state] [(apply render-body state (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
-
 
 (defn ^:no-doc build-defcc [render-body mixins display-name]
   (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
@@ -165,16 +161,18 @@
        (rum/mount js/document.body))
    ```"
   [element key]
+  ;; Roman. Why we are doing this for SSR? Keys are not used on the server
   (cond
     (render/nothing? element)
     element
-    
-    (map? (get element 1))
+
+    (and (vector? element) (map? (get element 1)))
     (assoc-in element [1 :key] key)
 
-    :else
-    (into [(first element) {:key key}] (next element))))
+    (vector? element)
+    (into [(first element) {:key key}] (next element))
 
+    :else element))
 
 (defn with-ref
   "Supported, does nothing."
@@ -184,8 +182,8 @@
 
 ;; mixins
 
-(def static "Supported, does nothing." {})
 
+(def static "Supported, does nothing." {})
 
 (defn local
   "Mixin constructor. Adds an atom to component’s state that can be used to keep stuff during component’s lifecycle. Component will be re-rendered if atom’s value changes. Atom is stored under user-provided key or under `:rum/local` by default.
@@ -201,17 +199,14 @@
    ```"
   ([initial] (local initial :rum/local))
   ([initial key]
-    {:will-mount (fn [state]
-                   (assoc state key (atom initial)))}))
-
+   {:will-mount (fn [state]
+                  (assoc state key (atom initial)))}))
 
 (def reactive "Supported, does nothing." {})
 
-
 (def ^{:arglists '([ref])
        :doc "Supported as simple deref."}
-  react deref)
-
+  react clojure.core/deref)
 
 (defn cursor-in
   "Given atom with deep nested value and path inside it, creates an atom-like structure
@@ -235,17 +230,15 @@
    Returned value supports `deref`, `swap!`, `reset!`, watches and metadata.
   
    The only supported option is `:meta`"
-  ^rum.cursor.Cursor [ref path & { :as options }]
+  ^rum.cursor.Cursor [ref path & {:as options}]
   (if (instance? Cursor ref)
     (cursor/Cursor. (.-ref ^Cursor ref) (into (.-path ^Cursor ref) path) (:meta options) (volatile! {}))
     (cursor/Cursor. ref path (:meta options) (volatile! {}))))
-
 
 (defn cursor
   "Same as [[cursor-in]] but accepts single key instead of path vector."
   ^rum.cursor.Cursor [ref key & options]
   (apply cursor-in ref [key] options))
-
 
 (def ^{:style/indent 2
        :arglists '([refs key f] [refs key f opts])
@@ -293,10 +286,10 @@
 
 ;;; Server-side rendering
 
-(def ^{:arglists '([element] [element opts])
-       :doc "Main server-side rendering method. Given component, returns HTML string with static markup of that component. Serve that string to the browser and [[mount]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster. No opts are supported at the moment."}
-  render-html render/render-html)
 
+(def ^{:arglists '([element] [element opts])
+       :doc "Main server-side rendering method. Given component, returns HTML string with static markup of that component. Serve that string to the browser and [[hydrate]] same Rum component over it. React will be able to reuse already existing DOM and will initialize much faster. No opts are supported at the moment."}
+  render-html render/render-html)
 
 (def ^{:arglists '([element])
        :doc "Same as [[render-html]] but returned string has nothing React-specific. This allows Rum to be used as traditional server-side templating engine."}
@@ -306,29 +299,133 @@
 ;; method parity with CLJS version so you can avoid conditional directive
 ;; in e.g. did-mount/will-unmount mixin bodies
 
+
 (defn ^:no-doc state [c]
   (throw (UnsupportedOperationException. "state is only available from ClojureScript")))
-
 
 (defn ^:no-doc dom-node [s]
   (throw (UnsupportedOperationException. "dom-node is only available from ClojureScript")))
 
-
 (defn ^:no-doc ref [s k]
   (throw (UnsupportedOperationException. "ref is only available from ClojureScript")))
-
 
 (defn ^:no-doc ref-node [s k]
   (throw (UnsupportedOperationException. "ref is only available from ClojureScript")))
 
-
 (defn ^:no-doc mount [c n]
   (throw (UnsupportedOperationException. "mount is only available from ClojureScript")))
-
 
 (defn ^:no-doc unmount [c]
   (throw (UnsupportedOperationException. "unmount is only available from ClojureScript")))
 
-
 (defn ^:no-doc request-render [c]
   (throw (UnsupportedOperationException. "request-render is only available from ClojureScript")))
+
+;; Context API
+
+(defn- sym->context-name [name env]
+  (str "Context(" (-> env :ns :name (str "/" name)) ")"))
+
+(defmacro defcontext
+  "cljs: Creates React context with initial value set to `value`.
+  clj: Create dynamic var bound to `value`."
+  ([name]
+   (if (:ns &env)
+     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context nil)]
+                                               (set! (.-displayName ctx#) ~(sym->context-name name &env))
+                                               ctx#))
+     `(def ~(with-meta name {:dynamic true}))))
+  ([name value]
+   (if (:ns &env)
+     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context value)]
+                                               (set! (.-displayName ctx#) ~(sym->context-name name &env))
+                                               ctx#))
+     `(def ~(with-meta name {:dynamic true}) ~value))))
+
+(defmacro with-context
+  "(with-context [value ctx]
+     [:div value])"
+  [[sym context] & body]
+  (if (:ns &env)
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map compile-html body))))
+    `(let [~sym ~context]
+       ~@body)))
+
+(defmacro bind-context
+  "(bind-context [context value]
+    ...)"
+  [[context value] & body]
+  (if (:ns &env)
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React (.-Provider ~context) (cljs.core/js-obj "value" ~value) ~@(map compile-html body)))
+    `(binding [~context ~value]
+       ~@body)))
+
+;; hooks
+
+(defn use-state [value-or-fn]
+  (if (fn? value-or-fn)
+    (value-or-fn)
+    value-or-fn))
+
+(defn use-reducer [reducer-fn initial-value]
+  initial-value)
+
+(defn use-effect!
+  ([setup-fn])
+  ([setup-fn deps]))
+
+(defn use-callback
+  ([callback] callback)
+  ([callback deps] callback))
+
+(defn use-memo
+  ([f] (f))
+  ([f deps] (f)))
+
+(defn use-ref [initial-value]
+  (atom initial-value))
+
+;; Refs
+
+(defn create-ref []
+  (atom nil))
+
+(defn deref [ref]
+  @ref)
+
+(defn set-ref! [ref value]
+  (reset! ref value))
+
+;; React.Suspense
+
+(defmacro suspense
+  "(rum/require-lazy '[app.components :refer [alert]])
+
+  (rum/defc root []
+    (suspense {:fallback \"Hello!\"}
+      (alert \"ARGUMENT\")))
+
+  See a complete example here https://github.com/roman01la/rum-code-splitting"
+  [{:keys [fallback]} child]
+  (if-not (:ns &env)
+    child
+    (let [compile-html (get-sablono)]
+      `(.createElement js/React
+                       (.-Suspense js/React) (cljs.core/js-obj "fallback" ~fallback) ~(compile-html child)))))
+
+;; React.Fragment
+
+(defmacro fragment
+  "(rum/fragment [button] [input] ...)"
+  [{:keys [key] :as attrs} & children]
+  (let [[attrs children] (if (map? attrs)
+                           [attrs children]
+                           [nil (concat [attrs] children)])]
+    (if-not (:ns &env)
+      `(list ~@children)
+      (let [compile-html (get-sablono)
+            compile-attrs (get-sablono 'compile-attrs)]
+        `(.createElement js/React
+                         (.-Fragment js/React) ~(compile-attrs attrs) ~@(map compile-html children))))))
