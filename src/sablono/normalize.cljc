@@ -83,7 +83,7 @@
         (cond (empty? matches)
               (throw (ex-info (str "Can't match CSS tag: " s) {:tag s}))
 
-              (#{\# \.} (ffirst matches))                   ;; shorthand for div
+              (contains? #{\# \.} (ffirst matches))                   ;; shorthand for div
               ["div" matches]
 
               :default
@@ -91,7 +91,7 @@
     [tag-name
      (strip-css (some #(when (= \# (first %1)) %1) names))
      (into []
-           (comp (filter #(= \. (first %1))) (map strip-css))
+           (keep #(when (= \. (first %)) (strip-css %)))
            names)]))
 
 (defn children
