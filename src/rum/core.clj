@@ -62,7 +62,9 @@
                        (str name))]
     `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
        ~@(if doc [doc] [])
-       (~builder (fn ~@render-body) ~mixins ~display-name))))
+       ~(if cljs?
+          `(rum.core/lazy-build ~builder (fn ~@render-body) ~mixins ~display-name)
+          `(~builder (fn ~@render-body) ~mixins ~display-name)))))
 
 (defmacro defc
   "```
