@@ -1,7 +1,7 @@
-(ns sablono.interpreter
+(ns daiquiri.interpreter
   (:require [clojure.string :as str]
-            [sablono.normalize :as normalize]
-            [sablono.util :as util]))
+            [daiquiri.normalize :as normalize]
+            [daiquiri.util :as util]))
 
 (defn create-element
   "Create a React element. Returns a JavaScript object when running

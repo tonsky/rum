@@ -1,6 +1,6 @@
-(ns sablono.compiler
-  (:require [sablono.normalize :as normalize]
-            [sablono.util :refer :all])
+(ns daiquiri.compiler
+  (:require [daiquiri.normalize :as normalize]
+            [daiquiri.util :refer :all])
   ;; TODO: Fix emit-constant exception for JSValue.
   ;; Require of cljs.tagged_literals causes trouble, but a require of
   ;; cljs.compiler seems to work. Also, switching JSValue to a record
@@ -31,13 +31,13 @@
              (set? value))
          (every? string? value))
     (join-classes value)
-    :else `(sablono.util/join-classes ~value)))
+    :else `(daiquiri.util/join-classes ~value)))
 
 (defmethod compile-attr :style [_ value]
   (let [value (camel-case-keys value)]
     (if (map? value)
       (to-js value)
-      `(sablono.interpreter/attributes ~value))))
+      `(daiquiri.interpreter/attributes ~value))))
 
 (defmethod compile-attr :default [_ value]
   (to-js value))
@@ -55,7 +55,7 @@
 (defn- compile-constructor
   "Return the symbol of a fn that build a React element. "
   [type]
-  'sablono.core/create-element)
+  'daiquiri.core/create-element)
 
 (defn compile-merge-attrs [attrs-1 attrs-2]
   (let [empty-attrs? #(or (nil? %1) (and (map? %1) (empty? %1)))]
@@ -64,21 +64,21 @@
            (empty-attrs? attrs-2))
       nil
       (empty-attrs? attrs-1)
-      `(sablono.interpreter/attributes ~attrs-2)
+      `(daiquiri.interpreter/attributes ~attrs-2)
       (empty-attrs? attrs-2)
-      `(sablono.interpreter/attributes ~attrs-1)
+      `(daiquiri.interpreter/attributes ~attrs-1)
       (and (map? attrs-1)
            (map? attrs-2))
       (normalize/merge-with-class attrs-1 attrs-2)
-      :else `(sablono.interpreter/attributes
-              (sablono.normalize/merge-with-class ~attrs-1 ~attrs-2)))))
+      :else `(daiquiri.interpreter/attributes
+              (daiquiri.normalize/merge-with-class ~attrs-1 ~attrs-2)))))
 
 (defn- compile-tag
   "Replace fragment syntax (`:*` or `:<>`) by 'React.Fragment, otherwise the
   name of the tag"
   [tag]
   (if (fragment? tag)
-    'sablono.core/fragment
+    'daiquiri.core/fragment
     (name tag)))
 
 (defn compile-react-element
@@ -183,7 +183,7 @@
 (defmethod compile-form :default
   [expr]
   (if (:inline (meta expr))
-    expr `(sablono.interpreter/interpret ~expr)))
+    expr `(daiquiri.interpreter/interpret ~expr)))
 
 (defn- not-hint?
   "True if x is not hinted to be the supplied type."
@@ -310,7 +310,7 @@
 
 (defmethod compile-element :default
   [element]
-  `(sablono.interpreter/interpret
+  `(daiquiri.interpreter/interpret
     [~(first element)
      ~@(for [x (rest element)]
          (if (vector? x)
@@ -348,7 +348,7 @@
   [m]
   (if (every? literal? (keys m))
     (JSValue. (into {} (map (fn [[k v]] [k (to-js v)])) m))
-    `(sablono.interpreter/attributes ~m)))
+    `(daiquiri.interpreter/attributes ~m)))
 
 (extend-protocol IJSValue
   clojure.lang.Keyword

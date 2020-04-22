@@ -6,7 +6,7 @@
    [cljsjs.react.dom]
    [goog.object :as gobj]
    [goog.functions :as fns]
-   [sablono.core]
+   [daiquiri.core]
    [rum.cursor :as cursor]
    [rum.util :as util :refer [collect collect* call-all]]
    [rum.derived-atom :as derived-atom]))

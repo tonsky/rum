@@ -45,7 +45,7 @@
                rum.core/build-defc
                (clojure.core/fn
                  ([y] (do {:x 1}))
-                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
+                 ([y z] (do (daiquiri.interpreter/interpret (+ y z 1)))))
                nil
                "core/pre-post-test"))
            (#'rum.core/-defc 'rum.core/build-defc
@@ -58,7 +58,7 @@
                rum.core/build-defc
                (clojure.core/fn
                  ([y] {:pre [(pos? y)]} (do {:x 1}))
-                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
+                 ([y z] (do (daiquiri.interpreter/interpret (+ y z 1)))))
                nil
                "core/pre-post-test"))
            (#'rum.core/-defc 'rum.core/build-defc

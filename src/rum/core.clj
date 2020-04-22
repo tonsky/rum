@@ -4,7 +4,8 @@
    [rum.cursor :as cursor]
    [rum.server-render :as render]
    [rum.util :refer [collect collect* call-all]]
-   [rum.derived-atom :as derived-atom])
+   [rum.derived-atom :as derived-atom]
+   [daiquiri.compiler :as compiler])
   (:import
    [rum.cursor Cursor]
    (rum.server_render JSComponent)))
@@ -36,18 +37,10 @@
         (= mode :mixins) (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
-(defn- get-sablono
-  ([]
-   (get-sablono 'compile-html))
-  ([var-sym]
-   (ns-resolve (find-ns 'sablono.compiler) var-sym)))
-
 (defn- compile-body [[argvec conditions & body]]
-  (let [_            (require 'sablono.compiler)
-        compile-html (get-sablono)]
-    (if (and (map? conditions) (seq body))
-      (list argvec conditions (compile-html `(do ~@body)))
-      (list argvec (compile-html `(do ~@(cons conditions body)))))))
+  (if (and (map? conditions) (seq body))
+    (list argvec conditions (compiler/compile-html `(do ~@body)))
+    (list argvec (compiler/compile-html `(do ~@(cons conditions body))))))
 
 (defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
@@ -74,7 +67,7 @@
   
    Defc does couple of things:
    
-     1. Wraps body into sablono/compile-html
+     1. Wraps body into daiquiri/compile-html
      2. Generates render function from that
      3. Takes render function and mixins, builds React class from them
      4. Using that class, generates constructor fn [args]->ReactElement
@@ -348,8 +341,7 @@
      [:div value])"
   [[sym context] & body]
   (if (:ns &env)
-    (let [compile-html (get-sablono)]
-      `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map compile-html body))))
+    `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map compiler/compile-html body)))
     `(let [~sym ~context]
        ~@body)))
 
@@ -358,8 +350,9 @@
     ...)"
   [[context value] & body]
   (if (:ns &env)
-    (let [compile-html (get-sablono)]
-      `(.createElement js/React (.-Provider ~context) (cljs.core/js-obj "value" ~value) ~@(map compile-html body)))
+    `(.createElement js/React (.-Provider ~context)
+                     (cljs.core/js-obj "value" ~value)
+                     ~@(map compiler/compile-html body))
     `(binding [~context ~value]
        ~@body)))
 
@@ -412,9 +405,10 @@
   [{:keys [fallback]} child]
   (if-not (:ns &env)
     child
-    (let [compile-html (get-sablono)]
-      `(.createElement js/React
-                       (.-Suspense js/React) (cljs.core/js-obj "fallback" ~fallback) ~(compile-html child)))))
+    `(.createElement js/React
+                     (.-Suspense js/React)
+                     (cljs.core/js-obj "fallback" ~fallback)
+                     ~(compiler/compile-html child))))
 
 ;; React.Fragment
 
@@ -426,10 +420,10 @@
                            [nil (concat [attrs] children)])]
     (if-not (:ns &env)
       `(list ~@children)
-      (let [compile-html (get-sablono)
-            compile-attrs (get-sablono 'compile-attrs)]
-        `(.createElement js/React
-                         (.-Fragment js/React) ~(compile-attrs attrs) ~@(map compile-html children))))))
+      `(.createElement js/React
+                       (.-Fragment js/React)
+                       ~(compiler/compile-attrs attrs)
+                       ~@(map compiler/compile-html children)))))
 
 ;; JS components adapter
 (def ^{:arglists '([type-sym attrs children])
@@ -450,7 +444,5 @@
                            [attrs children]
                            [nil (cons attrs children)])]
     (if (:ns &env)
-      (let [_ (require 'sablono.compiler)
-            compile-html (get-sablono)]
-        `(adapt-class-helper ~type ~attrs (cljs.core/array ~@(map compile-html children))))
+      `(adapt-class-helper ~type ~attrs (cljs.core/array ~@(map compiler/compile-html children)))
       `(JSComponent. (*render-js-component* '~type ~attrs [~@children])))))

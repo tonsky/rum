@@ -1,6 +1,6 @@
-(ns sablono.normalize
+(ns daiquiri.normalize
   (:require [clojure.string :as str]
-            [sablono.util :as util]))
+            [daiquiri.util :as util]))
 
 (defn class-name
   [x]

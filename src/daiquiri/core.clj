@@ -1,5 +1,5 @@
-(ns sablono.core
-  (:require [sablono.compiler :as compiler]))
+(ns daiquiri.core
+  (:require [daiquiri.compiler :as compiler]))
 
 (defmacro attrs
   "Compile `attributes` map into a JavaScript literal."

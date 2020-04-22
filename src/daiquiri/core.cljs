@@ -1,5 +1,5 @@
-(ns sablono.core
-  (:require [sablono.interpreter]
+(ns daiquiri.core
+  (:require [daiquiri.interpreter]
             [cljsjs.react]))
 
 (defn create-element
