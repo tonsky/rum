@@ -17,12 +17,17 @@
 - Added `rum.lazy-loader` ns and `suspense` component
 - Added `fragment` component
 - Added JS SSR API ([#105](https://github.com/tonsky/rum/issues/105))
+- Added React Context API
+- Changed component's `displayName` to a fully qualified var name e.g. `app.core/button`
+- Added `React.createRef` API
+- Added adapter for JavaScript React components to be used in Rum with a fallback hook to render on JVM
 
 ### Fixes
 
 - Fixed `:type` attribute value serialization on JVM SSR ([#120](https://github.com/tonsky/rum/issues/120))
 - Fixed an error when calling `rum/with-key` on multiple return components on JVM SSR ([#185](https://github.com/tonsky/rum/issues/185))
 - Fixed string escaping for `:class` and `:type` attribute values ([#93](https://github.com/tonsky/rum/issues/93))
+- Fixed unsused components not removed in production builds
 
 ## 0.11.4
 
