@@ -367,11 +367,11 @@
 
 (defn use-state [value-or-fn]
   (if (fn? value-or-fn)
-    (value-or-fn)
-    value-or-fn))
+    [(value-or-fn) identity]
+    [value-or-fn identity]))
 
 (defn use-reducer [reducer-fn initial-value]
-  initial-value)
+  [initial-value reducer-fn])
 
 (defn use-effect!
   ([setup-fn])
