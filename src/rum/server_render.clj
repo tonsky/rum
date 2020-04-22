@@ -2,7 +2,7 @@
   (:require
    [clojure.string :as str])
   (:import
-   [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword]))
+   [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword PersistentArrayMap]))
 
 (defn nothing? [element]
   (and (vector? element)
@@ -405,6 +405,11 @@
         (binding [*select-value* (get-value attrs)]
           (render-content! tag attrs children *state sb))
         (render-content! tag attrs children *state sb)))))
+
+(deftype JSComponent [s]
+  HtmlRenderer
+  (-render-html [this *state sb]
+    (append! sb s)))
 
 (extend-protocol HtmlRenderer
   IPersistentVector
