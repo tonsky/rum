@@ -1,17 +1,8 @@
 (ns daiquiri.compiler
   (:require [daiquiri.normalize :as normalize]
-            [daiquiri.util :refer :all])
-  ;; TODO: Fix emit-constant exception for JSValue.
-  ;; Require of cljs.tagged_literals causes trouble, but a require of
-  ;; cljs.compiler seems to work. Also, switching JSValue to a record
-  ;; in ClojureScript seems to fix the problem.
-  (:import cljs.tagged_literals.JSValue))
+            [daiquiri.util :refer :all]))
 
-(defprotocol ICompile
-  (compile-react [this] "Compile a Clojure data structure into a React fn call."))
-
-(defprotocol IJSValue
-  (to-js [x]))
+(declare to-js to-js-map)
 
 (defn fragment?
   "Returns true if `tag` is the fragment tag \"*\" or \"<>\", otherwise false."
@@ -36,7 +27,7 @@
 (defmethod compile-attr :style [_ value]
   (let [value (camel-case-keys value)]
     (if (map? value)
-      (to-js value)
+      (to-js-map value)
       `(daiquiri.interpreter/attributes ~value))))
 
 (defmethod compile-attr :default [_ value]
@@ -49,13 +40,8 @@
        (reduce (fn [attrs [name value]]
                  (assoc attrs name (compile-attr name value)))
                nil)
-       (html-to-dom-attrs)
-       (to-js)))
-
-(defn- compile-constructor
-  "Return the symbol of a fn that build a React element. "
-  [type]
-  'daiquiri.core/create-element)
+       html-to-dom-attrs
+       to-js-map))
 
 (defn compile-merge-attrs [attrs-1 attrs-2]
   (let [empty-attrs? #(or (nil? %1) (and (map? %1) (empty? %1)))]
@@ -81,11 +67,13 @@
     'daiquiri.core/fragment
     (name tag)))
 
+(declare compile-react)
+
 (defn compile-react-element
   "Render an element vector as a HTML element."
   [element]
   (let [[tag attrs content] (normalize/element element)]
-    `(~(compile-constructor tag)
+    `(daiquiri.core/create-element
       ~(compile-tag tag)
       ~(compile-attrs attrs)
       ~(when content `(cljs.core/array ~@(compile-react content))))))
@@ -268,7 +256,7 @@
 (defmethod compile-element ::literal-tag-and-attributes
   [[tag attrs & content]]
   (let [[tag attrs _] (normalize/element [tag attrs])]
-    `(~(compile-constructor tag)
+    `(daiquiri.core/create-element
       ~(compile-tag tag)
       ~(compile-attrs attrs)
       (cljs.core/array ~@(map compile-html content)))))
@@ -286,7 +274,7 @@
   (let [[tag tag-attrs _] (normalize/element [tag])
         attrs-sym (gensym "attrs")]
     `(let [~attrs-sym ~attrs]
-       (~(compile-constructor tag)
+       (daiquiri.core/create-element
         ~(compile-tag tag)
         ~(compile-merge-attrs tag-attrs attrs-sym)
         ~(when-not (empty? content)
@@ -297,7 +285,7 @@
   (let [[tag tag-attrs _] (normalize/element [tag])
         attrs-sym (gensym "attrs")]
     `(let [~attrs-sym ~attrs]
-       (~(compile-constructor tag)
+       (daiquiri.core/create-element
         ~(compile-tag tag)
         (if (map? ~attrs-sym)
           ~(compile-merge-attrs tag-attrs attrs-sym)
@@ -327,45 +315,38 @@
     (hint? content Number) content
     :else (compile-form content)))
 
-(extend-protocol ICompile
-  clojure.lang.IPersistentVector
-  (compile-react [this]
-    (if (element? this)
-      (compile-react-element this)
-      (compile-react (seq this))))
-  clojure.lang.ISeq
-  (compile-react [this]
-    (map compile-react this))
-  Object
-  (compile-react [this]
-    this)
-  nil
-  (compile-react [this]
-    nil))
+(defn compile-react [v]
+  (cond
+    (vector? v) (if (element? v)
+                  (compile-react-element v)
+                  (compile-react (seq v)))
+    (seq? v) (map compile-react v)
+    :else v))
+
+(defn- js-obj [m]
+  (let [key-strs (mapv to-js (keys m))
+        kvs-str (->> (mapv #(-> (str \' % "':~{}")) key-strs)
+                     (interpose ",")
+                     (apply str))]
+    (vary-meta
+     (list* 'js* (str "{" kvs-str "}") (mapv to-js (vals m)))
+     assoc :tag 'object)))
 
 (defn- to-js-map
   "Convert a map into a JavaScript object."
   [m]
   (if (every? literal? (keys m))
-    (JSValue. (into {} (map (fn [[k v]] [k (to-js v)])) m))
+    (js-obj m)
     `(daiquiri.interpreter/attributes ~m)))
 
-(extend-protocol IJSValue
-  clojure.lang.Keyword
-  (to-js [x]
-    (name x))
-  clojure.lang.PersistentArrayMap
-  (to-js [x]
-    (to-js-map x))
-  clojure.lang.PersistentHashMap
-  (to-js [x]
-    (to-js-map x))
-  clojure.lang.PersistentVector
-  (to-js [x]
-    (JSValue. (mapv to-js x)))
-  Object
-  (to-js [x]
-    x)
-  nil
-  (to-js [_]
-    nil))
+(defn- to-js-array
+  "Convert a vector into a JavaScript array."
+  [x]
+  (apply list 'cljs.core/array (mapv to-js x)))
+
+(defn to-js [x]
+  (cond
+    (keyword? x) (name x)
+    (map? x) (to-js-map x)
+    (vector? x) (to-js-array x)
+    :else x))
