@@ -539,7 +539,7 @@ To define child context
 
 #### React Hooks
 
-There are Rum wrappers for the various React hooks. See doc strings for examples, and the
+There are Rum wrappers for the various React hooks. See doc strings for examples, and
 [the React hooks reference](https://reactjs.org/docs/hooks-reference.html) for more details.
 
 ```clojure
