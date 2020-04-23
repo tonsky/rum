@@ -540,7 +540,7 @@ To define child context
 #### React Hooks
 
 There are Rum wrappers for the various React hooks. See doc strings for examples, and the
-[the React hooks reference]((https://reactjs.org/docs/hooks-reference.html)) for more details.
+[the React hooks reference](https://reactjs.org/docs/hooks-reference.html) for more details.
 
 ```clojure
 ;; Takes initial value or value returning fn and returns a tuple of [value set-value!],
