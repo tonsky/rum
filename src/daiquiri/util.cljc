@@ -2,36 +2,42 @@
   (:require [clojure.set :refer [rename-keys]]
             [clojure.string :as str]))
 
-(defn -camel-case [k]
-  (if (or (keyword? k)
-          (string? k)
-          (symbol? k))
-    (let [[first-word & words] (.split (name k) "-")]
-      (if (or (empty? words)
-              (= "aria" first-word)
-              (= "data" first-word))
-        k
-        (-> (map str/capitalize words)
-            (conj first-word)
-            str/join
-            keyword)))
-    k))
+(defn valid-key? [k]
+  (or (keyword? k)
+      (string? k)
+      (symbol? k)))
 
-#?(:cljs (def attrs-cache #js {:class "className"
-                               :for "htmlFor"}))
+(defn -camel-case [k]
+  (let [[first-word & words] (.split (name k) "-")]
+    (if (or (empty? words)
+            (= "aria" first-word)
+            (= "data" first-word))
+      k
+      (-> (map str/capitalize words)
+          (conj first-word)
+          str/join
+          keyword))))
+
+(def attrs-cache (volatile! {}))
 
 (defn camel-case
   "Returns camel case version of the key, e.g. :http-equiv becomes :httpEquiv."
   [k]
-  (-camel-case k))
+  (if (valid-key? k)
+    (or (get @attrs-cache k)
+        (let [kk (-camel-case k)]
+          (vswap! attrs-cache assoc k kk)
+          kk))
+    k))
 
 (defn camel-case-keys
   "Recursively transforms all map keys into camel case."
   [m]
   (if (map? m)
-    (let [m (into {}
-                  (map (fn [[k v]] [(camel-case k) v]))
-                  m)]
+    (let [m (->> m
+                 (reduce-kv #(assoc! %1 (camel-case %2) %3)
+                            (transient {}))
+                 persistent!)]
       (cond-> m
         (map? (:style m))
         (update :style camel-case-keys)))
