@@ -486,7 +486,7 @@ Refs work the same way as options 1 and 2 for keys work:
 
 #### Accessing DOM
 
-⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
+> ⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
 
 ```clojure
 [:div {:ref (fn [node] ...)}]
@@ -542,6 +542,8 @@ To define child context
 
 There are Rum wrappers for the various React hooks. See doc strings for examples, and
 [the React hooks reference](https://reactjs.org/docs/hooks-reference.html) for more details.
+
+> ⚠️ Hooks can be used only in `defc` components with optional `rum/static` mixin. Using any other mixin or form of declaring a component will generate class-based React components that are not compatible with hooks. You should use either hooks or mixins in one component, two can't work together.
 
 ```clojure
 ;; Takes initial value or value returning fn and returns a tuple of [value set-value!],
