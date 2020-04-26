@@ -25,6 +25,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
     - [Accessing DOM](#accessing-dom)
     - [Custom class properties](#custom-class-properties)
     - [React context](#react-context)
+    - [React Hooks](#react-hooks)
   - [Server-side rendering](#server-side-rendering)
 - [Support](#support)
   - [Talks](#talks)
@@ -79,7 +80,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.11.4"]`
+Add to project.clj: `[rum "0.11.5"]`
 
 ### API Docs & Articles
 
@@ -185,15 +186,15 @@ Then we need to pass that instance to `(rum.core/mount comp dom-node)`:
 And we will get this result:
 
 ```html
-  <body>
-    <div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-    </div>
-  </body>
+<body>
+  <div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+  </div>
+</body>
 ```
 
 Usually, `mount` is used just once in an app lifecycle to mount the top of your component tree to a page. After that, for a dynamic applications, you should either _update_ your components or rely on them to update themselves.
@@ -483,12 +484,20 @@ Refs work the same way as options 1 and 2 for keys work:
 1.  `[:div { :ref "x" }]`
 2.  `(rum/with-ref (my-component) "x")`
 
-#### Accessing DOM 
+#### Accessing DOM
 
-⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
 ```clojure
 [:div {:ref (fn [node] ...)}]
+
+;; or
+
+(let [ref (rum/create-ref)]
+  [:input
+    {:ref ref
+     :on-change #(.log js/console (rum/deref ref))}])
 ```
+
+> ⚠️ The helpers below are deprecated since usage of string refs has been deprecated in React itself. Instead use the API described above.
 
 There’re couple of helpers that will, given state map, find stuff in it for you:
 
@@ -518,6 +527,24 @@ To define static properties on a component class, specify a `:static-properties`
 
 #### React context
 
+##### New API
+
+```clojure
+(rum/defcontext *context*)
+
+(rum/defc context-consumer []
+ (rum/with-context [value *context*]
+   value)) ;; "hello"
+
+(rum/defc context-provider []
+  (rum/bind-context [*context* "hello"]
+    (context-consumer))
+```
+
+##### Legacy API
+
+> ⚠️ This API is deprecated in React and will be removed in future versions of Rum
+
 To define child context
 
 1.  Add dependency `[cljsjs/prop-types "15.5.10-1"]`
@@ -536,11 +563,66 @@ To define child context
   child)
 ```
 
+#### React Hooks
+
+There are Rum wrappers for the various React hooks. See doc strings for examples, and
+[the React hooks reference](https://reactjs.org/docs/hooks-reference.html) for more details.
+
+> ⚠️ Hooks can be used only in `defc` components with optional `rum/static` mixin. Using any other mixin or form of declaring a component will generate class-based React components that are not compatible with hooks. You should use either hooks or mixins in one component, two can't work together.
+
+```clojure
+;; Takes initial value or value returning fn and returns a tuple of [value set-value!],
+;; where `value` is current state value and `set-value!` is a function that schedules re-render.
+(let [[x set-x!] (rum/use-state 0)]
+  (set-x! (inc x)))
+
+;; Takes reducing function and initial state value.
+;; Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
+(rum/use-reducer reducer-fn initial-value)
+
+;; Takes setup-fn that executes either on the first render or after every update.
+;; The function may return cleanup-fn to cleanup the effect, either before unmount or before every next update.
+;; Calling behavior is controlled by deps argument.
+(rum/use-effect!
+  (fn []
+    (.addEventListener js/document "keydown" js/conole.log)
+    #(.removeEventListener js/document "keydown" js/conole.log))
+  [])
+
+;; Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
+(rum/defc component [x]
+  (let [on-change (rum/use-callback #(js/console.log % x) [x])]
+    [input-field {:on-change on-change}]))
+
+;; Takes a function, memoizes it based on provided deps collection and executes immediately returning a result.
+(let [x (rum/use-memo #(expensive-computation v) [v])])
+
+;; Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
+(rum/defc component []
+  (let [ref (rum/use-ref)]
+    (rum/use-effect!
+      #(.log js/console (rum/deref ref)))
+    [:input {:ref ref}]))
+```
+
+#### React Fragment
+
+`rum.core/fragment` macro can be used to render multiple components without wrapping element.
+
+```clojure
+(rum/fragment
+  [:span]
+  [:div]
+  [:span])
+
+;; <span></span><div></div><span></span>
+```
+
 ### Server-side rendering
 
-If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
+When used from cljs Rum delegates serizliation to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1.  Rum’s `project.clj` dependency becomes `[rum "0.11.4" :exclusions [cljsjs/react cljsjs/react-dom]`
+1.  Rum’s `project.clj` dependency becomes `[rum "0.12.0" :exclusions [cljsjs/react cljsjs/react-dom]`
 2.  Import `rum.core` as usual.
 3.  Define components using `rum/defc` or other macros as usual.
 4.  Instead of mounting, call `rum/render-html` to render into a string.

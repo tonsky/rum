@@ -1,4 +1,4 @@
-## 0.11.5-SNAPSHOT
+## 0.11.5
 
 ### Dependencies
 
@@ -9,6 +9,7 @@
 ### Deprecations
 
 - Deprecated usage of string refs
+- Deprecated legacy React Context API of string refs
 
 ### New
 
