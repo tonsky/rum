@@ -20,7 +20,7 @@ If you want to include `react.js` yourself, then add this to `project.clj`:
 }
 ```
 
-Create two files 
+Create two files
 
 1. `src/cljsjs/react.cljs`:
 
@@ -67,6 +67,34 @@ and results will be printed to the developer console.
 
 # Using 3rd-party React components
 
+## via Adapter API
+
+Since `0.11.5` Rum provides an API to adapt React component for usage in Rum components. But you can still create components manually as described in the next section.
+
+```clojure
+(rum/defc component []
+  [:div
+   (rum/adapt-class js/Slider
+     {:min min
+      :max max
+      :range true
+      :defaultValue [40 60]})])
+```
+
+When rendering on JVM Rum browsides a hook to fallback rendering of JS components, so you can delegate this work to JS environment such as GraalJS or renderer a placeholder instead.
+
+```clojure
+(defn render-js-component [type-sym attrs children]
+  (case type-sym
+    'js/Slider (rum/render-static-markup (slider-placeholder))
+    nil))
+
+(binding [rum/*render-js-component* render-js-component]
+  (component))
+```
+
+## via React.js directly
+
 Given e.g. [react-router-transition](https://github.com/maisano/react-router-transition)
 
 ```clj
@@ -90,7 +118,6 @@ Another example [react-component/slider](https://github.com/react-component/slid
 ```
 
 If you want to mix 3rd-party React components with child elements using the Hiccup-like syntax, you can call directly into the library that provides it, sablono. This can be particularly useful for 3rd-party React components that are made to wrap your own components, like drag-and-drop plugins and so on.
-
 
 ```clj
 (js/React.createElement js/MyComponent

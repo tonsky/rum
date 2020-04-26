@@ -625,7 +625,5 @@
 
 ;; JS components adapter
 (defn adapt-class-helper [type attrs children]
-  (let [args (if (map? attrs)
-               (.concat #js [type attrs] children)
-               (.concat #js [type nil attrs] children))]
+  (let [args (.concat #js [type attrs] children)]
     (.apply (.-createElement js/React) js/React args)))

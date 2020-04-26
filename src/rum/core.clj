@@ -451,6 +451,7 @@
                            [nil (cons attrs children)])]
     (if (:ns &env)
       (let [_ (require 'sablono.compiler)
-            compile-html (get-sablono)]
-        `(adapt-class-helper ~type ~attrs (cljs.core/array ~@(map compile-html children))))
+            compile-html (get-sablono)
+            compile-attrs (get-sablono 'compile-attrs)]
+        `(adapt-class-helper ~type ~(compile-attrs attrs) (cljs.core/array ~@(map compile-html children))))
       `(JSComponent. (*render-js-component* '~type ~attrs [~@children])))))

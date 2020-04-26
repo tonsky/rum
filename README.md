@@ -80,7 +80,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.11.4"]`
+Add to project.clj: `[rum "0.11.5"]`
 
 ### API Docs & Articles
 
@@ -486,11 +486,18 @@ Refs work the same way as options 1 and 2 for keys work:
 
 #### Accessing DOM
 
-> ⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
-
 ```clojure
 [:div {:ref (fn [node] ...)}]
+
+;; or
+
+(let [ref (rum/create-ref)]
+  [:input
+    {:ref ref
+     :on-change #(.log js/console (rum/deref ref))}])
 ```
+
+> ⚠️ The helpers below are deprecated since usage of string refs has been deprecated in React itself. Instead use the API described above.
 
 There’re couple of helpers that will, given state map, find stuff in it for you:
 
@@ -519,6 +526,24 @@ To define static properties on a component class, specify a `:static-properties`
 ```
 
 #### React context
+
+##### New API
+
+```clojure
+(rum/defcontext *context*)
+
+(rum/defc context-consumer []
+ (rum/with-context [value *context*]
+   value)) ;; "hello"
+
+(rum/defc context-provider []
+  (rum/bind-context [*context* "hello"]
+    (context-consumer))
+```
+
+##### Legacy API
+
+> ⚠️ This API is deprecated in React and will be removed in future versions of Rum
 
 To define child context
 
@@ -580,11 +605,24 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
     [:input {:ref ref}]))
 ```
 
+#### React Fragment
+
+`rum.core/fragment` macro can be used to render multiple components without wrapping element.
+
+```clojure
+(rum/fragment
+  [:span]
+  [:div]
+  [:span])
+
+;; <span></span><div></div><span></span>
+```
+
 ### Server-side rendering
 
-If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
+When used from cljs Rum delegates serizliation to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1.  Rum’s `project.clj` dependency becomes `[rum "0.11.4" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
+1.  Rum’s `project.clj` dependency becomes `[rum "0.11.5" :exclusions [cljsjs/react cljsjs/react-dom sablono]`
 2.  Import `rum.core` as usual.
 3.  Define components using `rum/defc` or other macros as usual.
 4.  Instead of mounting, call `rum/render-html` to render into a string.
