@@ -25,6 +25,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
     - [Accessing DOM](#accessing-dom)
     - [Custom class properties](#custom-class-properties)
     - [React context](#react-context)
+    - [Hooks](#react-hooks)
   - [Server-side rendering](#server-side-rendering)
 - [Support](#support)
   - [Talks](#talks)
@@ -534,6 +535,38 @@ To define child context
       { :childContextTypes {:color js/PropTypes.string} } }
   [color child]
   child)
+```
+
+#### React Hooks
+
+There are Rum wrappers for the various React hooks. See doc strings for examples, and
+[the React hooks reference](https://reactjs.org/docs/hooks-reference.html) for more details.
+
+```clojure
+;; Takes initial value or value returning fn and returns a tuple of [value set-value!],
+;; where `value` is current state value and `set-value!` is a function that schedules re-render.
+(rum/use-state [value-or-fn])
+
+;; Takes reducing function and initial state value.
+;; Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
+(rum/use-reducer [reducer-fn initial-value])
+
+;; Takes setup-fn that executes either on the first render or after every update.
+;; The function may return cleanup-fn to cleanup the effect, either before unmount or before every next update.
+;; Calling behavior is controlled by deps argument.
+(rum/use-effect! [setup-fn])
+(rum/use-effect! [setup-fn deps])
+
+;; Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
+(rum/use-callback [callback])
+(rum/use-callback [callback deps])
+
+;; Takes a function, memoizes it based on provided deps collection and executes immediately returning a result.
+(rum/use-memo [f])
+(rum/use-memo [f deps])
+
+;; Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
+(rum/use-ref [initial-value])
 ```
 
 ### Server-side rendering
