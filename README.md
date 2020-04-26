@@ -25,7 +25,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
     - [Accessing DOM](#accessing-dom)
     - [Custom class properties](#custom-class-properties)
     - [React context](#react-context)
-    - [Hooks](#react-hooks)
+    - [React Hooks](#react-hooks)
   - [Server-side rendering](#server-side-rendering)
 - [Support](#support)
   - [Talks](#talks)
@@ -186,15 +186,15 @@ Then we need to pass that instance to `(rum.core/mount comp dom-node)`:
 And we will get this result:
 
 ```html
-  <body>
-    <div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-      <div class="label">abc</div>
-    </div>
-  </body>
+<body>
+  <div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+    <div class="label">abc</div>
+  </div>
+</body>
 ```
 
 Usually, `mount` is used just once in an app lifecycle to mount the top of your component tree to a page. After that, for a dynamic applications, you should either _update_ your components or rely on them to update themselves.
@@ -484,9 +484,10 @@ Refs work the same way as options 1 and 2 for keys work:
 1.  `[:div { :ref "x" }]`
 2.  `(rum/with-ref (my-component) "x")`
 
-#### Accessing DOM 
+#### Accessing DOM
 
 ⚠️ These helpers are deprecated since usage of string refs has been deprecated in React itself. Instead use a callback that receives a DOM node.
+
 ```clojure
 [:div {:ref (fn [node] ...)}]
 ```
@@ -545,28 +546,36 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 ```clojure
 ;; Takes initial value or value returning fn and returns a tuple of [value set-value!],
 ;; where `value` is current state value and `set-value!` is a function that schedules re-render.
-(rum/use-state [value-or-fn])
+(let [[x set-x!] (rum/use-state 0)]
+  (set-x! (inc x)))
 
 ;; Takes reducing function and initial state value.
 ;; Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
-(rum/use-reducer [reducer-fn initial-value])
+(rum/use-reducer reducer-fn initial-value)
 
 ;; Takes setup-fn that executes either on the first render or after every update.
 ;; The function may return cleanup-fn to cleanup the effect, either before unmount or before every next update.
 ;; Calling behavior is controlled by deps argument.
-(rum/use-effect! [setup-fn])
-(rum/use-effect! [setup-fn deps])
+(rum/use-effect!
+  (fn []
+    (.addEventListener js/document "keydown" js/conole.log)
+    #(.removeEventListener js/document "keydown" js/conole.log))
+  [])
 
 ;; Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
-(rum/use-callback [callback])
-(rum/use-callback [callback deps])
+(rum/defc component [x]
+  (let [on-change (rum/use-callback #(js/console.log % x) [x])]
+    [input-field {:on-change on-change}]))
 
 ;; Takes a function, memoizes it based on provided deps collection and executes immediately returning a result.
-(rum/use-memo [f])
-(rum/use-memo [f deps])
+(let [x (rum/use-memo #(expensive-computation v) [v])])
 
 ;; Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
-(rum/use-ref [initial-value])
+(rum/defc component []
+  (let [ref (rum/use-ref)]
+    (rum/use-effect!
+      #(.log js/console (rum/deref ref)))
+    [:input {:ref ref}]))
 ```
 
 ### Server-side rendering
