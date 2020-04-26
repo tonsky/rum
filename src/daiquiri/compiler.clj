@@ -36,12 +36,13 @@
 (defn compile-attrs
   "Compile a HTML attribute map."
   [attrs]
-  (->> (seq attrs)
-       (reduce (fn [attrs [name value]]
-                 (assoc attrs name (compile-attr name value)))
-               nil)
-       html-to-dom-attrs
-       to-js-map))
+  (when (seq attrs)
+    (->> (seq attrs)
+         (reduce (fn [attrs [name value]]
+                   (assoc attrs name (compile-attr name value)))
+                 nil)
+         html-to-dom-attrs
+         to-js-map)))
 
 (defn compile-merge-attrs [attrs-1 attrs-2]
   (let [empty-attrs? #(or (nil? %1) (and (map? %1) (empty? %1)))]
@@ -75,8 +76,10 @@
   (let [[tag attrs content] (normalize/element element)]
     `(daiquiri.core/create-element
       ~(compile-tag tag)
-      ~(compile-attrs attrs)
-      ~(when content `(cljs.core/array ~@(compile-react content))))))
+      ~(when (seq attrs)
+         (compile-attrs attrs))
+      ~(when (seq content)
+         `(cljs.core/array ~@(compile-react content))))))
 
 (defn- unevaluated?
   "True if the expression has not been evaluated."
