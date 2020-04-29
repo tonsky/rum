@@ -4,4 +4,5 @@
   ["Useful mixins" {:file "doc/useful-mixins.md"}]
   ["React interop" {:file "doc/react-interop.md"}]
   ["React Suspense and code-splitting" {:file "doc/react-suspense-and-code-splitting.md"}]
+  ["React Hooks" {:file "doc/react-hooks.md"}]
 ]}
