@@ -1,6 +1,7 @@
 (ns daiquiri.compiler-test
   (:require [clojure.test :refer :all]
-            [daiquiri.compiler :as compiler]))
+            [daiquiri.compiler :as compiler]
+            [daiquiri.core :refer [html]]))
 
 (comment
   (compiler/compile-attrs {:id :XY}))
@@ -41,7 +42,7 @@
 
 (defmacro are-html [& body]
   `(are [form# expected#]
-     (= (compiler/compile-html form#) expected#)
+     (= (macroexpand `(html ~form#)) expected#)
      ~@body))
 
 (deftest test-compile-html
@@ -73,5 +74,6 @@
         (list [:p "a"] [:p "b"]) '())))
 
 (comment
+  (macroexpand '(html [:div.foo (str "bar" "baz")]))
   (compiler/compile-html [:div (list "foo" "bar")])
   (compiler/compile-html (list [:p "a"] [:p "b"])))
