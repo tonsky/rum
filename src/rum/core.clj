@@ -38,18 +38,16 @@
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
 (defn- compile-body [[argvec conditions & body] env]
-  (let [render-body (if (and (map? conditions) (seq body))
-                      (list argvec conditions (compiler/compile-html `(do ~@body) env))
-                      (list argvec (compiler/compile-html `(do ~@(cons conditions body)) env)))
-        tag (compiler/infer-tag env (last render-body))]
-    (with-meta render-body {:tag tag})))
+  (if (and (map? conditions) (seq body))
+    (list argvec conditions (compiler/compile-html `(do ~@body) env))
+    (list argvec (compiler/compile-html `(do ~@(cons conditions body)) env))))
 
 (defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
         cljs? (:ns env)
-        render-body (if cljs?
-                      (map #(compile-body % env) bodies)
-                      bodies)
+        render-bodies (if cljs?
+                        (map #(compile-body % env) bodies)
+                        bodies)
         arglists  (if (= builder 'rum.core/build-defc)
                     (map (fn [[arglist & _body]] arglist) bodies)
                     (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))
@@ -59,12 +57,16 @@
         var-meta (meta name)
         var-sym (with-meta name (assoc var-meta
                                   :arglists (or (:arglists var-meta) `(quote ~arglists))
-                                  :ret-tag (or (:ret-tag var-meta) (:tag (meta render-body)))))]
-    `(def ~var-sym
-       ~@(if doc [doc] [])
-       ~(if cljs?
-          `(rum.core/lazy-build ~builder (fn ~@render-body) ~mixins ~display-name)
-          `(~builder (fn ~@render-body) ~mixins ~display-name)))))
+                                  :tag (or (:tag var-meta) 'js/React.Element)))
+        tmp-var-sym (gensym name)]
+    `(do
+       (def ~tmp-var-sym
+         ~@(if doc [doc] [])
+         ~(if cljs?
+            `(rum.core/lazy-build ~builder (fn ~@render-bodies) ~mixins ~display-name)
+            `(~builder (fn ~@render-bodies) ~mixins ~display-name)))
+       (defn ~var-sym []
+         (~tmp-var-sym)))))
 
 (defmacro defc
   "```

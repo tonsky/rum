@@ -6,8 +6,8 @@
 (defn ^js/React.Element create-element
   "Create a React element. Returns a JavaScript object when running
   under ClojureScript, and a om.dom.Element record in Clojure."
-  [type props children]
-  (.apply (.-createElement js/React) nil (.concat #js [type props] children)))
+  [type attrs children]
+  (.apply (.-createElement js/React) nil (.concat #js [type attrs] children)))
 
 (defn attributes [attrs]
   (when-let [js-attrs (clj->js (util/html-to-dom-attrs attrs))]
