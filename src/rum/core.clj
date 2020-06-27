@@ -38,9 +38,11 @@
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
 (defn- compile-body [[argvec conditions & body] env]
-  (if (and (map? conditions) (seq body))
-    (list argvec conditions (compiler/compile-html `(do ~@body) env))
-    (list argvec (compiler/compile-html `(do ~@(cons conditions body)) env))))
+  (let [render-body (if (and (map? conditions) (seq body))
+                      (list argvec conditions (compiler/compile-html `(do ~@body) env))
+                      (list argvec (compiler/compile-html `(do ~@(cons conditions body)) env)))
+        tag (compiler/infer-tag env (last render-body))]
+    (with-meta render-body {:tag tag})))
 
 (defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
@@ -53,8 +55,12 @@
                     (map (fn [[[_ & arglist] & _body]] (vec arglist)) bodies))
         display-name (if cljs?
                        (-> env :ns :name (str "/" name))
-                       (str name))]
-    `(def ~(vary-meta name update :arglists #(or % `(quote ~arglists)))
+                       (str name))
+        var-meta (meta name)
+        var-sym (with-meta name (assoc var-meta
+                                  :arglists (or (:arglists var-meta) `(quote ~arglists))
+                                  :ret-tag (or (:ret-tag var-meta) (:tag (meta render-body)))))]
+    `(def ~var-sym
        ~@(if doc [doc] [])
        ~(if cljs?
           `(rum.core/lazy-build ~builder (fn ~@render-body) ~mixins ~display-name)

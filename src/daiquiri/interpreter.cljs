@@ -3,7 +3,7 @@
             [daiquiri.normalize :as normalize]
             [daiquiri.util :as util]))
 
-(defn create-element
+(defn ^js/React.Element create-element
   "Create a React element. Returns a JavaScript object when running
   under ClojureScript, and a om.dom.Element record in Clojure."
   [type props children]

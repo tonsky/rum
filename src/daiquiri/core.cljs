@@ -5,7 +5,7 @@
 (defn ^js/React.Element create-element
   "The React.js create element function."
   [type attrs children]
-  (if children
+  (if ^boolean children
     (.apply (.-createElement js/React) nil (.concat #js [type attrs] children))
     (.createElement js/React type attrs)))
 

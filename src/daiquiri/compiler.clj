@@ -282,7 +282,7 @@
   "Returns an unevaluated form that will render the supplied vector as a HTML
           element."
   {:private true}
-  #'element-compile-strategy)
+  element-compile-strategy)
 
 (defmethod compile-element ::all-literal
   [element env]
