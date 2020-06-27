@@ -56,8 +56,7 @@
                        (str name))
         var-meta (meta name)
         var-sym (with-meta name (assoc var-meta
-                                  :arglists (or (:arglists var-meta) `(quote ~arglists))
-                                  :tag (or (:tag var-meta) 'js/React.Element)))
+                                  :tag (or (:tag var-meta) `'js/React.Element)))
         tmp-var-sym (gensym name)]
     `(do
        (def ~tmp-var-sym
@@ -65,8 +64,9 @@
          ~(if cljs?
             `(rum.core/lazy-build ~builder (fn ~@render-bodies) ~mixins ~display-name)
             `(~builder (fn ~@render-bodies) ~mixins ~display-name)))
-       (defn ~var-sym []
-         (~tmp-var-sym)))))
+       (defn ~var-sym
+         ~@(for [arglist arglists]
+             `(~arglist (~tmp-var-sym)))))))
 
 (defmacro defc
   "```
