@@ -37,16 +37,16 @@
         (= mode :mixins) (recur (update-in res [:mixins] (fnil conj []) x) next :mixins)
         :else (throw (IllegalArgumentException. (str "Syntax error at " xs)))))))
 
-(defn- compile-body [[argvec conditions & body]]
+(defn- compile-body [[argvec conditions & body] env]
   (if (and (map? conditions) (seq body))
-    (list argvec conditions (compiler/compile-html `(do ~@body)))
-    (list argvec (compiler/compile-html `(do ~@(cons conditions body))))))
+    (list argvec conditions (compiler/compile-html `(do ~@body) env))
+    (list argvec (compiler/compile-html `(do ~@(cons conditions body)) env))))
 
 (defn- -defc [builder env body]
   (let [{:keys [name doc mixins bodies]} (parse-defc body)
         cljs? (:ns env)
         render-body (if cljs?
-                      (map compile-body bodies)
+                      (map #(compile-body % env) bodies)
                       bodies)
         arglists  (if (= builder 'rum.core/build-defc)
                     (map (fn [[arglist & _body]] arglist) bodies)
@@ -341,7 +341,7 @@
      [:div value])"
   [[sym context] & body]
   (if (:ns &env)
-    `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map compiler/compile-html body)))
+    `(.createElement js/React (.-Consumer ~context) nil (fn [~sym] ~@(map #(compiler/compile-html % &env) body)))
     `(let [~sym ~context]
        ~@body)))
 
@@ -352,7 +352,7 @@
   (if (:ns &env)
     `(.createElement js/React (.-Provider ~context)
                      (cljs.core/js-obj "value" ~value)
-                     ~@(map compiler/compile-html body))
+                     ~@(map #(compiler/compile-html % &env) body))
     `(binding [~context ~value]
        ~@body)))
 
@@ -408,7 +408,7 @@
     `(.createElement js/React
                      (.-Suspense js/React)
                      (cljs.core/js-obj "fallback" ~fallback)
-                     ~(compiler/compile-html child))))
+                     ~(compiler/compile-html child &env))))
 
 ;; React.Fragment
 
@@ -423,7 +423,7 @@
       `(.createElement js/React
                        (.-Fragment js/React)
                        ~(compiler/compile-attrs attrs)
-                       ~@(map compiler/compile-html children)))))
+                       ~@(map #(compiler/compile-html % &env) children)))))
 
 ;; JS components adapter
 (def ^{:arglists '([type-sym attrs children])
@@ -444,5 +444,5 @@
                            [attrs children]
                            [nil (cons attrs children)])]
     (if (:ns &env)
-      `(adapt-class-helper ~type ~(compiler/compile-attrs attrs) (cljs.core/array ~@(map compiler/compile-html children)))
+      `(adapt-class-helper ~type ~(compiler/compile-attrs attrs) (cljs.core/array ~@(map #(compiler/compile-html % &env) children)))
       `(JSComponent. (*render-js-component* '~type ~attrs [~@children])))))

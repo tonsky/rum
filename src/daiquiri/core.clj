@@ -10,4 +10,4 @@
   "Compile the Hiccup `form`. Always produces code that evaluates to
   React elements."
   [form]
-  (compiler/compile-html form))
+  (compiler/compile-html form &env))
