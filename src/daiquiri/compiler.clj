@@ -8,7 +8,7 @@
   "The set of primitive types that can be handled by React."
   #{'js 'clj-nil 'js/React.Element
     'number 'string 'boolean 'symbol
-    'array 'object 'function})
+    'array 'function})
 
 (defn- primitive-type?
   "Return true if `tag` is a primitive type that can be handled by
@@ -265,7 +265,9 @@
     ::literal-tag-and-hinted-attributes
 
     ;; e.g. [:span ^:inline (y)]
-    (and (literal? tag) (inline-hint? attrs))
+    (and (literal? tag)
+         (or (primitive-type? (infer-tag env attrs))
+             (inline-hint? attrs)))
     ::literal-tag-and-inline-content
 
     ;; ; e.g. [:span x]
