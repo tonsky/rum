@@ -10,7 +10,7 @@
               [cljsjs.react.dom.server]])))
 
 (rum/defc comp-simple []
-  (rum/fragment
+  [:<>
    [:div "A"
     [:span "A1"]
     [:span "A2"]]
@@ -20,7 +20,7 @@
     [:span "E1"]]
    [:div nil]
    [:div nil "F"]
-   [:div {} ((constantly nil)) "G"]))
+   [:div {} ((constantly nil)) "G"]])
 
 (rum/defc comp-tag []
   [:div.header#up "test"])

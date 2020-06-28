@@ -1,4 +1,4 @@
-(defproject rum "0.11.5"
+(defproject rum "0.12.0"
   :description "ClojureScript wrapper for React"
   :license {:name "Eclipse"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -6,10 +6,9 @@
 
   :dependencies
   [[org.clojure/clojure "1.9.0" :scope "provided"]
-   [org.clojure/clojurescript "1.10.597" :scope "provided"]
+   [org.clojure/clojurescript "1.10.773" :scope "provided"]
    [cljsjs/react "16.8.6-0"]
-   [cljsjs/react-dom "16.8.6-0"]
-   [sablono "0.8.1"]]
+   [cljsjs/react-dom "16.8.6-0"]]
 
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-cljfmt "0.6.7"]]

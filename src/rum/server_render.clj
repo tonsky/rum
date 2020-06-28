@@ -379,32 +379,37 @@
   [element *state sb]
   (when-not (nothing? element)
     (let [[tag id classes attrs children] (normalize-element element)]
-      (append! sb "<" tag)
+      (if (or (= "*" tag)
+              (= "<>" tag))
+        ;; React Fragment
+        (-render-html children *state sb)
+        (do
+          (append! sb "<" tag)
 
-      (when-some [type (:type attrs)]
-        (append! sb " type=\"" (escape-html (to-str type)) "\""))
+          (when-some [type (:type attrs)]
+            (append! sb " type=\"" (escape-html (to-str type)) "\""))
 
-      (when (and (= "option" tag)
-                 (= (get-value attrs) *select-value*))
-        (append! sb " selected=\"\""))
+          (when (and (= "option" tag)
+                     (= (get-value attrs) *select-value*))
+            (append! sb " selected=\"\""))
 
-      (when id
-        (append! sb " id=\"" id "\""))
+          (when id
+            (append! sb " id=\"" id "\""))
 
-      (render-attrs! tag attrs sb)
+          (render-attrs! tag attrs sb)
 
-      (render-classes! classes sb)
+          (render-classes! classes sb)
 
-      (when (= :state/root @*state)
-        (append! sb " data-reactroot=\"\""))
+          (when (= :state/root @*state)
+            (append! sb " data-reactroot=\"\""))
 
-      (when (not= :state/static @*state)
-        (vreset! *state :state/tag-open))
+          (when (not= :state/static @*state)
+            (vreset! *state :state/tag-open))
 
-      (if (= "select" tag)
-        (binding [*select-value* (get-value attrs)]
-          (render-content! tag attrs children *state sb))
-        (render-content! tag attrs children *state sb)))))
+          (if (= "select" tag)
+            (binding [*select-value* (get-value attrs)]
+              (render-content! tag attrs children *state sb))
+            (render-content! tag attrs children *state sb)))))))
 
 (deftype JSComponent [s]
   HtmlRenderer

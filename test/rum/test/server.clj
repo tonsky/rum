@@ -41,8 +41,16 @@
   (is (= (rum/render-static-markup (rum/suspense {} [:span]))
          "<span></span>")))
 
-(deftest test-fragment
+(deftest test-fragment-macro
   (is (= (rum/render-static-markup (rum/fragment [:span] [:div]))
+         "<span></span><div></div>")))
+
+(deftest test-fragment-*
+  (is (= (rum/render-static-markup [:* [:span] [:div]])
+         "<span></span><div></div>")))
+
+(deftest test-fragment-<>
+  (is (= (rum/render-static-markup [:<> [:span] [:div]])
          "<span></span><div></div>")))
 
 (deftest test-lifecycle

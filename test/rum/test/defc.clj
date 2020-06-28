@@ -1,9 +1,17 @@
 (ns rum.test.defc
   (:require
    [rum.core]
-   [clojure.string :as str]
    [clojure.test :refer [deftest is are testing]]
-   [clojure.java.shell :as shell]))
+   [clojure.walk :refer [prewalk]]))
+
+(defn replace-gensyms [sym forms]
+  (prewalk
+    (fn [form]
+      (if (and (symbol? form)
+               (re-matches (re-pattern (str sym "\\d+")) (str form)))
+        sym
+        form))
+    forms))
 
 (defmacro eval-in-temp-ns [& forms]
   `(binding [*ns* *ns*]
@@ -40,28 +48,29 @@
 
 (deftest defc-conditions
   (testing "no conditions supplied"
-    (is (= '(def pre-post-test
-              (rum.core/lazy-build
-               rum.core/build-defc
-               (clojure.core/fn
-                 ([y] (do {:x 1}))
-                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
-               nil
-               "core/pre-post-test"))
-           (#'rum.core/-defc 'rum.core/build-defc
-                             {:ns {:name 'core}} ; cljs?
-                             '(pre-post-test ([y] {:x 1})
-                                             ([y z] (+ y z 1)))))))
+    (is (= (replace-gensyms 'pre-post-test
+             (#'rum.core/-defc 'rum.core/build-defc
+                               {:ns {:name 'core}} ; cljs?
+                               '(pre-post-test ([y] {:x 1})
+                                               ([y z] (+ y z 1)))))
+           '(def pre-post-test
+              (rum.core/lazy-build rum.core/build-defc
+                (clojure.core/fn
+                  ([y] (do {:x 1}))
+                  ([y z] (do (daiquiri.compiler/interpret-maybe (+ y z 1)))))
+                nil
+                "core/pre-post-test")))))
+
   (testing "some conditions supplied"
-    (is (= '(def pre-post-test
-              (rum.core/lazy-build
-               rum.core/build-defc
-               (clojure.core/fn
-                 ([y] {:pre [(pos? y)]} (do {:x 1}))
-                 ([y z] (do (sablono.interpreter/interpret (+ y z 1)))))
-               nil
-               "core/pre-post-test"))
-           (#'rum.core/-defc 'rum.core/build-defc
-                             {:ns {:name 'core}} ; cljs?
-                             '(pre-post-test ([y] {:pre [(pos? y)]} {:x 1})
-                                             ([y z] (+ y z 1))))))))
+    (is (= (replace-gensyms 'pre-post-test
+             (#'rum.core/-defc 'rum.core/build-defc
+                               {:ns {:name 'core}} ; cljs?
+                               '(pre-post-test ([y] {:pre [(pos? y)]} {:x 1})
+                                               ([y z] (+ y z 1)))))
+           '(def pre-post-test
+              (rum.core/lazy-build rum.core/build-defc
+                (clojure.core/fn
+                  ([y] {:pre [(pos? y)]} (do {:x 1}))
+                  ([y z] (do (daiquiri.compiler/interpret-maybe (+ y z 1)))))
+                nil
+                "core/pre-post-test"))))))

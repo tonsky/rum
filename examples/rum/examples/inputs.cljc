@@ -22,7 +22,7 @@
                 :type "checkbox"
                 :checked (= v value)
                 :value   v
-                :on-click (fn [_] (reset! *ref v))}])]))
+                :on-change (fn [_] (reset! *ref v))}])]))
 
 (rum/defc radio < rum/reactive
   [*ref]
@@ -34,7 +34,7 @@
                 :name "inputs_radio"
                 :checked (= v value)
                 :value   v
-                :on-click (fn [_] (reset! *ref v))}])]))
+                :on-change (fn [_] (reset! *ref v))}])]))
 
 (rum/defc select < rum/reactive
   [*ref]

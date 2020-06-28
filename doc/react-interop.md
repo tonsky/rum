@@ -117,12 +117,12 @@ Another example [react-component/slider](https://github.com/react-component/slid
                                           :defaultValue #js [40 60] }))
 ```
 
-If you want to mix 3rd-party React components with child elements using the Hiccup-like syntax, you can call directly into the library that provides it, sablono. This can be particularly useful for 3rd-party React components that are made to wrap your own components, like drag-and-drop plugins and so on.
+If you want to mix 3rd-party React components with child elements using the Hiccup-like syntax, you can call directly into the library that provides it, daiquiri. This can be particularly useful for 3rd-party React components that are made to wrap your own components, like drag-and-drop plugins and so on.
 
 ```clj
 (js/React.createElement js/MyComponent
   #js { }
-  (sablono.core/html [:div [:p "Hello, world"]]))
+  (daiquiri.core/html [:div [:p "Hello, world"]]))
 ```
 
 **Note:** See how `defn` is used here instead of `defc`? Using `defc` would cause two components being created (e.g. `range-slider` and the `Slider` component). Because in many cases you don't need the wrapping component you can just use `defn`.
