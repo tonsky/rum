@@ -48,7 +48,7 @@
   and the first element is a keyword, e.g. `[:div]` or `[:div [:span \"x\"]`."
   [x]
   (and (vector? x)
-       (keyword? (nth x 0))))
+       (keyword? (nth x 0 nil))))
 
 (defn html-to-dom-attrs
   "Converts all HTML attributes to their DOM equivalents."
