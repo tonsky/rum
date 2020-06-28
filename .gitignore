@@ -12,3 +12,5 @@ pom.xml.asc
 .nrepl-history
 .idea
 rum.iml
+.cljs_node_repl/
+.cpcache/

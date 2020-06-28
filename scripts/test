@@ -3,6 +3,8 @@
 set -e
 set -o pipefail
 
+lein test
+
 echo "Building ClojureScript unit tests..."
 clojure -A:test -m cljs.main -co '{:target :nodejs :optimizations :none :output-to "test.js"}' -c test-runner
 
