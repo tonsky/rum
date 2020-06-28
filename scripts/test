@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+echo "Building ClojureScript unit tests..."
+clojure -A:test -m cljs.main -co '{:target :nodejs :optimizations :none :output-to "test.js"}' -c test-runner
+
+echo "Running ClojureScript unit tests..."
+node test.js
+
+rm test.js

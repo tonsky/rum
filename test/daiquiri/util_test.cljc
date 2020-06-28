@@ -1,7 +1,7 @@
 (ns daiquiri.util-test
   (:require [daiquiri.util :as u]
             #?(:clj [clojure.test :refer :all])
-            #?(:cljs [cljs.test :refer-macros [are is testing]])))
+            #?(:cljs [cljs.test :refer-macros [are is testing deftest]])))
 
 ;; Ported from https://github.com/r0man/sablono/blob/master/test/sablono/util_test.cljc
 

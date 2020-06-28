@@ -1,7 +1,7 @@
 (ns daiquiri.normalize-test
   (:require [daiquiri.normalize :as normalize]
             #?(:clj [clojure.test :refer :all]
-               :cljs [cljs.test :refer-macros [are is]])))
+               :cljs [cljs.test :refer-macros [are is deftest]])))
 
 ;; Ported from https://github.com/r0man/sablono/blob/master/test/sablono/normalize_test.cljc
 

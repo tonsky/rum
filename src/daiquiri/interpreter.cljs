@@ -1,7 +1,8 @@
 (ns daiquiri.interpreter
   (:require [clojure.string :as str]
             [daiquiri.normalize :as normalize]
-            [daiquiri.util :as util]))
+            [daiquiri.util :as util]
+            [cljsjs.react]))
 
 (defn ^js/React.Element create-element
   "Create a React element. Returns a JavaScript object when running
