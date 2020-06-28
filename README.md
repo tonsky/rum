@@ -80,7 +80,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.11.5"]`
+Add to project.clj: `[rum "0.12.0"]`
 
 ### API Docs & Articles
 
