@@ -17,12 +17,23 @@
   (and (not (empty? tags))
        (set/subset? tags primitive-types)))
 
+(defn- normalize-tags [tags]
+  (if (set? tags) tags (set [tags])))
+
 (defn infer-tag
   "Infer the tag of `form` using `env`."
   [env form]
   (when env
-    (when-let [tags (ana/infer-tag env (ana/no-warn (ana/analyze env form)))]
-      (if (set? tags) tags (set [tags])))))
+    (let [e (ana/no-warn (ana/analyze env form))
+          ;; Roman. Propagating Rum's component return tag
+          ;; via :rum/tag meta field, because a component
+          ;; is generated as a `def` instead of `defn`
+          rum-tag (when (= :invoke (:op e))
+                    (-> e :fn :info :meta :rum/tag second))]
+      (if rum-tag
+        (normalize-tags rum-tag)
+        (when-let [tags (ana/infer-tag env e)]
+          (normalize-tags tags))))))
 
 (declare to-js to-js-map)
 

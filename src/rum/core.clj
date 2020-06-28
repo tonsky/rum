@@ -54,19 +54,15 @@
         display-name (if cljs?
                        (-> env :ns :name (str "/" name))
                        (str name))
-        var-meta (meta name)
-        var-sym (with-meta name (assoc var-meta
-                                  :tag (or (:tag var-meta) `'js/React.Element)))
-        tmp-var-sym (gensym name)]
-    `(do
-       (def ~tmp-var-sym
-         ~@(if doc [doc] [])
-         ~(if cljs?
-            `(rum.core/lazy-build ~builder (fn ~@render-bodies) ~mixins ~display-name)
-            `(~builder (fn ~@render-bodies) ~mixins ~display-name)))
-       (defn ~var-sym
-         ~@(for [arglist arglists]
-             `(~arglist (~tmp-var-sym)))))))
+        var-sym (-> name
+                    (vary-meta update :arglists #(or (:arglists %) `(quote ~arglists)))
+                    (vary-meta assoc :rum/tag `'js/React.Element))]
+    `(def ~var-sym
+       ~@(if doc [doc] [])
+       ~(if cljs?
+          `(rum.core/lazy-build ~builder (fn ~@render-bodies) ~mixins ~display-name)
+          `(~builder (fn ~@render-bodies) ~mixins ~display-name)))))
+
 
 (defmacro defc
   "```
