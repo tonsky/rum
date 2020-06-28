@@ -538,18 +538,6 @@
     (is (= '(daiquiri.interpreter/interpret (my-fn))
            (ana/macroexpand-1 env '(daiquiri.compiler/interpret-maybe (my-fn)))))))
 
-(comment
-  (deftest test-infer-tag-react-defhtml
-    (with-compiler-env [env]
-      (analyze env '(sablono.core/defhtml my-fn []
-                      [:div]))
-      (is (= '#{js/React.Element} (infer-tag env '(my-fn))))))
-
-  (deftest test-compile-interpret-maybe-infered
-    (with-compiler-env [env]
-      (analyze env '(sablono.core/defhtml my-fn [] [:div]))
-      (is (= '(my-fn) (ana/macroexpand-1 env '(sablono.compiler/interpret-maybe (my-fn))))))))
-
 (deftest test-compile-inferred-attribute-map
   (with-compiler-env [env]
     (analyze env '(defn attrs [] {:class "x"}))

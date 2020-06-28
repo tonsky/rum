@@ -1,3 +1,20 @@
+## 0.12.0
+
+### Dependencies
+
+- Upgraded to ClojureScript 1.10.773
+
+### Breaking
+
+- Removed custom update scheduling mechanism (hopefully doesn't break anything)
+- Replaced Sablono with Daiquiri, reworked Sablono fork (in case if you are depending on Sablono)
+
+### New
+
+- Ported Sablono's test suite
+- Added unit tests runner on Node
+- Added alternative Hiccup syntax for React.Fragment `:<>`
+
 ## 0.11.5
 
 ### Dependencies
