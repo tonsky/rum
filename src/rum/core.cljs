@@ -482,9 +482,9 @@
   "Takes reducing function and initial state value.
   Returns a tuple of [value dispatch!], where `value` is current state value and `dispatch` is a function that schedules re-render.
 
-  (defmulti value-reducer (fn [event value] event))
+  (defmulti value-reducer (fn [value event] event))
 
-  (defmethod value-reducer :inc [_ value]
+  (defmethod value-reducer :inc [value _]
     (inc value))
 
   (let [[value dispatch!] (rum/use-reducer value-reducer 0)]
@@ -493,7 +493,7 @@
 
   Read more at https://reactjs.org/docs/hooks-reference.html#usereducer"
   ([reducer-fn initial-value]
-   (.useReducer js/React #(reducer-fn %2 %1) initial-value identity)))
+   (.useReducer js/React #(reducer-fn %1 %2) initial-value identity)))
 
 (defn use-effect!
   "Takes setup-fn that executes either on the first render or after every update.
