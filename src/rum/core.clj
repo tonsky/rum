@@ -335,7 +335,7 @@
      `(def ~(with-meta name {:dynamic true}))))
   ([name value]
    (if (:ns &env)
-     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context value)]
+     `(def ~(with-meta name {:dynamic true}) (let [ctx# (create-context ~value)]
                                                (set! (.-displayName ctx#) ~(sym->context-name name &env))
                                                ctx#))
      `(def ~(with-meta name {:dynamic true}) ~value))))
