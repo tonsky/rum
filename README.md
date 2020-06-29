@@ -199,32 +199,24 @@ And we will get this result:
 
 Usually, `mount` is used just once in an app lifecycle to mount the top of your component tree to a page. After that, for a dynamic applications, you should either _update_ your components or rely on them to update themselves.
 
-#### Be performance conscious
+#### Performance
 
-Sablono, the hiccup compiler Rum uses, can pre-compile certain forms that return hiccup (for a list of these forms see [`compile-form`](https://github.com/r0man/sablono/blob/master/src/sablono/compiler.clj#L93) implementations). Without pre-compilation, Sablono uses its interpreter to transform hiccup to ReactJS calls **at runtime**. Obviously, this is much slower than pre-compiling the hiccup forms, so I suggest you try to use functions that are handled by `compile-form`. Here are some metrics detailing the differences (I used Chrome's profiler to generate these):
-
-```clojure
-(rum/defc rum-map-component
-  []
-  [:div (map #(do [:div {:key %} "map index " %]) (range 2000))])
-(rum/mount (rum-map-component) (.querySelector js/document "#app"))
-```
-
-garbase collector: 20.5ms (4.55%)
-program: 9.0ms (1.98%)
-anonymous function: 422.4ms (93.47%)
+Daiquiri, Rum's Hiccup compiler, pre-compiles certain Clojure forms that return Hiccup (for a list of these forms see [`compile-form`](https://github.com/tonsky/rum/blob/66d352acdedb5acc5bb860a7fc30411eac67c30c/src/daiquiri/compiler.clj#L164) implementations) into React calls. When the compiler is not able to pre-compile a form it defers this operation to the runtime. Runtime interpretation is slower, the suggestion is to use Clojure forms that are handled by `compile-form`, when it makes sense.
 
 ```clojure
-(rum/defc rum-for-component
-  []
-  [:div (for [i (range 2000)] [:div {:key i} "for index " i])])
-(rum/mount (rum-for-component) (.querySelector js/document "#app"))
+(rum/defc component []
+  [:ul
+    (for [n (range 10)]
+      [:li n]) ;; `for` is a known form with a well defined syntax, thus Hiccup is pre-compiled
+    (map (fn [n]
+           [:li n]) ;; `map` is a generic higher-order function, can't reliably pre-compile, falling back to interpretation
+      (range 10))])
 ```
 
-program: 2.7ms (1.72%)
-anonymous function: 152.3ms (98.28%)
-
-As you can see, using `for` instead of `map` to generate hiccup is significantly more performant.
+To be informed about such code there's compiler flag that enables build warnings
+```clojure
+(rum.core/set-warn-on-interpretation! true)
+```
 
 ### Updating components manually
 
