@@ -1,3 +1,17 @@
+## 0.12.1
+
+### New
+
+- Changed the order of arguments in `use-reducer`'s `reducer-fn` to match React [#213](https://github.com/tonsky/rum/issues/213)
+- String attribute keys won't be camel cased in ClojureScript, allowing custom attributes [#129](https://github.com/tonsky/rum/issues/129)
+- Added assertions to check incorrect mixin keys [#96](https://github.com/tonsky/rum/issues/96)
+- Added `rum.core/set-warn-on-interpretation!` that enables warnings when compiler emits intepretation calls [66d352](https://github.com/tonsky/rum/commit/66d352acdedb5acc5bb860a7fc30411eac67c30c)
+- Added README section about Hiccup pre-compilation and interpretation [#103](https://github.com/tonsky/rum/pull/103)
+
+### Fixes
+
+- Fixed `defcontext` macro [#214](https://github.com/tonsky/rum/issues/214)
+
 ## 0.12.0
 
 ### Dependencies
