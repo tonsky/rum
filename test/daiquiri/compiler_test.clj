@@ -158,7 +158,10 @@
       '[:div {:aria-disabled true}] '(daiquiri.core/create-element "div" (js* "{'aria-disabled':~{}}" true) nil)))
   (testing "tag with data attributes"
     (are-html
-      '[:div {:data-toggle "modal" :data-target "#modal"}] '(daiquiri.core/create-element "div" (js* "{'data-toggle':~{},'data-target':~{}}" "modal" "#modal") nil))))
+      '[:div {:data-toggle "modal" :data-target "#modal"}] '(daiquiri.core/create-element "div" (js* "{'data-toggle':~{},'data-target':~{}}" "modal" "#modal") nil)))
+  (testing "tag with custom attributes"
+    (are-html
+      '[:div {"ng-hello" "hello"}] '(daiquiri.core/create-element "div" (js* "{'ng-hello':~{}}" "hello") nil))))
 
 (deftest compiled-tags
   (testing "tag content can be vars, and vars can be type-hinted with some metadata"

@@ -21,11 +21,14 @@
 (def attrs-cache (volatile! {}))
 
 (defn camel-case
-  "Returns camel case version of the key, e.g. :http-equiv becomes :httpEquiv."
+  "Returns camel case version of the key, e.g. :http-equiv becomes :httpEquiv.
+  Does not convert string attributes."
   [k]
   (if (valid-key? k)
     (or (get @attrs-cache k)
-        (let [kk (-camel-case k)]
+        (let [kk (if-not (string? k)
+                   (-camel-case k)
+                   k)]
           (vswap! attrs-cache assoc k kk)
           kk))
     k))
