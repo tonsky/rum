@@ -4,6 +4,21 @@
             [clojure.set :as set]
             [cljs.analyzer :as ana]))
 
+(def warn-on-interpretation (atom false))
+
+(defn maybe-warn-on-interpret
+  ([env expr]
+   (maybe-warn-on-interpret env expr nil))
+  ([env expr tag]
+   (when @warn-on-interpretation
+     (binding [*out* *err*]
+       (let [column (:column env)
+             line (:line env)]
+         (println (str "WARNING: interpreting by default at " ana/*cljs-file* ":" line ":" column))
+         (prn expr)
+         (when tag
+           (println "Inferred tag was:" tag)))))))
+
 (def ^:private primitive-types
   "The set of primitive types that can be handled by React."
   #{'js 'clj-nil 'js/React.Element
@@ -126,8 +141,12 @@
   `daiquiri.interpreter/interpret` if the inferred return type is not a
   primitive React type."
   [expr]
-  (if (primitive-type? (infer-tag &env expr))
-    expr `(daiquiri.interpreter/interpret ~expr)))
+  (let [tag (infer-tag &env expr)]
+    (if (primitive-type? tag)
+      expr
+      (do
+        (maybe-warn-on-interpret &env expr tag)
+        `(daiquiri.interpreter/interpret ~expr)))))
 
 (defn- form-name
   "Get the name of the supplied form."
@@ -346,6 +365,7 @@
 
 (defmethod compile-element :default
   [element env]
+  (maybe-warn-on-interpret env element)
   `(daiquiri.interpreter/interpret
     [~(first element)
      ~@(for [x (rest element)]

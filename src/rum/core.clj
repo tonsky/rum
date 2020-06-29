@@ -12,6 +12,9 @@
    [rum.cursor Cursor]
    (rum.server_render JSComponent)))
 
+(defmacro set-warn-on-interpretation! [v]
+  (reset! compiler/warn-on-interpretation v))
+
 (defn- fn-body? [form]
   (when (and (seq? form)
              (vector? (first form)))
