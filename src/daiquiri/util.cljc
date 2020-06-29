@@ -8,15 +8,17 @@
       (symbol? k)))
 
 (defn -camel-case [k]
-  (let [[first-word & words] (.split (name k) "-")]
-    (if (or (empty? words)
-            (= "aria" first-word)
-            (= "data" first-word))
-      k
-      (-> (map str/capitalize words)
-          (conj first-word)
-          str/join
-          keyword))))
+  (if (string? k)
+    k
+    (let [[first-word & words] (.split (name k) "-")]
+      (if (or (empty? words)
+              (= "aria" first-word)
+              (= "data" first-word))
+        k
+        (-> (map str/capitalize words)
+            (conj first-word)
+            str/join
+            keyword)))))
 
 (def attrs-cache (volatile! {}))
 
@@ -26,9 +28,7 @@
   [k]
   (if (valid-key? k)
     (or (get @attrs-cache k)
-        (let [kk (if-not (string? k)
-                   (-camel-case k)
-                   k)]
+        (let [kk (-camel-case k)]
           (vswap! attrs-cache assoc k kk)
           kk))
     k))
