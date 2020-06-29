@@ -199,6 +199,33 @@ And we will get this result:
 
 Usually, `mount` is used just once in an app lifecycle to mount the top of your component tree to a page. After that, for a dynamic applications, you should either _update_ your components or rely on them to update themselves.
 
+#### Be performance conscious
+
+Sablono, the hiccup compiler Rum uses, can pre-compile certain forms that return hiccup (for a list of these forms see [`compile-form`](https://github.com/r0man/sablono/blob/master/src/sablono/compiler.clj#L93) implementations). Without pre-compilation, Sablono uses its interpreter to transform hiccup to ReactJS calls **at runtime**. Obviously, this is much slower than pre-compiling the hiccup forms, so I suggest you try to use functions that are handled by `compile-form`. Here are some metrics detailing the differences (I used Chrome's profiler to generate these):
+
+```clojure
+(rum/defc rum-map-component
+  []
+  [:div (map #(do [:div {:key %} "map index " %]) (range 2000))])
+(rum/mount (rum-map-component) (.querySelector js/document "#app"))
+```
+
+garbase collector: 20.5ms (4.55%)
+program: 9.0ms (1.98%)
+anonymous function: 422.4ms (93.47%)
+
+```clojure
+(rum/defc rum-for-component
+  []
+  [:div (for [i (range 2000)] [:div {:key i} "for index " i])])
+(rum/mount (rum-for-component) (.querySelector js/document "#app"))
+```
+
+program: 2.7ms (1.72%)
+anonymous function: 152.3ms (98.28%)
+
+As you can see, using `for` instead of `map` to generate hiccup is significantly more performant.
+
 ### Updating components manually
 
 The simplest way to update your app is to mount it again:
