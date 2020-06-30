@@ -1,3 +1,9 @@
+## 0.12.2
+
+### Fixes
+
+- Added missing `:did-update` and `:key-fn` to specs
+
 ## 0.12.1
 
 ### New
