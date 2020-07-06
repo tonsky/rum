@@ -696,6 +696,7 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 - [derivatives](https://github.com/martinklepsch/derivatives), creates chains of derived values from an atom
 - [citrus](https://github.com/roman01la/citrus), state coordination framework (previously known as scrum)
 - [Antizer](https://github.com/priornix/antizer) Ant Design component library
+- [data-frisk-rum](https://github.com/moonbrv/data-frisk-rum), display current value of data
 
 ### Examples
 
