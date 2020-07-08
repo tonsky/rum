@@ -210,7 +210,7 @@
     (build-ctor render mixins display-name)))
 
 (defn request-render [comp]
-  (.setState comp (.-state comp)))
+  (.forceUpdate comp))
 
 (defn mount
   "Add element to the DOM tree. Idempotent. Subsequent mounts will just update element."
@@ -333,7 +333,7 @@
         (add-watch local-state key
                    (fn [_ _ p n]
                      (when (not= p n)
-                       (.setState component (.-state component)))))
+                       (.forceUpdate component))))
         (assoc state key local-state)))}))
 
 
@@ -374,7 +374,7 @@
                (add-watch ref key
                           (fn [_ _ p n]
                             (when (not= p n)
-                              (.setState comp (.-state comp)))))))
+                              (.forceUpdate comp))))))
            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
    :will-unmount
    (fn [state]
