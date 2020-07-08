@@ -12,9 +12,9 @@
 
 (deftest test-static-children-as-arguments
   (let [el (interpret
-             [:div
-              [:div {:class "1" :key 1}]
-              [:div {:class "2" :key 2}]])
+            [:div
+             [:div {:class "1" :key 1}]
+             [:div {:class "2" :key 2}]])
         c1 (aget (.. el -props -children) 0)
         c2 (aget (.. el -props -children) 1)]
     (is (= "div" (.. el -type)))
@@ -34,21 +34,21 @@
 
 (deftest test-issue-80
   (let [el (interpret
-             [:div
-              [:div {:class (list "foo" "bar")}]
-              [:div {:class (vector "foo" "bar")}]
-              (let []
-                [:div {:class (list "foo" "bar")}])
-              (let []
-                [:div {:class (vector "foo" "bar")}])
-              (when true
-                [:div {:class (list "foo" "bar")}])
-              (when true
-                [:div {:class (vector "foo" "bar")}])
-              (do
-                [:div {:class (list "foo" "bar")}])
-              (do
-                [:div {:class (vector "foo" "bar")}])])]
+            [:div
+             [:div {:class (list "foo" "bar")}]
+             [:div {:class (vector "foo" "bar")}]
+             (let []
+               [:div {:class (list "foo" "bar")}])
+             (let []
+               [:div {:class (vector "foo" "bar")}])
+             (when true
+               [:div {:class (list "foo" "bar")}])
+             (when true
+               [:div {:class (vector "foo" "bar")}])
+             (do
+               [:div {:class (list "foo" "bar")}])
+             (do
+               [:div {:class (vector "foo" "bar")}])])]
     (is (= "div" (.. el -type)))
     (is (= 8 (count (.. el -props -children))))
     (doseq [c (.. el -props -children)]
@@ -63,10 +63,10 @@
 (deftest test-issue-57
   (let [payload {:username "john" :likes 2}
         el (interpret
-             (let [{:keys [username likes]} payload]
-               [:div
-                [:div (str username " (" likes ")")]
-                [:div "!Pixel Scout"]]))
+            (let [{:keys [username likes]} payload]
+              [:div
+               [:div (str username " (" likes ")")]
+               [:div "!Pixel Scout"]]))
         c1 (aget (.. el -props -children) 0)
         c2 (aget (.. el -props -children) 1)]
 

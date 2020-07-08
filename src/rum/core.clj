@@ -1,13 +1,13 @@
 (ns rum.core
   (:refer-clojure :exclude [ref deref])
   (:require
-    [rum.cursor :as cursor]
-    [rum.server-render :as render]
-    [rum.util :refer [collect collect* call-all]]
-    [rum.derived-atom :as derived-atom]
-    [daiquiri.compiler :as compiler]
-    [rum.specs]
-    [clojure.set :as set])
+   [rum.cursor :as cursor]
+   [rum.server-render :as render]
+   [rum.util :refer [collect collect* call-all]]
+   [rum.derived-atom :as derived-atom]
+   [daiquiri.compiler :as compiler]
+   [rum.specs]
+   [clojure.set :as set])
   (:import
    [rum.cursor Cursor]
    (rum.server_render JSComponent)))
@@ -67,7 +67,6 @@
        ~(if cljs?
           `(rum.core/lazy-build ~builder (fn ~@render-bodies) ~mixins ~display-name)
           `(~builder (fn ~@render-bodies) ~mixins ~display-name)))))
-
 
 (defmacro defc
   "```

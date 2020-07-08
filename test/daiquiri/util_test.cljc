@@ -7,7 +7,7 @@
 
 (deftest test-camel-case
   (are [attr expected]
-    (= expected (u/camel-case attr))
+       (= expected (u/camel-case attr))
     nil nil
     "" ""
     :data :data
@@ -18,7 +18,7 @@
 
 (deftest test-camel-case-keys
   (are [attrs expected]
-    (= expected (u/camel-case-keys attrs))
+       (= expected (u/camel-case-keys attrs))
     {:id "x"}
     {:id "x"}
     {:class "x"}
@@ -36,7 +36,7 @@
 
 (deftest test-html-to-dom-attrs
   (are [attrs expected]
-    (= expected (u/html-to-dom-attrs attrs))
+       (= expected (u/html-to-dom-attrs attrs))
     {:id "x"}
     {:id "x"}
     {:class "x"}
@@ -61,7 +61,7 @@
 
 (deftest test-join-classes
   (are [classes expected]
-    (= expected (u/join-classes classes))
+       (= expected (u/join-classes classes))
     ["a"] "a"
     #{"a"} "a"
     ["a" "b"] "a b"

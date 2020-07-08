@@ -18,7 +18,7 @@
       (println "  actual:" (formatter-fn (:actual m))))))
 
 (cljs.test/run-tests
-  (cljs.test/empty-env)
-  'daiquiri.interpreter-test
-  'daiquiri.normalize-test
-  'daiquiri.util-test)
+ (cljs.test/empty-env)
+ 'daiquiri.interpreter-test
+ 'daiquiri.normalize-test
+ 'daiquiri.util-test)

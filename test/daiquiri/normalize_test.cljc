@@ -7,7 +7,7 @@
 
 (deftest test-merge-with-class
   (are [maps expected]
-    (= expected (apply normalize/merge-with-class maps))
+       (= expected (apply normalize/merge-with-class maps))
     []
     nil
     [{:a 1} {:b 2}]
@@ -24,7 +24,7 @@
 
 (deftest test-strip-css
   (are [x expected]
-    (= expected (normalize/strip-css x))
+       (= expected (normalize/strip-css x))
     nil nil
     "" ""
     "foo" "foo"
@@ -33,7 +33,7 @@
 
 (deftest test-match-tag
   (are [tag expected]
-    (= expected (normalize/match-tag tag))
+       (= expected (normalize/match-tag tag))
     :div ["div" nil []]
     :div#foo ["div" "foo" []]
     :div#foo.bar ["div" "foo" ["bar"]]
@@ -49,7 +49,7 @@
 
 (deftest test-normalize-class
   (are [class expected]
-    (= expected (normalize/normalize-class class))
+       (= expected (normalize/normalize-class class))
     nil nil
     :x ["x"]
     "x" ["x"]
@@ -61,7 +61,7 @@
 
 (deftest test-attributes
   (are [attrs expected]
-    (= expected (normalize/attributes attrs))
+       (= expected (normalize/attributes attrs))
     nil nil
     {} {}
     {:class nil} {:class nil}
@@ -71,7 +71,7 @@
 
 (deftest test-children
   (are [children expected]
-    (= expected (normalize/children children))
+       (= expected (normalize/children children))
     [] []
     1 [1]
     "x" ["x"]
@@ -84,7 +84,7 @@
 
 (deftest test-element
   (are [element expected]
-    (= expected (normalize/element element))
+       (= expected (normalize/element element))
     [:div] ["div" {} '()]
     [:div {:class nil}] ["div" {:class nil} '()]
     [:div#foo] ["div" {:id "foo"} '()]
@@ -97,9 +97,9 @@
 
 (deftest test-element-meta
   (are [element expected]
-    (= (->> (nth (normalize/element element) 2)
-            (map (comp true? :inline meta)))
-       expected)
+       (= (->> (nth (normalize/element element) 2)
+               (map (comp true? :inline meta)))
+          expected)
     '[:span (constantly 1)] [false]
     '[:span ^:inline (constantly 1)] [true]
     '[:span ^:inline (constantly 1) nil ^:inline (constantly 2)] [true true]))
