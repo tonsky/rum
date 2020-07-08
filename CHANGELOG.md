@@ -1,3 +1,9 @@
+## 0.12.3
+
+### Fixes
+
+- Fixed `rum/local` & `rum/reactive` components not being updated when `rum/static` is enabled [#221](https://github.com/tonsky/rum/issues/221)
+
 ## 0.12.2
 
 ### Fixes
