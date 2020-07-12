@@ -24,11 +24,15 @@
     (gobj/set obj (name k) (clj->js v))))
 
 (defn- build-class [render mixins display-name]
-  (let [mixins (->> mixins (mapcat keys) set)]
-    (assert (set/subset? mixins rum.specs/mixins)
-            (str display-name " declares invalid mixin keys "
-                 (set/difference mixins rum.specs/mixins) ", "
-                 "did you mean one of " rum.specs/mixins)))
+  (when ^boolean goog.DEBUG
+    (let [mixins (->> mixins (mapcat keys) set)]
+      (assert (set/subset? mixins rum.specs/mixins)
+              (str display-name " declares invalid mixin keys "
+                   (set/difference mixins rum.specs/mixins) ", "
+                   "did you mean one of " rum.specs/mixins))
+      (->> (select-keys rum.specs/deprecated-mixins mixins)
+           vals
+           (run! #(.warn js/console %)))))
   (let [init           (collect   :init mixins)             ;; state props -> state
         will-mount     (collect* [:will-mount               ;; state -> state
                                   :before-render] mixins)   ;; state -> state
@@ -37,7 +41,8 @@
         wrapped-render (reduce #(%2 %1) render wrap-render)
         did-mount      (collect* [:did-mount                ;; state -> state
                                   :after-render] mixins)    ;; state -> state
-        did-remount    (collect   :did-remount mixins)      ;; old-state state -> state
+        will-remount    (collect* [:did-remount             ;; state -> state
+                                   :will-remount] mixins)   ;; old-state state -> state
         should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
         will-update    (collect* [:will-update              ;; state -> state
                                   :before-render] mixins)   ;; state -> state
@@ -79,7 +84,7 @@
                          (let [old-state  @(state this)
                                state      (merge old-state
                                                  (gobj/get next-props ":rum/initial-state"))
-                               next-state (reduce #(%2 old-state %1) state did-remount)]
+                               next-state (reduce #(%2 old-state %1) state will-remount)]
             ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
                            (.setState this #js {":rum/state" (volatile! next-state)})))))
 
