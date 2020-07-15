@@ -127,6 +127,20 @@ If you want to mix 3rd-party React components with child elements using the Hicc
 
 **Note:** See how `defn` is used here instead of `defc`? Using `defc` would cause two components being created (e.g. `range-slider` and the `Slider` component). Because in many cases you don't need the wrapping component you can just use `defn`.
 
+# Using Rum component in React
+
+In order to use Rum component from React JS code you have to create gluing layer in a form of wrapping function (React component) that unwraps React's props object and passes values into Rum component as arguments.
+
+```clojure
+(rum/defc button [{:keys [on-click]} text]
+  [:button {:on-click on-click}
+    text])
+
+(defn Button [^js props]
+  (button {:on-click (.-onClick props)}
+    (.-children props)))
+```
+
 # Get displayName of component
 
 This might be useful for development when you want to know which component this mixin is handling:
