@@ -604,8 +604,8 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 ;; Calling behavior is controlled by deps argument.
 (rum/use-effect!
   (fn []
-    (.addEventListener js/document "keydown" js/conole.log)
-    #(.removeEventListener js/document "keydown" js/conole.log))
+    (.addEventListener js/document "keydown" js/console.log)
+    #(.removeEventListener js/document "keydown" js/console.log))
   [])
 
 ;; Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
