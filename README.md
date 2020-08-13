@@ -349,7 +349,7 @@ The following mixin will record the component’s mount time:
 
 As you can see, `:will-mount` is a function from `state` to `state`. It gives you a chance to populate, clean or modify state map the moment before the component has been mounted.
 
-Another useful thing you can do in a mixin is to decide when to update a component. If you can get ahold of React component (notice that that’s different from Rum component, unfortunately; sorry), you can call `rum.core/request-render` to schedule this component’s update at next frame (Rum uses `requestAnimationFrame` to batch and debounce component update calls). To get React component, just look up `:rum/react-component` key in a state.
+Another useful thing you can do in a mixin is to decide when to update a component. If you can get ahold of React component (notice that that’s different from Rum component, unfortunately; sorry), you can call `rum.core/request-render` to schedule this component’s update. To get React component, just look up `:rum/react-component` key in a state.
 
 This mixin will update a component each second:
 
