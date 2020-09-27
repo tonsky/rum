@@ -77,6 +77,7 @@ Rum:
 - [Icebreaker](https://icebreaker.video/), online events
 - [Carrot / OpenCompany](https://github.com/open-company/open-company-web), company updates
 - [UXBOX](https://uxbox.io/), the open-source solution for design and prototyping
+- [Takeoff](https://www.takeoff.com), automated grocery fulfillment solution
 
 ## Using Rum
 
