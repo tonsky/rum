@@ -619,7 +619,7 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 
 ;; Takes a value and puts it into a mutable container which is persisted for the full lifetime of the component.
 (rum/defc component []
-  (let [ref (rum/use-ref)]
+  (let [ref (rum/use-ref nil)]
     (rum/use-effect!
       #(.log js/console (rum/deref ref)))
     [:input {:ref ref}]))
