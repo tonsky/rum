@@ -383,6 +383,10 @@
   ([setup-fn])
   ([setup-fn deps]))
 
+(defn use-layout-effect!
+  ([setup-fn])
+  ([setup-fn deps]))
+
 (defn use-callback
   ([callback] callback)
   ([callback deps] callback))

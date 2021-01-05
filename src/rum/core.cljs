@@ -541,6 +541,21 @@
    (->> (if (array? deps) deps (into-array deps))
         (.useEffect js/React #(or (setup-fn) js/undefined)))))
 
+(defn use-layout-effect!
+  "(rum/use-layout-effect!
+    (fn []
+      (.addEventListener js/window \"load\" handler)
+      #(.removeEventListener js/window \"load\" handler))
+    []) ;; empty deps collection instructs React to run setup-fn only once on initial render
+        ;; and cleanup-fn only once before unmounting
+
+  Read more at https://reactjs.org/docs/hooks-effect.html"
+  ([setup-fn]
+   (.useLayoutEffect js/React #(or (setup-fn) js/undefined)))
+  ([setup-fn deps]
+   (->> (if (array? deps) deps (into-array deps))
+        (.useLayoutEffect js/React #(or (setup-fn) js/undefined)))))
+
 (defn use-callback
   "Takes callback function and returns memoized variant, memoization is done based on provided deps collection.
 
