@@ -2,7 +2,9 @@
   (:require [daiquiri.normalize :as normalize]
             [daiquiri.util :refer :all]
             [clojure.set :as set]
-            [cljs.analyzer :as ana]))
+            [cljs.analyzer :as ana]
+            [cljs.env :as env]
+            [cljs.compiler :as cljsc]))
 
 (def warn-on-interpretation (atom false))
 
@@ -116,18 +118,111 @@
     'daiquiri.core/fragment
     (name tag)))
 
-(declare compile-react)
+;; https://github.com/clojure/clojurescript/blob/b38ded99dc0967a48824d55ea644bee86b4eae5b/src/main/clojure/cljs/compiler.cljc#L1786
+(defn emit-constants-table [table]
+  (cljsc/emitln "goog.provide('" (cljsc/munge ana/constants-ns-sym) "');")
+  (cljsc/emitln "goog.require('cljs.core');")
+  (doseq [[sym value] table]
+    (cond
+      (keyword? sym)
+      (do (cljsc/emits "cljs.core." value " = ")
+          (cljsc/emits-keyword sym))
+
+      (symbol? sym)
+      (do (cljsc/emits "cljs.core." value " = ")
+          (cljsc/emits-symbol sym))
+
+      (.startsWith ^String (name value) "rum-element-")
+      (do (cljsc/emits "cljs.core." (cljsc/munge value) " = ")
+          (-> sym meta :ast cljsc/emits))
+
+      :else (throw
+              (ex-info
+                (str "Cannot emit constant for type " (type sym))
+                {:error :invalid-constant-type
+                 :clojure.error/phase :compilation})))
+
+    (cljsc/emits ";\n")))
+
+(alter-var-root #'cljs.compiler/emit-constants-table
+                (fn [_] emit-constants-table))
+
+(defn gen-constant-id [val]
+  (symbol (str "rum-element-" (hash val))))
+
+;; https://github.com/clojure/clojurescript/blob/d79eda372f35e3c79c1f9cec1219266b60d40cb4/src/main/clojure/cljs/analyzer.cljc#L565
+(defn register-constant! [env val]
+  (let [id (gen-constant-id val)]
+    (swap! env/*compiler*
+           (fn [cenv]
+             (-> cenv
+                 (update-in [::ana/constant-table] #(if (get % val) % (assoc % val id)))
+                 (update-in [::ana/namespaces (-> env :ns :name) ::ana/constants]
+                            (fn [{:keys [seen order] :or {seen #{} order []} :as constants}]
+                              (cond-> constants
+                                      (not (contains? seen val))
+                                      (assoc :seen (conj seen val)
+                                             :order (conj order val))))))))
+    id))
+
+(defn static-value? [v]
+  (cond
+    (coll? v) (every? static-value? v)
+    (symbol? v) (.startsWith ^String (str v) "cljs.core.rum_element_")
+    :else (not (symbol? v))))
+
+(defn static-element? [tag attrs children]
+  (and (not (:ref attrs))
+       (static-value? [tag attrs children])))
+
+(defn maybe-hoist-element [env hiccup compiled tag attrs children]
+  (if (and (-> @env/*compiler* :options :optimize-constants)
+           (static-element? tag attrs children))
+    (let [ast (ana/analyze (assoc env :context :expr) compiled)
+          sym (register-constant! env (with-meta hiccup {:ast ast}))]
+      (symbol (str "cljs.core." (cljsc/munge sym))))
+    compiled))
+
+(declare compile-react js-obj)
+
+(defn inline-element [tag attrs children]
+  (let [{:keys [ref key]} attrs
+        react-key (cond
+                    (string? key) key
+                    (nil? key) nil
+                    :else `(str ~key))
+        attrs (if (seq children)
+                (->> (cond
+                       (seq? children)
+                       (if (== 1 (count children))
+                         (first children)
+                         `(cljs.core/array ~@children))
+
+                       (seq children) children)
+                     (assoc attrs :children))
+                attrs)
+        props (-> attrs
+                  (dissoc :key :ref)
+                  js-obj)]
+    (js-obj {:$$typeof `(~'js* "Symbol.for(~{})" "react.element")
+             :type tag
+             :ref ref
+             :key react-key
+             :props props
+             :_owner nil})))
 
 (defn compile-react-element
   "Render an element vector as a HTML element."
   [element env]
-  (let [[tag attrs content] (normalize/element element)]
-    `(daiquiri.core/create-element
-      ~(compile-tag tag)
-      ~(when (seq attrs)
-         (compile-attrs attrs))
-      ~(when (seq content)
-         `(cljs.core/array ~@(compile-react content env))))))
+  (let [[tag attrs content] (normalize/element element)
+        ctag (compile-tag tag)
+        children (compile-react content env)]
+    (if (string? ctag)
+      (maybe-hoist-element env element (inline-element tag attrs children) tag attrs content)
+      `(daiquiri.core/create-element ~ctag
+                                     ~(when (seq attrs)
+                                        (compile-attrs attrs))
+                                     ~children))))
 
 (defn- unevaluated?
   "True if the expression has not been evaluated."
