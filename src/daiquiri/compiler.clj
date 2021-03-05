@@ -1,10 +1,14 @@
 (ns daiquiri.compiler
   (:require [daiquiri.normalize :as normalize]
             [daiquiri.util :refer :all]
-            [clojure.set :as set]
-            [cljs.analyzer :as ana]))
+            [clojure.set :as set]))
 
 (def warn-on-interpretation (atom false))
+
+(defn- requiring-resolve [sym]
+  (or (resolve sym)
+      (do (require (-> sym namespace symbol))
+          (resolve sym))))
 
 (defn maybe-warn-on-interpret
   ([env expr]
@@ -14,7 +18,8 @@
      (binding [*out* *err*]
        (let [column (:column env)
              line (:line env)]
-         (println (str "WARNING: interpreting by default at " ana/*cljs-file* ":" line ":" column))
+         (require 'cljs.analyzer)
+         (println (str "WARNING: interpreting by default at " (requiring-resolve 'cljs.analyzer/*cljs-file*) ":" line ":" column))
          (prn expr)
          (when tag
            (println "Inferred tag was:" tag)))))))
@@ -39,7 +44,9 @@
   "Infer the tag of `form` using `env`."
   [env form]
   (when env
-    (let [e (ana/no-warn (ana/analyze env form))
+    (let [e (with-bindings* {(requiring-resolve 'cljs.analyzer/*cljs-warnings*) {}}
+              (fn []
+                ((requiring-resolve 'cljs.analyzer/analyze) env form)))
           ;; Roman. Propagating Rum's component return tag
           ;; via :rum/tag meta field, because a component
           ;; is generated as a `def` instead of `defn`
@@ -47,7 +54,7 @@
                     (-> e :fn :info :meta :rum/tag second))]
       (if rum-tag
         (normalize-tags rum-tag)
-        (when-let [tags (ana/infer-tag env e)]
+        (when-let [tags ((requiring-resolve 'cljs.analyzer/infer-tag) env e)]
           (normalize-tags tags))))))
 
 (declare to-js to-js-map)
