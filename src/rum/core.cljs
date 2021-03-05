@@ -34,8 +34,8 @@
            vals
            (run! #(.warn js/console %)))))
   (let [init           (collect   :init mixins)             ;; state props -> state
-        will-mount     (collect [:will-mount] mixins)   ;; state -> state
-        before-render  (collect* [:unsafe/will-mount
+        before-render  (collect* [:will-mount
+                                  :unsafe/will-mount
                                   :before-render] mixins)   ;; state -> state
         render         render                               ;; state -> [dom state]
         wrap-render    (collect   :wrap-render mixins)      ;; render-fn -> render-fn
@@ -45,8 +45,8 @@
         will-remount    (collect* [:did-remount             ;; state -> state
                                    :will-remount] mixins)   ;; old-state state -> state
         should-update  (collect   :should-update mixins)    ;; old-state state -> boolean
-        will-update    (collect [:will-update] mixins)   ;; state -> state
         before-update  (collect* [:unsafe/will-update
+                                  :unsafe/will-update
                                   :before-render] mixins)   ;; state -> state
         did-update     (collect* [:did-update               ;; state -> state
                                   :after-render] mixins)    ;; state -> state
@@ -67,12 +67,6 @@
                                   (.call js/React.Component this props)))
         _              (goog/inherits ctor js/React.Component)
         prototype      (gobj/get ctor "prototype")]
-
-    (when-not (empty? will-mount)
-      (gobj/set prototype "componentWillMount"
-                (fn []
-                  (this-as this
-                           (vswap! (state this) call-all will-mount)))))
 
     (when-not (empty? before-render)
       (gobj/set prototype "UNSAFE_componentWillMount"
@@ -103,13 +97,6 @@
                            (let [old-state @(state this)
                                  new-state @(gobj/get next-state ":rum/state")]
                              (or (some #(% old-state new-state) should-update) false))))))
-
-    (when-not (empty? will-update)
-      (gobj/set prototype "componentWillUpdate"
-                (fn [_ next-state]
-                  (this-as this
-                           (let [new-state (gobj/get next-state ":rum/state")]
-                             (vswap! new-state call-all will-update))))))
 
     (when-not (empty? before-update)
       (gobj/set prototype "UNSAFE_componentWillUpdate"
