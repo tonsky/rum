@@ -39,13 +39,20 @@
                     (attributes attrs)
                     (interpret-seq content))))
 
+(defn fragment [[type attrs & children]]
+  (let [[attrs children] (if (map? attrs)
+                           [(attributes attrs) (interpret-seq children)]
+                           [nil (interpret-seq (into [attrs] children))])]
+    (create-element js/React.Fragment attrs children)))
+
 (defn- interpret-vec
   "Interpret the vector `x` as an HTML element or a the children of an
   element."
   [x]
-  (if (util/element? x)
-    (element x)
-    (interpret-seq x)))
+  (cond
+    (util/fragment? (nth x 0 nil)) (fragment x)
+    (util/element? x) (element x)
+    :else (interpret-seq x)))
 
 (defn interpret [v]
   (cond

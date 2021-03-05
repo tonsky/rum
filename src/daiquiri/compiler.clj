@@ -52,12 +52,6 @@
 
 (declare to-js to-js-map)
 
-(defn fragment?
-  "Returns true if `tag` is the fragment tag \"*\" or \"<>\", otherwise false."
-  [tag]
-  (or (= (name tag) "*")
-      (= (name tag) "<>")))
-
 (defmulti compile-attr (fn [name value] name))
 
 (defmethod compile-attr :class [_ value]

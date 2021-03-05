@@ -434,7 +434,7 @@
   [attrs & children]
   (let [[attrs children] (if (map? attrs)
                            [attrs children]
-                           [nil (concat [attrs] children)])]
+                           [nil (into [attrs] children)])]
     (if-not (:ns &env)
       `(list ~@children)
       `(.createElement js/React

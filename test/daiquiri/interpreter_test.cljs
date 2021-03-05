@@ -78,3 +78,13 @@
     (is (= "div" (.. c2 -type)))
     (is (= "!Pixel Scout" (.. c2 -props -children)))))
 
+(deftest test-fragment
+  (let [el (interpret [:<> 1 2])]
+    (is (= js/React.Fragment (.. el -type)))
+    (is (= 1 (aget (.. el -props -children) 0)))
+    (is (= 2 (aget (.. el -props -children) 1))))
+  (let [el (interpret [:<> {:key 11}  1 2])]
+    (is (= js/React.Fragment (.. el -type)))
+    (is (= "11" (.-key el)))
+    (is (= 1 (aget (.. el -props -children) 0)))
+    (is (= 2 (aget (.. el -props -children) 1)))))

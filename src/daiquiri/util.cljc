@@ -46,6 +46,12 @@
         (update :style camel-case-keys)))
     m))
 
+(defn fragment?
+  "Returns true if `tag` is the fragment tag \"*\" or \"<>\", otherwise false."
+  [tag]
+  (or (= (name tag) "*")
+      (= (name tag) "<>")))
+
 (defn element?
   "Return true if `x` is an HTML element. True when `x` is a vector
   and the first element is a keyword, e.g. `[:div]` or `[:div [:span \"x\"]`."
