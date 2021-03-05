@@ -276,6 +276,10 @@
   "Returns the compilation strategy to use for a given element."
   [[tag attrs & content :as element] env]
   (cond
+    ;; e.g. [:> ...]
+    (= tag :>)
+    ::react-interop
+
     ;; e.g. [:span "foo"]
     (every? literal? element)
     ::all-literal
@@ -315,6 +319,10 @@
           element."
   {:private true}
   element-compile-strategy)
+
+(defmethod compile-element ::react-interop
+  [element env]
+  `(rum.core/adapt-class ~@(rest element)))
 
 (defmethod compile-element ::all-literal
   [element env]
