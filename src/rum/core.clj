@@ -431,7 +431,7 @@
 
 (defmacro fragment
   "(rum/fragment [button] [input] ...)"
-  [{:keys [key] :as attrs} & children]
+  [attrs & children]
   (let [[attrs children] (if (map? attrs)
                            [attrs children]
                            [nil (concat [attrs] children)])]
