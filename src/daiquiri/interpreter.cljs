@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [daiquiri.normalize :as normalize]
             [daiquiri.util :as util]
-            [cljsjs.react]))
+            [cljsjs.react]
+            [goog.object :as gobj]))
 
 (defn ^js/React.Element create-element
   "Create a React element. Returns a JavaScript object when running
@@ -10,7 +11,14 @@
   [type attrs children]
   (.apply (.-createElement js/React) nil (.concat #js [type attrs] children)))
 
-(defn attributes [attrs]
+(defn component-attributes [attrs]
+  (let [x (util/camel-case-keys* attrs)]
+    (let [m (js-obj)]
+      (doseq [[k v] x]
+        (gobj/set m (name k) v))
+      m)))
+
+(defn element-attributes [attrs]
   (when-let [js-attrs (clj->js (util/html-to-dom-attrs attrs))]
     (let [class (.-className js-attrs)
           class (if (array? class) (str/join " " class) class)]
@@ -36,14 +44,20 @@
   [element]
   (let [[type attrs content] (normalize/element element)]
     (create-element type
-                    (attributes attrs)
+                    (element-attributes attrs)
                     (interpret-seq content))))
 
-(defn fragment [[type attrs & children]]
+(defn fragment [[_ attrs & children]]
   (let [[attrs children] (if (map? attrs)
-                           [(attributes attrs) (interpret-seq children)]
+                           [(component-attributes attrs) (interpret-seq children)]
                            [nil (interpret-seq (into [attrs] children))])]
     (create-element js/React.Fragment attrs children)))
+
+(defn interop [[_ component attrs & children]]
+  (let [[attrs children] (if (map? attrs)
+                           [(component-attributes attrs) (interpret-seq children)]
+                           [nil (interpret-seq (into [attrs] children))])]
+    (create-element component attrs children)))
 
 (defn- interpret-vec
   "Interpret the vector `x` as an HTML element or a the children of an
@@ -51,6 +65,7 @@
   [x]
   (cond
     (util/fragment? (nth x 0 nil)) (fragment x)
+    (keyword-identical? :> (nth x 0 nil)) (interop x)
     (util/element? x) (element x)
     :else (interpret-seq x)))
 

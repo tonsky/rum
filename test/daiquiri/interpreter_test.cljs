@@ -88,3 +88,16 @@
     (is (= "11" (.-key el)))
     (is (= 1 (aget (.. el -props -children) 0)))
     (is (= 2 (aget (.. el -props -children) 1)))))
+
+(deftest test-interop
+  (let [c (fn [^js props] (.-x props))
+        el1 (interpret [:> c {:x 1 :class [1 2] :style {:y 2}} 2])
+        el2 (interpret [:> c 2])]
+    (is (= c (.. el1 -type)))
+    (is (= 1 (.. el1 -props -x)))
+    (is (= [1 2] (.. el1 -props -class)))
+    (is (= {:y 2} (.. el1 -props -style)))
+    (is (= 2 (.. el1 -props -children)))
+
+    (is (= c (.. el2 -type)))
+    (is (= 2 (.. el2 -props -children)))))

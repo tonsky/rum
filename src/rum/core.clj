@@ -439,7 +439,7 @@
       `(list ~@children)
       `(.createElement js/React
                        (.-Fragment js/React)
-                       ~(compiler/compile-attrs attrs)
+                       ~(compiler/to-js attrs)
                        ~@(map #(compiler/compile-html % &env) children)))))
 
 ;; JS components adapter
@@ -461,5 +461,5 @@
                            [attrs children]
                            [nil (cons attrs children)])]
     (if (:ns &env)
-      `(adapt-class-helper ~type ~(compiler/compile-attrs attrs) (cljs.core/array ~@(map #(compiler/compile-html % &env) children)))
+      `(adapt-class-helper ~type ~(compiler/to-js attrs) (cljs.core/array ~@(map #(compiler/compile-html % &env) children)))
       `(JSComponent. (*render-js-component* '~type ~attrs [~@children])))))

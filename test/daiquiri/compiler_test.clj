@@ -97,7 +97,7 @@
      '[:div.foo (str "bar" "baz")] '(clojure.core/let [attrs (str "bar" "baz")]
                                       (daiquiri.core/create-element "div"
                                                                     (if (clojure.core/map? attrs)
-                                                                      (daiquiri.interpreter/attributes (daiquiri.normalize/merge-with-class {:class ["foo"]} attrs))
+                                                                      (daiquiri.interpreter/element-attributes (daiquiri.normalize/merge-with-class {:class ["foo"]} attrs))
                                                                       (js* "{'className':~{}}" "foo"))
                                                                     (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))))
   (testing "tags containing text"
@@ -114,7 +114,7 @@
     (are-html
      '[:div (list "foo" "bar")] '(clojure.core/let [attrs (list "foo" "bar")]
                                    (daiquiri.core/create-element "div"
-                                                                 (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                                                 (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                                                  (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))
      '(list [:p "a"] [:p "b"])
      '(daiquiri.compiler/interpret-maybe (list [:p "a"] [:p "b"]))))
@@ -170,19 +170,19 @@
       (are-html
        '[:span x] '(clojure.core/let [attrs x]
                      (daiquiri.core/create-element "span"
-                                                   (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                                   (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                                    (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))
        '[:span ^:attrs y] '(clojure.core/let [attrs y]
-                             (daiquiri.core/create-element "span" (daiquiri.interpreter/attributes attrs) nil)))))
+                             (daiquiri.core/create-element "span" (daiquiri.interpreter/element-attributes attrs) nil)))))
   (testing "tag content can be forms, and forms can be type-hinted with some metadata"
     (are-html
      '[:span (str (+ 1 1))] '(clojure.core/let [attrs (str (+ 1 1))]
                                (daiquiri.core/create-element "span"
-                                                             (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                                             (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                                              (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))
      [:span ({:foo "bar"} :foo)] '(daiquiri.core/create-element "span" nil (cljs.core/array "bar"))
      '[:span ^:attrs (merge {:type "button"} attrs)] '(clojure.core/let [attrs (merge {:type "button"} attrs)]
-                                                        (daiquiri.core/create-element "span" (daiquiri.interpreter/attributes attrs) nil))))
+                                                        (daiquiri.core/create-element "span" (daiquiri.interpreter/element-attributes attrs) nil))))
   (testing "attributes can contain vars"
     (let [id "id"]
       (are-html
@@ -264,7 +264,7 @@
        (cljs.core/array
         (daiquiri.core/create-element
          "li"
-         (js* "{'style':~{},'className':~{}}" (daiquiri.interpreter/attributes (hidden (nil? username))) "dropdown")
+         (js* "{'style':~{},'className':~{}}" (daiquiri.interpreter/element-attributes (hidden (nil? username))) "dropdown")
          (cljs.core/array
           (daiquiri.core/create-element
            "a"
@@ -287,7 +287,7 @@
    '[:div.aa (merge {:class "bb"})] '(clojure.core/let [attrs (merge {:class "bb"})]
                                        (daiquiri.core/create-element "div"
                                                                      (if (clojure.core/map? attrs)
-                                                                       (daiquiri.interpreter/attributes (daiquiri.normalize/merge-with-class {:class ["aa"]} attrs))
+                                                                       (daiquiri.interpreter/element-attributes (daiquiri.normalize/merge-with-class {:class ["aa"]} attrs))
                                                                        (js* "{'className':~{}}" "aa"))
                                                                      (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))))
 
@@ -295,7 +295,7 @@
   (are-html
    '[:div (count [1 2 3])] '(clojure.core/let [attrs (count [1 2 3])]
                               (daiquiri.core/create-element "div"
-                                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                                             (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))))
 
 (deftest test-issue-37-camel-case-style-attrs
@@ -322,7 +322,7 @@
   (is (=== (expand-html [:div (map identity ["A" "B"])])
            '(clojure.core/let [attrs (map identity ["A" "B"])]
               (daiquiri.core/create-element "div"
-                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                             (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs))))))))
 
 (deftest test-compile-div-with-nested-list
@@ -335,7 +335,7 @@
   (is (=== (expand-html [:div (vector "A" "B")])
            '(clojure.core/let [attrs (vector "A" "B")]
               (daiquiri.core/create-element "div"
-                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                            (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                             (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs))))))))
 
 (deftest test-class-as-set
@@ -393,7 +393,7 @@
                                                [attrs n]
                                                 (daiquiri.core/create-element
                                                  "li"
-                                                 (if (clojure.core/map? attrs) (daiquiri.interpreter/attributes attrs) nil)
+                                                 (if (clojure.core/map? attrs) (daiquiri.interpreter/element-attributes attrs) nil)
                                                  (if (clojure.core/map? attrs) nil (cljs.core/array (daiquiri.compiler/interpret-maybe attrs)))))))))))
   (is (=== (expand-html [:ul (for [n (range 3)] [:li ^:attrs n])])
            '(daiquiri.core/create-element "ul" nil
@@ -402,7 +402,7 @@
                                             (clojure.core/for
                                              [n (range 3)]
                                               (clojure.core/let [attrs n]
-                                                (daiquiri.core/create-element "li" (daiquiri.interpreter/attributes attrs) nil)))))))))
+                                                (daiquiri.core/create-element "li" (daiquiri.interpreter/element-attributes attrs) nil)))))))))
 
 (deftest test-compile-case
   (is (= (expand-html [:div {:class "a"}
@@ -485,14 +485,14 @@
 (deftest test-compile-attributes-non-literal-key
   (is (= (expand-html [:input {(case :checkbox :checkbox :checked :value) "x"}])
          '(daiquiri.core/create-element "input"
-                                        (daiquiri.interpreter/attributes {(case :checkbox :checkbox :checked :value) "x"})
+                                        (daiquiri.interpreter/element-attributes {(case :checkbox :checkbox :checked :value) "x"})
                                         (cljs.core/array)))))
 
 (deftest test-issue-158
   (is (= (expand-html [:div {:style (merge {:margin-left "2rem"}
                                            (when focused? {:color "red"}))}])
          '(daiquiri.core/create-element "div"
-                                        (js* "{'style':~{}}" (daiquiri.interpreter/attributes (merge {:margin-left "2rem"} (when focused? {:color "red"}))))
+                                        (js* "{'style':~{}}" (daiquiri.interpreter/element-attributes (merge {:margin-left "2rem"} (when focused? {:color "red"}))))
                                         (cljs.core/array)))))
 
 (deftest test-compile-when
@@ -545,7 +545,7 @@
     (analyze env '(defn attrs [] {:class "x"}))
     (is (=== (ana/macroexpand-1 env '(daiquiri.core/html [:div (attrs) "content"]))
              '(clojure.core/let [attrs (attrs)]
-                (daiquiri.core/create-element "div" (daiquiri.interpreter/attributes attrs) (cljs.core/array "content")))))))
+                (daiquiri.core/create-element "div" (daiquiri.interpreter/element-attributes attrs) (cljs.core/array "content")))))))
 
 (comment
   (with-compiler-env [env]

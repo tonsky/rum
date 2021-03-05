@@ -70,7 +70,7 @@
   (let [value (camel-case-keys value)]
     (if (map? value)
       (to-js-map value)
-      `(daiquiri.interpreter/attributes ~value))))
+      `(daiquiri.interpreter/element-attributes ~value))))
 
 (defmethod compile-attr :default [_ value]
   (to-js value))
@@ -93,13 +93,13 @@
            (empty-attrs? attrs-2))
       nil
       (empty-attrs? attrs-1)
-      `(daiquiri.interpreter/attributes ~attrs-2)
+      `(daiquiri.interpreter/element-attributes ~attrs-2)
       (empty-attrs? attrs-2)
-      `(daiquiri.interpreter/attributes ~attrs-1)
+      `(daiquiri.interpreter/element-attributes ~attrs-1)
       (and (map? attrs-1)
            (map? attrs-2))
       (normalize/merge-with-class attrs-1 attrs-2)
-      :else `(daiquiri.interpreter/attributes
+      :else `(daiquiri.interpreter/element-attributes
               (daiquiri.normalize/merge-with-class ~attrs-1 ~attrs-2)))))
 
 (defn- compile-tag
@@ -409,7 +409,7 @@
   [m]
   (if (every? literal? (keys m))
     (js-obj m)
-    `(daiquiri.interpreter/attributes ~m)))
+    `(daiquiri.interpreter/element-attributes ~m)))
 
 (defn- to-js-array
   "Convert a vector into a JavaScript array."

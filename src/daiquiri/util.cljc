@@ -33,6 +33,12 @@
           kk))
     k))
 
+(defn camel-case-keys* [m]
+  (->> (reduce-kv #(assoc! %1 (camel-case %2) %3)
+                  (transient {})
+                  m)
+       persistent!))
+
 (defn camel-case-keys
   "Recursively transforms all map keys into camel case."
   [m]
