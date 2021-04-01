@@ -44,7 +44,10 @@
   "Infer the tag of `form` using `env`."
   [env form]
   (when env
-    (let [e (with-bindings* {(requiring-resolve 'cljs.analyzer/*cljs-warnings*) {}}
+    (let [*analyzer-warnings* (requiring-resolve 'cljs.analyzer/*cljs-warnings*)
+          ;; We would want to use cljs.analyzer/no-warn here but we can't since
+          ;; it's a macro and won't work with requiring-resolve
+          e (with-bindings* {*analyzer-warnings* (zipmap (keys @*analyzer-warnings*) (repeat false))}
               (fn []
                 ((requiring-resolve 'cljs.analyzer/analyze) env form)))
           ;; Roman. Propagating Rum's component return tag
