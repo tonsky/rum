@@ -101,3 +101,8 @@
 
     (is (= c (.. el2 -type)))
     (is (= 2 (.. el2 -props -children)))))
+
+(deftest test-235
+  (let [c (interpret [:div [[:div] [:div]]])]
+    (is (= "div" (.. c -type)))
+    (is (= 2 (count (.. c -props -children))))))

@@ -64,7 +64,7 @@
   element."
   [x]
   (cond
-    (util/fragment? (nth x 0 nil)) (fragment x)
+    (util/fragment? x) (fragment x)
     (keyword-identical? :> (nth x 0 nil)) (interop x)
     (util/element? x) (element x)
     :else (interpret-seq x)))

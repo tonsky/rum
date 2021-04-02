@@ -52,11 +52,15 @@
         (update :style camel-case-keys)))
     m))
 
-(defn fragment?
+(defn fragment-tag?
   "Returns true if `tag` is the fragment tag \"*\" or \"<>\", otherwise false."
   [tag]
   (or (= (name tag) "*")
       (= (name tag) "<>")))
+
+(defn fragment? [v]
+  (and (vector? v)
+       (fragment-tag? (nth v 0 nil))))
 
 (defn element?
   "Return true if `x` is an HTML element. True when `x` is a vector

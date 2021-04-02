@@ -116,7 +116,7 @@
   "Replace fragment syntax (`:*` or `:<>`) by 'React.Fragment, otherwise the
   name of the tag"
   [tag]
-  (if (fragment? tag)
+  (if (fragment-tag? tag)
     'daiquiri.core/fragment
     (name tag)))
 
