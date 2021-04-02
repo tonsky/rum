@@ -1,4 +1,5 @@
 (ns daiquiri.compiler
+  (:refer-clojure :exclude [requiring-resolve])
   (:require [daiquiri.normalize :as normalize]
             [daiquiri.util :refer :all]
             [clojure.set :as set]))
