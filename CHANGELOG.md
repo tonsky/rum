@@ -1,3 +1,9 @@
+## 0.12.5
+
+### Fixes
+
+- Fixed warnings not being disabled in shadow-cljs @Azzurite
+
 ## 0.12.4
 
 ### New
