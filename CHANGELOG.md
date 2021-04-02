@@ -1,3 +1,9 @@
+## 0.12.6
+
+### Fixes
+
+- Fixed broken interpretation of a collection of elements, due to incorrect `fragment?` check #235
+
 ## 0.12.5
 
 ### Fixes

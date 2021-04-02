@@ -81,7 +81,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.12.5"]`
+Add to project.clj: `[rum "0.12.6"]`
 
 ### API Docs & Articles
 
@@ -642,7 +642,7 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 
 When used from cljs Rum delegates serizliation to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1.  Rum’s `project.clj` dependency becomes `[rum "0.12.5" :exclusions [cljsjs/react cljsjs/react-dom]`
+1.  Rum’s `project.clj` dependency becomes `[rum "0.12.6" :exclusions [cljsjs/react cljsjs/react-dom]`
 2.  Import `rum.core` as usual.
 3.  Define components using `rum/defc` or other macros as usual.
 4.  Instead of mounting, call `rum/render-html` to render into a string.
