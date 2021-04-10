@@ -26,6 +26,7 @@ Rum is a client/server library for HTML UI. In ClojureScript, it works as React 
     - [Custom class properties](#custom-class-properties)
     - [React context](#react-context)
     - [React Hooks](#react-hooks)
+    - [React Fragment](#react-fragment)
   - [Server-side rendering](#server-side-rendering)
 - [Support](#support)
   - [Talks](#talks)
@@ -627,13 +628,13 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 
 #### React Fragment
 
-`rum.core/fragment` macro can be used to render multiple components without wrapping element.
+Using `:<>` as the tag in a markup vector creates a React Fragment, allowing you to render multiple components without a wrapping element.
 
 ```clojure
-(rum/fragment
+[:<>
   [:span]
   [:div]
-  [:span])
+  [:span]]
 
 ;; <span></span><div></div><span></span>
 ```
