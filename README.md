@@ -74,7 +74,7 @@ Rum:
 - [Breast Predict](https://breast.predict.nhs.uk/), predicting survival after adjuvant treatment for breast cancer
 - [Prostate Predict](https://prostate.predict.nhs.uk/), prognostic model for men newly diagnosed with non-metastatic prostate cancer
 - [Wobaka](https://wobaka.com), CRM system
-- [Icebreaker](https://icebreaker.video/), online events
+- [Gatheround](https://gatheround.com/), online events
 - [Carrot / OpenCompany](https://github.com/open-company/open-company-web), company updates
 - [UXBOX](https://uxbox.io/), the open-source solution for design and prototyping
 - [Takeoff](https://www.takeoff.com), automated grocery fulfillment solution
