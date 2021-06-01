@@ -15,7 +15,7 @@
 
 (defn state
   "Given React component, returns Rum state associated with it."
-  [comp]
+  [^js/React.Component comp]
   (gobj/get (.-state comp) ":rum/state"))
 
 (defn- extend! [obj props]
@@ -88,7 +88,7 @@
                                                  (gobj/get next-props ":rum/initial-state"))
                                next-state (reduce #(%2 old-state %1) state will-remount)]
             ;; allocate new volatile so that we can access both old and new states in shouldComponentUpdate
-                           (.setState this #js {":rum/state" (volatile! next-state)})))))
+                           (.setState ^js/React.Component this #js {":rum/state" (volatile! next-state)})))))
 
     (when-not (empty? should-update)
       (gobj/set prototype "shouldComponentUpdate"
@@ -124,7 +124,7 @@
                 (fn [error info]
                   (this-as this
                            (vswap! (state this) call-all did-catch error {:rum/component-stack (gobj/get info "componentStack")})
-                           (.forceUpdate this)))))
+                           (.forceUpdate ^js/React.Component this)))))
 
     (gobj/set prototype "componentWillUnmount"
               (fn []
@@ -146,7 +146,7 @@
     ctor))
 
 (defn- set-meta! [c]
-  (let [f #(let [ctr (c)]
+  (let [f #(let [^js ctr (c)]
              (.apply ctr ctr (js-arguments)))]
     (specify! f IMeta (-meta [_] (meta (c))))
     f))
@@ -216,7 +216,7 @@
   (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
-(defn request-render [comp]
+(defn request-render [^js/React.Component comp]
   (.forceUpdate comp))
 
 (defn mount
@@ -336,7 +336,7 @@
    {:will-mount
     (fn [state]
       (let [local-state (atom initial)
-            component   ^js (:rum/react-component state)]
+            ^js/React.Component component (:rum/react-component state)]
         (add-watch local-state key
                    (fn [_ _ p n]
                      (when (not= p n)
@@ -381,7 +381,7 @@
                (add-watch ref key
                           (fn [_ _ p n]
                             (when (not= p n)
-                              (.forceUpdate comp))))))
+                              (.forceUpdate ^js/React.Component comp))))))
            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
    :will-unmount
    (fn [state]
@@ -608,7 +608,7 @@
   ([element opts]
    (if-not (identical? *target* "nodejs")
      (.renderToString js/ReactDOMServer element)
-     (let [react-dom-server (js/require "react-dom/server")]
+     (let [^js/ReactDOMServer react-dom-server (js/require "react-dom/server")]
        (.renderToString react-dom-server element)))))
 
 (defn render-static-markup
@@ -617,7 +617,7 @@
   [src]
   (if-not (identical? *target* "nodejs")
     (.renderToStaticMarkup js/ReactDOMServer src)
-    (let [react-dom-server (js/require "react-dom/server")]
+    (let [^js/ReactDOMServer react-dom-server (js/require "react-dom/server")]
       (.renderToStaticMarkup react-dom-server src))))
 
 ;; JS components adapter
