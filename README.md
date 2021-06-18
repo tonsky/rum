@@ -640,7 +640,7 @@ There are Rum wrappers for the various React hooks. See doc strings for examples
 
 ### Server-side rendering
 
-When used from cljs Rum delegates serizliation to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
+When used from cljs Rum delegates serialization to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
 1.  Rum’s `project.clj` dependency becomes `[rum "0.12.6" :exclusions [cljsjs/react cljsjs/react-dom]`
 2.  Import `rum.core` as usual.
