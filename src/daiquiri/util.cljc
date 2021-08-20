@@ -55,8 +55,11 @@
 (defn fragment-tag?
   "Returns true if `tag` is the fragment tag \"*\" or \"<>\", otherwise false."
   [tag]
-  (or (= (name tag) "*")
-      (= (name tag) "<>")))
+  (and (or (keyword? tag)
+           (symbol? tag)
+           (string? tag))
+       (or (= (name tag) "*")
+           (= (name tag) "<>"))))
 
 (defn fragment? [v]
   (and (vector? v)
