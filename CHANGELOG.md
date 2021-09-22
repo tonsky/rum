@@ -1,3 +1,9 @@
+## 0.12.7
+
+### Fixes
+
+- Actually fixed broken interpretation of a collection of elements, due to incorrect `fragment-tag?` check #235
+
 ## 0.12.6
 
 ### Fixes
