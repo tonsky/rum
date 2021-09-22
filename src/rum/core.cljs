@@ -216,8 +216,59 @@
   (let [render (fn [state] [(apply render-body (:rum/react-component state) (:rum/args state)) state])]
     (build-ctor render mixins display-name)))
 
-(defn request-render [comp]
-  (.forceUpdate comp))
+;; render queue
+
+
+(def ^:private schedule
+  (or (and (exists? js/window)
+           (or js/window.requestAnimationFrame
+               js/window.webkitRequestAnimationFrame
+               js/window.mozRequestAnimationFrame
+               js/window.msRequestAnimationFrame))
+      #(js/setTimeout % 16)))
+
+(def ^:private batch
+  (or (when (exists? js/ReactNative) js/ReactNative.unstable_batchedUpdates)
+      (when (exists? js/ReactDOM) js/ReactDOM.unstable_batchedUpdates)
+      (fn [f a] (f a))))
+
+(def ^:private empty-queue [])
+(def ^:private render-queue (volatile! empty-queue))
+
+(defn- render-one [comp]
+  (when (and (some? comp) (not (gobj/get comp ":rum/unmounted?")))
+    (.forceUpdate comp)))
+
+(defn- render-all [queue]
+  (run! render-one queue))
+
+(defn- render []
+  (let [queue @render-queue]
+    (vreset! render-queue empty-queue)
+    (batch render-all queue)))
+
+(def ^:private sync-update? (volatile! false))
+
+(defn request-render
+  "Schedules react component to be rendered on next animation frame,
+  unless the requested update happens to be in a sync-update phase."
+  [component]
+  (if @sync-update?
+    (render-one component)
+    (do
+      (when (empty? @render-queue)
+        (schedule render))
+      (vswap! render-queue conj component))))
+
+;; exporting to work around circular deps
+(defn ^:export mark-sync-update [f]
+  (if (fn? f)
+    (fn wrapped-handler [e]
+      (let [_ (vreset! sync-update? true)
+            ret (f e)
+            _ (vreset! sync-update? false)]
+        ret))
+    f))
 
 (defn mount
   "Add element to the DOM tree. Idempotent. Subsequent mounts will just update element."
@@ -340,7 +391,7 @@
         (add-watch local-state key
                    (fn [_ _ p n]
                      (when (not= p n)
-                       (.forceUpdate component))))
+                       (request-render component))))
         (assoc state key local-state)))}))
 
 
@@ -381,7 +432,7 @@
                (add-watch ref key
                           (fn [_ _ p n]
                             (when (not= p n)
-                              (.forceUpdate comp))))))
+                              (request-render comp))))))
            [dom (assoc next-state :rum.reactive/refs new-reactions)]))))
    :will-unmount
    (fn [state]
