@@ -711,10 +711,10 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 Rum was build on inspiration from [Quiescent](https://github.com/levand/quiescent), [Om](https://github.com/swannodette/om) and [Reagent](https://github.com/reagent-project/reagent).
 
-All heavy lifting done by [React](http://facebook.github.io/react/), [Ŝablono](https://github.com/r0man/sablono) and [ClojureScript](https://github.com/clojure/clojurescript).
+All heavy lifting done by [React](http://facebook.github.io/react/) and [ClojureScript](https://github.com/clojure/clojurescript).
 
 ## License
 
-Copyright © 2014 Nikita Prokopov
+Copyright © 2014 Nikita Prokopov, 2020 Roman Liutikov
 
 Licensed under Eclipse Public License (see [LICENSE](LICENSE)).
