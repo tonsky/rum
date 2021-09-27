@@ -22,6 +22,10 @@
   (when-let [js-attrs (clj->js (util/html-to-dom-attrs attrs))]
     (let [class (.-className js-attrs)
           class (if (array? class) (str/join " " class) class)]
+      (when (.-onChange js-attrs)
+        ;; Wrapping on-change handler to work around async rendering queue
+        ;; that causes jumping caret and lost characters in input fields
+        (set! (.-onChange js-attrs) (js/rum.core.mark_sync_update (.-onChange js-attrs))))
       (if (str/blank? class)
         (js-delete js-attrs "className")
         (set! (.-className js-attrs) class))

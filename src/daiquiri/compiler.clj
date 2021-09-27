@@ -86,6 +86,13 @@
 (defmethod compile-attr :default [_ value]
   (to-js value))
 
+(defn wrap-event-handlers
+  "Wrapping on-change handler to work around async rendering queue
+  that causes jumping caret and lost characters in input fields"
+  [attrs]
+  (cond-> attrs
+          (:on-change attrs) (assoc :on-change `(rum.core/mark-sync-update ~(:on-change attrs)))))
+
 (defn compile-attrs
   "Compile a HTML attribute map."
   [attrs]
@@ -94,6 +101,7 @@
          (reduce (fn [attrs [name value]]
                    (assoc attrs name (compile-attr name value)))
                  nil)
+         wrap-event-handlers
          html-to-dom-attrs
          to-js-map)))
 
