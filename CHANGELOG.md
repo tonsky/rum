@@ -1,3 +1,9 @@
+## 0.12.8
+
+### Fixes
+
+- Bringing back async rendering queue to address performance issues in existing clients
+
 ## 0.12.7
 
 ### Fixes

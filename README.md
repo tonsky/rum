@@ -82,7 +82,7 @@ Rum:
 
 ## Using Rum
 
-Add to project.clj: `[rum "0.12.7"]`
+Add to project.clj: `[rum "0.12.8"]`
 
 ### API Docs & Articles
 
@@ -643,7 +643,7 @@ Using `:<>` as the tag in a markup vector creates a React Fragment, allowing you
 
 When used from cljs Rum delegates serialization to ReactDOM library. If used from clj/cljc, Rum works as a traditional template engine à la Hiccup:
 
-1.  Rum’s `project.clj` dependency becomes `[rum "0.12.7" :exclusions [cljsjs/react cljsjs/react-dom]`
+1.  Rum’s `project.clj` dependency becomes `[rum "0.12.8" :exclusions [cljsjs/react cljsjs/react-dom]`
 2.  Import `rum.core` as usual.
 3.  Define components using `rum/defc` or other macros as usual.
 4.  Instead of mounting, call `rum/render-html` to render into a string.
