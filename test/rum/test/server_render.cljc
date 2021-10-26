@@ -123,7 +123,7 @@
             {:background-image "url('123')" ;; should escape quotes
              :fontWeight       10      ;; should convert from react-style properties to CSS
              "WebkitFlex"      1       ;; prefixed react-style prop
-             "msFlex"          1       ;; prefixed react-style prop (lowecase ms)
+             "msFlex"          1       ;; prefixed react-style prop (lowercase ms)
              "zIndex"          1}}]]) ;; accept strings too
 
 
