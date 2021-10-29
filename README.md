@@ -58,6 +58,7 @@ Rum:
 
 ### Who’s using Rum?
 
+- [Arc Studio](https://www.arcstudiopro.com), collaborative screenwriting app
 - [Cognician](https://www.cognician.com), coaching platform
 - [Attendify](https://attendify.com), mobile app builder
 - [PartsBox.io](https://partsbox.io), inventory management
