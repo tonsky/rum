@@ -686,7 +686,6 @@ Server-side components do not have full lifecycle support, but `:init` and `:wil
 
 - [Rum workshop](https://www.youtube.com/watch?v=RqHnxkU9TZE) at Cognician, by me
 - [Norbert Wójtowicz talk at Lambda Days 2015](https://vimeo.com/122316380) where he explains benefits of web development with ClojureScript and React, and how Rum emulates all main ClojureScript frameworks
-- [Hangout about Rum](https://www.youtube.com/watch?v=8evDKjD5vt4) (in Russian)
 
 ### App templates
 
