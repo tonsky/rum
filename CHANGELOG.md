@@ -1,3 +1,7 @@
+## 0.12.9
+
+- restored :will-update for backward compatibility #249 thx @tiensonqin
+
 ## 0.12.8
 
 ### Fixes
