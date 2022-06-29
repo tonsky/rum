@@ -2,7 +2,7 @@
   (:require
    [clojure.string :as str])
   (:import
-   [clojure.lang IPersistentVector ISeq Named Numbers Ratio Keyword PersistentArrayMap]))
+   [clojure.lang IPersistentVector ISeq Ratio Keyword]))
 
 (defn nothing? [element]
   (and (vector? element)
