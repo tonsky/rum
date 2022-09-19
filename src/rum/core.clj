@@ -363,9 +363,11 @@
     ...)"
   [[context value] & body]
   (if (:ns &env)
-    `(.createElement js/React (.-Provider ~context)
-                     (cljs.core/js-obj "value" ~value)
-                     ~@(map #(compiler/compile-html % &env) body))
+    (let [ctx (with-meta (gensym "ctx") {:tag 'js})]
+      `(let [~ctx ~context]
+         (.createElement js/React (.-Provider ~ctx)
+                         (cljs.core/js-obj "value" ~value)
+                         ~@(map #(compiler/compile-html % &env) body))))
     `(binding [~context ~value]
        ~@body)))
 
