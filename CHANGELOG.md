@@ -1,3 +1,7 @@
+## 0.12.10
+
+- add ^js typehint to React Context #251 #256 thx @alexdao3
+
 ## 0.12.9
 
 - restored :will-update for backward compatibility #249 thx @tiensonqin
