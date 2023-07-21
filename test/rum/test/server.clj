@@ -84,3 +84,41 @@
          '([a] [a b] [a b c])))
   (is (= (:arglists (meta #'comp-arglists-1))
          '([a] [a b] [a b c]))))
+
+(deftest test-select-multiple
+  (testing "Set value"
+   (is (= (rum/render-static-markup [:select {:value    #{"v1" "v2"}
+                                              :multiple true}
+                                     [:option {:value "v1"}]
+                                     [:option {:value "v2"}]
+                                     [:option {:value "v3"}]
+                                     ])
+          (str "<select multiple=\"\">"
+               "<option selected=\"\" value=\"v1\"></option>"
+               "<option selected=\"\" value=\"v2\"></option>"
+               "<option value=\"v3\"></option>"
+               "</select>"))))
+
+  (testing "Vector value"
+    (is (= (rum/render-static-markup [:select {:value    ["v1" "v2"]
+                                               :multiple true}
+                                      [:option {:value "v1"}]
+                                      [:option {:value "v2"}]
+                                      [:option {:value "v3"}]])
+           (str "<select multiple=\"\">"
+                "<option selected=\"\" value=\"v1\"></option>"
+                "<option selected=\"\" value=\"v2\"></option>"
+                "<option value=\"v3\"></option>"
+                "</select>"))))
+
+  (testing "List value"
+   (is (= (rum/render-static-markup [:select {:value    (list "v1" "v2")
+                                              :multiple true}
+                                     [:option {:value "v1"}]
+                                     [:option {:value "v2"}]
+                                     [:option {:value "v3"}]])
+          (str "<select multiple=\"\">"
+               "<option selected=\"\" value=\"v1\"></option>"
+               "<option selected=\"\" value=\"v2\"></option>"
+               "<option value=\"v3\"></option>"
+               "</select>")))))
