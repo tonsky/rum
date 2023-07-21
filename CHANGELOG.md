@@ -1,3 +1,7 @@
+## 0.12.11
+
+- Support `multiple` flag for `select` #259 thx @tomasd
+
 ## 0.12.10
 
 - add ^js typehint to React Context #251 #256 thx @alexdao3
