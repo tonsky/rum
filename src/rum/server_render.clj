@@ -9,6 +9,7 @@
        (= :rum/nothing (first element))))
 
 (def ^:dynamic *select-value*)
+(def ^:dynamic *multiple?*)
 
 (defn append!
   ([^StringBuilder sb s0] (.append sb s0))
@@ -390,7 +391,15 @@
             (append! sb " type=\"" (escape-html (to-str type)) "\""))
 
           (when (and (= "option" tag)
-                     (= (get-value attrs) *select-value*))
+                     (or (= (get-value attrs) *select-value*)
+                         (and *multiple?*
+                              (set? *select-value*)
+                              (contains? *select-value* (get-value attrs)))
+                         (and *multiple?*
+                              (sequential? *select-value*)
+                              (->> *select-value*
+                                   (filter #(= (get-value attrs) %))
+                                   (seq)))))
             (append! sb " selected=\"\""))
 
           (when id
@@ -407,7 +416,8 @@
             (vreset! *state :state/tag-open))
 
           (if (= "select" tag)
-            (binding [*select-value* (get-value attrs)]
+            (binding [*select-value* (get-value attrs)
+                      *multiple?* (:multiple attrs)]
               (render-content! tag attrs children *state sb))
             (render-content! tag attrs children *state sb)))))))
 
