@@ -20,7 +20,7 @@
        (let [column (:column env)
              line (:line env)]
          (require 'cljs.analyzer)
-         (println (str "WARNING: interpreting by default at " (requiring-resolve 'cljs.analyzer/*cljs-file*) ":" line ":" column))
+         (println (str "WARNING: interpreting by default at " (some-> (requiring-resolve 'cljs.analyzer/*cljs-file*) deref) ":" line ":" column))
          (prn expr)
          (when tag
            (println "Inferred tag was:" tag)))))))
