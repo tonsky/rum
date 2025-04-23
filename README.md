@@ -83,6 +83,7 @@ Rum:
 - [Carrot / OpenCompany](https://github.com/open-company/open-company-web), company updates
 - [UXBOX](https://uxbox.io/), the open-source solution for design and prototyping
 - [Takeoff](https://www.takeoff.com), automated grocery fulfillment solution
+- [DevITJobs](https://devitjobs.com), transparent tech job board
 
 ## Using Rum
 
